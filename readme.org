@@ -20,5 +20,4 @@
 + Bootstrap: [[https://getbootstrap.com/docs/5.1/getting-started/introduction/][Bootstrap 5.1 Documentation]]
 
 
-* Local Variables                                                  :noexport:
 #  LocalWords:  API
