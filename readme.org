@@ -1,0 +1,23 @@
+#+tittle: Web Application that uses Spring Boot framework
+#+LANGUAGE: EN
+#+AUTHOR: MySelf.1664
+
+* API
+
+** v0
+
+EXTENDED LIST:
+
++ *User* | /api/v0/user
+  - *add* | /add | POST 
+  - *show* | /show/{id} | GET
+
+TABLE:
+
+| ACTION | URL          | METHOD | BODY |
+|--------+--------------+--------+------|
+| USER:  | /api/v0/user |        |      |
+|--------+--------------+--------+------|
+| * add  | /add         | POST   |      |
+| * show | /show/{id}   | GET    |      |
+|        |              |        |      |
