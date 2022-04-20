@@ -2,17 +2,10 @@
 #+LANGUAGE: EN
 #+AUTHOR: MySelf.1664
 
+* About
 * API
 
 ** v0
-
-EXTENDED LIST:
-
-+ *User* | /api/v0/user
-  - *add* | /add | POST 
-  - *show* | /show/{id} | GET
-
-TABLE:
 
 | ACTION | URL          | METHOD | BODY |
 |--------+--------------+--------+------|
@@ -21,3 +14,11 @@ TABLE:
 | * add  | /add         | POST   |      |
 | * show | /show/{id}   | GET    |      |
 |        |              |        |      |
+
+* References 
+
++ Bootstrap: [[https://getbootstrap.com/docs/5.1/getting-started/introduction/][Bootstrap 5.1 Documentation]]
+
+
+* Local Variables                                                  :noexport:
+#  LocalWords:  API
