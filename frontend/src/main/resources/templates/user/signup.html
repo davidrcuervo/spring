@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Sing Up</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <h1 class="text-center">Sign Up</h1>
+        <div th:replace="layout/form.html :: form">
+            this should not appear
+        </div>
+    </div>
+</body>
+</html>

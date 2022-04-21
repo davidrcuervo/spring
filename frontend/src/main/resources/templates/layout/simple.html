@@ -40,12 +40,13 @@
                     </form>
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 col-lg">
                         <li class="nav-item dropdown mx-lg-auto">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#"
+                               th:classappend="${#request.requestURI == '/user/signup.html' ? 'active':''}">
                                 User & Settings
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li><i class="bi-person-fill"></i> User:</li>
-                                <li><a class="dropdown-item" href="#">Sign Up</a></li>
+                                <li><a class="dropdown-item" th:href="@{/user/signup.html}">Sign Up</a></li>
                                 <li><a class="dropdown-item" href="#">Log In</a></li>
                                 <li><a class="dropdown-item" href="#">Log Out</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -64,6 +65,9 @@
             <h1>Hello world!!!</h1>
         </div>
     </main>
+    <footer>
+        <div>URI: <span th:text="${#request.requestURI}">home.html</span></div>
+    </footer>
 
 </body>
 </html>

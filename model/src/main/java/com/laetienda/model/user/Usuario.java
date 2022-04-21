@@ -2,11 +2,11 @@ package com.laetienda.model.user;
 
 import com.laetienda.lib.annotation.HtmlForm;
 import com.laetienda.lib.annotation.HtmlInput;
-import com.laetienda.lib.interfaces.Form;
+import com.laetienda.lib.interfaces.Forma;
 import com.laetienda.lib.options.HtmlInputType;
 
 @HtmlForm(name="usuario", url = "/signup.html")
-public class Usuario implements Form {
+public class Usuario implements Forma {
 
     @HtmlInput(label = "Username", placeholder = "Place the username", style_size="col-md-12")
     private String username;    //userid, uid
