@@ -1,4 +1,4 @@
-package com.laetienda.frontend;
+package com.laetienda.frontend.configuration;
 
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.repository.FormRepositoryImpl;
