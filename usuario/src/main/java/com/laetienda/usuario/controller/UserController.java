@@ -11,6 +11,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v0/user")
@@ -24,23 +26,13 @@ public class UserController {
     }
 
     @PostMapping("add")
-    public Usuario add(@Valid @RequestBody Usuario user){
-        return user;
+    public ResponseEntity<Usuario> add(@Valid @RequestBody Usuario user){
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("test")
-    public ResponseEntity test(@Valid @RequestBody Prueba prueba, BindingResult validation){
-        ResponseEntity result = null;
-
-        if(validation.hasErrors()){
-            result = new ResponseEntity(HttpStatus.BAD_REQUEST);
-            for(FieldError error : validation.getFieldErrors()){
-                log.debug("{}: {}", error.getField(), error.getDefaultMessage());
-
-            }
-        }else{
-            result = new ResponseEntity(HttpStatus.CREATED);
-        }
-        return result;
+    public ResponseEntity<Object> test(@Valid @RequestBody Prueba prueba){
+        return ResponseEntity.ok(prueba);
     }
 }
