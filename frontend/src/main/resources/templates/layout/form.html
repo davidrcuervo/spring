@@ -6,11 +6,12 @@
 </head>
 <body>
     <div th:fragment="form">
-        <form th:method="${form.method}" th:action="${form.action}" th:name="${form.name}" >
+        <form th:method="${form.method}" th:action="${form.url}" th:name="${form.name}" >
             <div class="row">
                 <div th:each="input : ${form.inputs}" class="my-2" th:classappend="${input.style_size}">
                     <label th:for="${input.id}" th:text="${input.label}" class="form-label">Label</label>
                     <input th:type="${input.type}" class="form-control"
+                           th:name="${input.name}"
                            th:id="${input.id}"
                            th:required="${input.required} ? 'required' : null"
                            th:value="${input.value}" aria-describedby="">
