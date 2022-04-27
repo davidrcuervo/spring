@@ -9,7 +9,13 @@
 </head>
 <body>
     <div layout:fragment="content" class="container">
+        <h1 class="text-center">Thank You!!!</h1>
+        <h3 th:text="${thankyou.title}" class="text-center">You have succesfull submited it</h3>
+        <p th:text="${thankyou.description}" class="text-center">Thank you for keeping interest in our web site</p>
 
+        <div class="d-grid gap-2 col-6 mx-auto">
+            <a th:href="${thankyou.actionLink}" class="btn btn-primary" role="button"><span th:text="${thankyou.actionText}">Click Here</span></a>
+        </div>
     </div>
 </body>
 </html>

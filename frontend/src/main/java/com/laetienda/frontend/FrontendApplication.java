@@ -6,12 +6,21 @@ import com.laetienda.frontend.repository.ThankyouPageRepoImpl;
 import com.laetienda.frontend.repository.ThankyouPageRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
 import com.laetienda.frontend.service.ThankyouPageServiceImpl;
+import com.laetienda.frontend.service.UserService;
+import com.laetienda.frontend.service.UserServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class FrontendApplication {
+
+	@Bean
+	public RestTemplate restTemplate(RestTemplateBuilder builder) {
+		return builder.build();
+	}
 
 	@Bean(name="formRepository")
 	public FormRepository getFormRepository(){
@@ -26,6 +35,11 @@ public class FrontendApplication {
 	@Bean
 	public ThankyouPageService getThankyouPageService(){
 		return new ThankyouPageServiceImpl(getThankyouPageRepository());
+	}
+
+	@Bean
+	public UserService getUserService(){
+		return new UserServiceImpl();
 	}
 
 	public static void main(String[] args) {
