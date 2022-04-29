@@ -1,8 +1,6 @@
 package com.laetienda.lib.model;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Mistake {
 
@@ -10,6 +8,26 @@ public class Mistake {
     private int status;
     private Map<String, List<String>> errors;
 
+    public Mistake(){
+        timestamp = new Date();
+        errors = new HashMap<String, List<String>>();
+    }
+
+    public Mistake(int status){
+        timestamp = new Date();
+        errors = new HashMap<String, List<String>>();
+    }
+
+    public void add(String key, String message){
+        List<String> mistakes = errors.get(key);
+
+        if(mistakes == null){
+            mistakes = new ArrayList<String>();
+            errors.put(key, mistakes);
+        }
+
+        mistakes.add(message);
+    }
     public Date getTimestamp() {
         return timestamp;
     }

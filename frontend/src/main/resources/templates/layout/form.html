@@ -17,14 +17,21 @@
                            th:required="${input.required} ? 'required' : null"
                            th:value="${input.value}" aria-describedby=""
                            th:classappend="${errors != null and errors.get(input.name) != null ? 'is-invalid' : ''}" >
-                    <div th:if="${errors != null and errors.get(input.name) != null}" th:each="error : ${errors.get(input.name)}" class="invalid-feedback">
-                        <div th:text="${error}">error</div>
+                    <div th:if="${errors != null and errors.get(input.name) != null}" class="invalid-feedback">
+                        <div th:each="error : ${errors.get(input.name)}">
+                            <div th:text="${error}">error</div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="d-grid gap-2 col-md-6 mx-auto">
                     <button type="submit" class="btn btn-primary" th:value="${form.action}">Submit</button>
+                </div>
+                <div th:if="${errors != null and errors.get('form') != null}" class="text-danger">
+                    <div th:each="error : ${errors.form}">
+                        <div th:text="${error}">error</div>
+                    </div>
                 </div>
             </div>
         </form>

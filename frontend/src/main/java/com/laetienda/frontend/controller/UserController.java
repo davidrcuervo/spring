@@ -4,11 +4,12 @@ import com.laetienda.frontend.lib.FormNotValidException;
 import com.laetienda.frontend.model.ThankyouPage;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
-import com.laetienda.frontend.service.UserService;
+import com.laetienda.frontend.service.RestClientService;
 import com.laetienda.model.user.Usuario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +26,10 @@ public class UserController {
     @Autowired
     private ThankyouPageService thankyouService;
 
+    @Value("${api.user.add}")
+    private String apiAddUrl;
     @Autowired
-    private UserService service;
+    private RestClientService service;
 
     @GetMapping({"signup.html", "signup"})
     public String signUpGet(Model model){
@@ -42,7 +45,9 @@ public class UserController {
         String result = new String();
 
         try {
-            Usuario usuario = service.post(user);
+            Usuario response = service.post(apiAddUrl, user, Usuario.class);
+            log.trace("username: {}", response.getUsername());
+            log.trace("email: {}", response.getEmail());
             ThankyouPage thankyou = thankyouService.set(new ThankyouPage("/thankyou/user/signup.html", "", "You have succesfully Signed Up!", "Thank you for your interest in our web site.", "/user/login.html", "Log In"));
             result = "redirect:" + thankyou.getKey();
         }catch(FormNotValidException e){

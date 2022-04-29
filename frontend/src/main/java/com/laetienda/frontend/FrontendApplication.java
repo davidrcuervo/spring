@@ -6,8 +6,8 @@ import com.laetienda.frontend.repository.ThankyouPageRepoImpl;
 import com.laetienda.frontend.repository.ThankyouPageRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
 import com.laetienda.frontend.service.ThankyouPageServiceImpl;
-import com.laetienda.frontend.service.UserService;
-import com.laetienda.frontend.service.UserServiceImpl;
+import com.laetienda.frontend.service.RestClientService;
+import com.laetienda.frontend.service.RestClientServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -38,8 +38,8 @@ public class FrontendApplication {
 	}
 
 	@Bean
-	public UserService getUserService(){
-		return new UserServiceImpl();
+	public RestClientService getUserService(){
+		return new RestClientServiceImpl();
 	}
 
 	public static void main(String[] args) {

@@ -1,24 +1,23 @@
 package com.laetienda.usuario.controller;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.model.Prueba;
+import com.laetienda.usuario.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/v0/user")
 public class UserController {
-
     private static final Logger log  = LoggerFactory.getLogger(UserController.class);
+    @Autowired
+    private UserService service;
 
     @GetMapping({"/", "home", "home.html", "index", "index.html"})
     public String home(){
@@ -26,9 +25,9 @@ public class UserController {
     }
 
     @PostMapping("add")
-    public ResponseEntity<Usuario> add(@Valid @RequestBody Usuario user){
-
-        return ResponseEntity.ok(user);
+    public ResponseEntity<Usuario> create(@Valid @RequestBody Usuario user) throws NotValidCustomException {
+        return ResponseEntity.ok(service.create(user));
+//        return ResponseEntity.ok(user);
     }
 
     @PostMapping("test")

@@ -1,5 +1,6 @@
 package com.laetienda.usuario.controller;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.model.Mistake;
 import com.laetienda.usuario.repository.MistakeRepoImpl;
 import com.laetienda.usuario.repository.MistakeRepository;
@@ -12,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -36,10 +38,15 @@ public class ExceptionController extends ResponseEntityExceptionHandler {
         MistakeRepository mistake = new MistakeRepoImpl(status.value());
 
         for(FieldError error : ex.getBindingResult().getFieldErrors()){
-            log.debug("{}: {}", error.getField(), error.getDefaultMessage());
+            log.trace("{}: {}", error.getField(), error.getDefaultMessage());
             mistake.addMistake(error.getField(), error.getDefaultMessage());
         }
 
         return new ResponseEntity<>(mistake.get(), headers, status);
+    }
+
+    @ExceptionHandler(value={NotValidCustomException.class})
+    public ResponseEntity<Mistake> handleNotValidCustomException(NotValidCustomException ex){
+        return new ResponseEntity<Mistake>(ex.getMistake(), ex.getStatus());
     }
 }
