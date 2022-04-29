@@ -7,4 +7,5 @@ public interface ThankyouPageService {
 
     public ThankyouPage find(String key) throws ResponseStatusException;
     public ThankyouPage set(ThankyouPage entity);
+    public ThankyouPage get(String key);
 }

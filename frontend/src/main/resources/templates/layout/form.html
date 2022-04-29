@@ -6,6 +6,7 @@
 </head>
 <body>
     <div th:fragment="form">
+
         <form th:method="${form.method}" th:action="${form.url}" th:name="${form.name}" >
             <div class="row">
                 <div th:each="input : ${form.inputs}" class="my-2" th:classappend="${input.style_size}">
@@ -14,7 +15,11 @@
                            th:name="${input.name}"
                            th:id="${input.id}"
                            th:required="${input.required} ? 'required' : null"
-                           th:value="${input.value}" aria-describedby="">
+                           th:value="${input.value}" aria-describedby=""
+                           th:classappend="${errors != null and errors.get(input.name) != null ? 'is-invalid' : ''}" >
+                    <div th:if="${errors != null and errors.get(input.name) != null}" th:each="error : ${errors.get(input.name)}" class="invalid-feedback">
+                        <div th:text="${error}">error</div>
+                    </div>
                 </div>
             </div>
             <div class="row">
@@ -22,7 +27,6 @@
                     <button type="submit" class="btn btn-primary" th:value="${form.action}">Submit</button>
                 </div>
             </div>
-
         </form>
     </div>
 </body>
