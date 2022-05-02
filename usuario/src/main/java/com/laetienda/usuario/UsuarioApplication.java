@@ -7,13 +7,16 @@ import com.laetienda.usuario.service.UserServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
 
 @SpringBootApplication
+@EnableLdapRepositories(basePackages = "com.laetienda.usuario.repository")
 public class UsuarioApplication {
 
 	@Bean
 	public UserService getUserService(){
-		return new UserServiceImpl(getUserRepository());
+//		return new UserServiceImpl(getUserRepository());
+		return new UserServiceImpl();
 	}
 
 	@Bean

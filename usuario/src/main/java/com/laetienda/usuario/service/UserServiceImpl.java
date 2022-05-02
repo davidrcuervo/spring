@@ -6,23 +6,37 @@ import com.laetienda.usuario.repository.UserRepoImpl;
 import com.laetienda.usuario.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+
+import java.util.List;
 
 public class UserServiceImpl implements UserService {
     final private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    @Autowired
     private UserRepository repository;
 
-    public UserServiceImpl(UserRepository repository){
-        this.repository = repository;
-    }
+//    public UserServiceImpl(UserRepository repository){
+//        this.repository = repository;
+//    }
+//
+//    public UserServiceImpl(){
+////        repository = new UserRepoImpl();
+//    }
 
-    public UserServiceImpl(){
-        repository = new UserRepoImpl();
+    @Override
+    public List<Usuario> findAll() {
+        return repository.findAll();
     }
 
     @Override
     public Usuario find(String username) {
         return repository.find(username);
+    }
+
+    @Override
+    public List<Usuario> findByEmail(String email) {
+        return repository.findByEmail(email);
     }
 
     @Override
@@ -40,11 +54,10 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
-        if(repository.findByEmail(user.getEmail()) != null){
+        if(repository.findByEmail(user.getEmail()).size() > 0){
             ex.addError("email", "This email address has been already registered");
             throw ex;
         }
-
         return repository.create(user);
     }
 

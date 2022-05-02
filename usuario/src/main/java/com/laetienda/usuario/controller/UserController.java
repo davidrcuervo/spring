@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v0/user")
@@ -22,6 +23,22 @@ public class UserController {
     @GetMapping({"/", "home", "home.html", "index", "index.html"})
     public String home(){
         return "Hello Word";
+    }
+
+    @GetMapping("users.html")
+    public List<Usuario> getUsers(){
+        return service.findAll();
+    }
+    @GetMapping("user.html")
+    public ResponseEntity<Usuario> getUser(@RequestParam String username){
+       log.trace("$username: {}", username);
+       return ResponseEntity.ok(service.find(username));
+    }
+
+    @GetMapping("userByEmail.html")
+    public List<Usuario> getUsersByEmail(@RequestParam String email){
+        log.trace("$email: {}", email);
+        return service.findByEmail(email);
     }
 
     @PostMapping("add")

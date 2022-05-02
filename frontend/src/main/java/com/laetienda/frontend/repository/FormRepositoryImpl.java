@@ -60,11 +60,11 @@ public class FormRepositoryImpl implements FormRepository {
             for (Field f : fields) {
 
                 Annotation a = f.getAnnotation(HtmlInput.class);
-                f.setAccessible(true);
-                Object value = f.get(forma);
 
                 if (a instanceof HtmlInput) {
                     HtmlInput htmlInput = (HtmlInput) a;
+                    f.setAccessible(true);
+                    Object value = f.get(forma);
 
                     Input input = new Input();
                     input.setStyle_size(htmlInput.style_size());
@@ -78,9 +78,9 @@ public class FormRepositoryImpl implements FormRepository {
                     result.add(input);
 
                 } else {
-                    log.debug("{} is not instance of HtmlInput.class. $object: {}", a.getClass().getSimpleName(), forma.getClass().getCanonicalName());
-                    result = null;
-                    break;
+//                    log.debug("{} is not instance of HtmlInput.class. $object: {}", a.getClass().getSimpleName(), forma.getClass().getCanonicalName());
+//                    result = null;
+//                    break;
                 }
             }
         }catch(Exception e){
