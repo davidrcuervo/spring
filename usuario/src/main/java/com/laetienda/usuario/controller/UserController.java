@@ -41,7 +41,7 @@ public class UserController {
         return service.findByEmail(email);
     }
 
-    @PostMapping("add")
+    @PostMapping("create.html")
     public ResponseEntity<Usuario> create(@Valid @RequestBody Usuario user) throws NotValidCustomException {
         return ResponseEntity.ok(service.create(user));
 //        return ResponseEntity.ok(user);
@@ -50,5 +50,17 @@ public class UserController {
     @PostMapping("test")
     public ResponseEntity<Object> test(@Valid @RequestBody Prueba prueba){
         return ResponseEntity.ok(prueba);
+    }
+
+    @PutMapping("update.html")
+    public ResponseEntity<Usuario> update(@Valid @RequestBody Usuario user) throws NotValidCustomException{
+        return ResponseEntity.ok(service.update(user));
+    }
+
+    @DeleteMapping("delete.html")
+    public ResponseEntity<Usuario> delete(@RequestParam String username) throws NotValidCustomException {
+        log.trace("delete user. $username: {}", username);
+        service.delete(service.find(username));
+        return ResponseEntity.ok(null);
     }
 }

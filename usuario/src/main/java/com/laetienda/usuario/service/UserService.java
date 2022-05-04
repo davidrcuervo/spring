@@ -13,6 +13,6 @@ public interface UserService {
     public Usuario find(String username);
     public List<Usuario> findByEmail(String email);
     public Usuario create(Usuario user) throws NotValidCustomException;
-    public Usuario edit(Usuario user);
-    public void delete(Usuario user);
+    public Usuario update(Usuario user) throws NotValidCustomException;
+    public void delete(Usuario user) throws NotValidCustomException;
 }

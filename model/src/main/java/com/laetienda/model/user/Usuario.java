@@ -54,12 +54,12 @@ final public class Usuario implements Persistable, Forma {
     @Attribute(name = "mail")
     private String email;
 
-    @NotNull @Size(min=8, max=64)
+    @Size(min=8, max=64)
     @HtmlInput(type= HtmlInputType.PASSWORD, label = "Password", placeholder = "Please insert your password", style_size="col-md-6")
     @Attribute(name = "userPassword")
     private String password;
 
-    @NotNull @Size(min=8, max=64)
+    @Size(min=8, max=64)
     @HtmlInput(type= HtmlInputType.PASSWORD, label = "Re-enter password", placeholder = "Please confirm your password", style_size="col-md-6")
     @Transient
     private String password2;

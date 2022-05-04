@@ -1,7 +1,7 @@
 package com.laetienda.usuario.repository;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
-import org.springframework.data.ldap.repository.LdapRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,6 +13,6 @@ public interface UserRepository  {
     public List<Usuario> findByEmail(String email);
     public List<Usuario> findAll();
     public Usuario create(Usuario user);
-    public Usuario edit(Usuario user);
-    public void delete(Usuario user);
+    public Usuario update(Usuario user);
+    public void delete(Usuario user) throws NotValidCustomException;
 }

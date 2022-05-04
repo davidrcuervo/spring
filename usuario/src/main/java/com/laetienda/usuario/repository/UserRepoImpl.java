@@ -1,11 +1,13 @@
 package com.laetienda.usuario.repository;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.service.UserLdapRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.support.LdapNameBuilder;
 import org.springframework.ldap.support.LdapUtils;
@@ -65,29 +67,43 @@ public class UserRepoImpl implements UserRepository{
 
     @Override
     public Usuario create(Usuario user) {
-        Name dn = LdapNameBuilder.newInstance().add("ou", "people").add("uid", user.getUsername()).build();
-//        Name dn = LdapUtils.emptyLdapName();
-        user.setDn(dn);
         user.setNew(true);
+        return save(user);
+    }
+
+    @Override
+    public Usuario update(Usuario user) {
+        user.setNew(false);
+        return save(user);
+    }
+
+    private Usuario save(Usuario user){
+        user.setDn(dn(user));
+
         user.setFullName(
                 user.getFirstname() + " " +
-                user.getMiddlename() + " " +
+                (user.getMiddlename() != null ? user.getMiddlename() + " " : "") +
                 user.getLastname()
         );
         log.trace("is new: {}", user.isNew());
-        repository.save(user);
-        return user;
+        return repository.save(user);
     }
+
 
     @Override
-    public Usuario edit(Usuario user) {
-        return user;
+    public void delete(Usuario user) throws NotValidCustomException {
+
+        if(user != null) {
+            user.setDn(dn(user));
+            repository.delete(user);
+        }else{
+            NotValidCustomException ex = new NotValidCustomException("Failed to remove user", HttpStatus.BAD_REQUEST);
+            ex.addError("username", "Not user found with that username.");
+            throw ex;
+        }
     }
 
-    @Override
-    public void delete(Usuario user) {
-
+    private Name dn(Usuario user){
+        return LdapNameBuilder.newInstance().add("ou", "people").add("uid", user.getUsername()).build();
     }
-
-
 }
