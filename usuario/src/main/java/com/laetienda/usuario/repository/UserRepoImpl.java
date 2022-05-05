@@ -2,15 +2,12 @@ package com.laetienda.usuario.repository;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
-import com.laetienda.usuario.service.UserLdapRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.support.LdapNameBuilder;
-import org.springframework.ldap.support.LdapUtils;
 
 import javax.naming.Name;
 import java.util.ArrayList;
@@ -24,9 +21,6 @@ public class UserRepoImpl implements UserRepository{
 
     @Autowired
     private UserLdapRepository repository;
-
-    @Value("${ldap.people.dn}")
-    private String people_dn;
 
     @Override
     public Usuario find(String username) {
@@ -45,7 +39,7 @@ public class UserRepoImpl implements UserRepository{
 
     @Override
     public List<Usuario> findByEmail(String email) {
-        List<Usuario> result = new ArrayList<Usuario>();
+        List<Usuario> result = new ArrayList<>();
 
         try {
             LdapQuery ldapquery = query().where("objectclass").is("inetOrgPerson")

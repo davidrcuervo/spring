@@ -1,7 +1,13 @@
 package com.laetienda.usuario;
 
+import com.laetienda.usuario.lib.LdapDn;
+import com.laetienda.usuario.lib.LdapDnImpl;
+import com.laetienda.usuario.repository.GroupRepoImpl;
+import com.laetienda.usuario.repository.GroupRepository;
 import com.laetienda.usuario.repository.UserRepoImpl;
 import com.laetienda.usuario.repository.UserRepository;
+import com.laetienda.usuario.service.GroupService;
+import com.laetienda.usuario.service.GroupServiceImpl;
 import com.laetienda.usuario.service.UserService;
 import com.laetienda.usuario.service.UserServiceImpl;
 import org.springframework.boot.SpringApplication;
@@ -14,6 +20,11 @@ import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
 public class UsuarioApplication {
 
 	@Bean
+	public LdapDn getDnBuilder(){
+		return new LdapDnImpl();
+	}
+
+	@Bean
 	public UserService getUserService(){
 //		return new UserServiceImpl(getUserRepository());
 		return new UserServiceImpl();
@@ -23,6 +34,15 @@ public class UsuarioApplication {
 	public UserRepository getUserRepository(){
 		return new UserRepoImpl();
 	}
+
+	@Bean
+	public GroupRepository getGroupRepository(){return new GroupRepoImpl(); }
+
+	@Bean
+	public GroupService getGroupService(){
+		return new GroupServiceImpl();
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(UsuarioApplication.class, args);
 	}

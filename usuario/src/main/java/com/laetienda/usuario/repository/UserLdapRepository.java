@@ -1,4 +1,4 @@
-package com.laetienda.usuario.service;
+package com.laetienda.usuario.repository;
 
 import com.laetienda.model.user.Usuario;
 import org.springframework.data.ldap.repository.LdapRepository;
