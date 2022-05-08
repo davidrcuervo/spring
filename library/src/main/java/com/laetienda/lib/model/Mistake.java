@@ -15,7 +15,8 @@ public class Mistake {
 
     public Mistake(int status){
         timestamp = new Date();
-        errors = new HashMap<String, List<String>>();
+        errors = new HashMap<>();
+        this.status = status;
     }
 
     public void add(String key, String message){

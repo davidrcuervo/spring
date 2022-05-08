@@ -41,6 +41,11 @@ public class LdapDnImpl implements LdapDn {
     }
 
     @Override
+    public Name getCompleteGoupDn(String groupname){
+        return LdapNameBuilder.newInstance(base).add(groupdn).add("cn", groupname).build();
+    }
+
+    @Override
     public Name getCompleteUserDn(String username) {
         return LdapNameBuilder.newInstance(base).add(peopledn).add("uid", username).build();
     }

@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.support.LdapNameBuilder;
 
 import javax.naming.Name;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
@@ -28,39 +27,69 @@ public class GroupRepoImpl implements GroupRepository{
     private LdapDn dn;
 
     @Override
-    public Group create(Group group) {
-        return null;
+    public Group create(Group group, String ownerusername) {
+        Usuario owner = userRepo.find(ownerusername);
+        owner.setDn(dn.getCompleteUserDn(ownerusername));
+        log.trace("1. $owner dn: {}", dn.getCompleteUserDn(ownerusername).toString());
+        log.trace("2. $owner dn: {}", owner.getDn().toString());
+        group.setDn(dn.getGroupDn(group.getName()));
+        group.setNew(true);
+        group.addOwner(owner);
+
+        group.getOwners().forEach((username, ownuser) -> {
+            ownuser.setDn(dn.getCompleteUserDn(username));
+            group.addOwner(ownuser);
+        });
+
+        group.getMembers().forEach((username, memuser) -> {
+            memuser.setDn(dn.getCompleteUserDn(username));
+            group.addMember(memuser);
+        });
+
+        group.getMembersdn().forEach((memberdn) -> {
+            log.trace("4. $member dn: {}", memberdn.toString());
+        });
+
+        return repository.save(group);
     }
 
     @Override
     public Group findByName(String name) {
+        log.trace("Group dn: {}", dn.getGroupDn(name));
+        Group result = null;
+        Optional<Group> temp = repository.findById(dn.getGroupDn(name));
 
-        Group result = repository.findById(dn.getGroupDn(name)).get();
-        result = this.findMembers(result);
-        result = this.findOwners(result);
+        if(temp.isEmpty()){
+            log.debug("Group not found. $name: {}", name);
+        }else {
+            result = temp.get();
+            result = this.findMembers(result);
+            result = this.findOwners(result);
+            return result;
+        }
+
         return result;
-
     }
 
     private Group findMembers(Group result) {
-        List<Usuario> members = new ArrayList<Usuario>();
+        Map<String, Usuario> members = new HashMap<>();
         log.trace("# of members: {}", result.getMembersdn().size());
         result.getMembersdn().forEach(
                 (memberdn) -> {
                     String username = memberdn.get(3).split("=")[1];
-                    members.add(userRepo.find(username));
+                    members.put(username, userRepo.find(username));
                 });
         result.setMembers(members);
         return result;
     }
 
     private Group findOwners(Group result) {
-        List<Usuario> owners = new ArrayList<>();
+        Map<String, Usuario> owners = new HashMap<>();
         log.trace("# of owners: {}", result.getOwnersdn().size());
         result.getOwnersdn().forEach(
                 (ownerdn) -> {
                     String username = ownerdn.get(3).split("=")[1];
-                    owners.add(userRepo.find(username));
+                    owners.put(username, userRepo.find(username));
                 });
         result.setOwners(owners);
         return result;
@@ -111,7 +140,6 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public boolean isMember(Group group, String username) {
-        return group.getMembers().contains(dn.getUserDn(username));
+        return group.getMembers().get(username) == null ? false : true;
     }
-
 }

@@ -1,10 +1,12 @@
 package com.laetienda.lib.exception;
 
 import com.laetienda.lib.model.Mistake;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 public class NotValidCustomException extends Exception{
-
+    final private static Logger log = LoggerFactory.getLogger(NotValidCustomException.class);
     private Mistake mistake;
     private HttpStatus status;
 
@@ -12,7 +14,14 @@ public class NotValidCustomException extends Exception{
         super(message);
         this.status = statuscode;
         mistake = new Mistake(statuscode.value());
+    }
 
+    public NotValidCustomException(String message, HttpStatus statuscode, String key){
+        super(message);
+        this.status = statuscode;
+        mistake = new Mistake(statuscode.value());
+        mistake.add(key, message);
+//        log.trace("$error code: {}", statuscode.value());
     }
 
     public void addError(String key, String message){

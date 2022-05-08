@@ -12,6 +12,7 @@ public interface LdapDn {
 
     Name group();
     public Name getCompleteGroupDn();
+    public Name getCompleteGoupDn(String groupname);
 
     public Name getCompleteUserDn(String username);
 }

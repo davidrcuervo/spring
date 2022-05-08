@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface GroupRepository {
-    public Group create(Group group);
+    public Group create(Group group, String owner);
     public Group findByName(String name);
     public List<Group> findAll(Usuario owner);
     public List<Group> findAll(String username);

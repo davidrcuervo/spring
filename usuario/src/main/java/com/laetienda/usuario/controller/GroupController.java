@@ -1,6 +1,8 @@
 package com.laetienda.usuario.controller;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Group;
+import com.laetienda.model.user.GroupList;
 import com.laetienda.usuario.service.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -30,12 +33,18 @@ public class GroupController {
     }
 
     @GetMapping("groups.html")
-    public List<Group> findAll(){
-        return service.findAll();
+    public ResponseEntity<GroupList> findAll(){
+        return ResponseEntity.ok(new GroupList(service.findAll()));
     }
 
     @GetMapping("group.html")
     public ResponseEntity<Group> findByName(@RequestParam String name){
         return ResponseEntity.ok(service.findGroupByName(name));
+    }
+
+    @PostMapping("create.html")
+    public ResponseEntity<Group> create(@Valid @RequestBody Group group) throws NotValidCustomException {
+        log.trace("Running group create controller. $Group: {}", group != null ? group.getName() : "null");
+        return ResponseEntity.ok(service.create(group));
     }
 }

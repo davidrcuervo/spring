@@ -1,22 +1,27 @@
 package com.laetienda.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Persistable;
 import org.springframework.ldap.odm.annotations.*;
 
 import javax.naming.Name;
-import java.util.List;
-import java.util.Set;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.util.*;
 
 @Entry(objectClasses = {"groupOfUniqueNames"}, base = "ou=wroups")
 final public class Group implements Persistable {
-    
+    final private static Logger log = LoggerFactory.getLogger(Group.class);
     @Id
     @JsonIgnore
     private Name dn;
-    
+
+    @NotNull @NotEmpty @Size(min = 4, max = 64)
     @Attribute(name = "cn")
-    @DnAttribute(value = "cn", index = 1)
+//    @DnAttribute(value = "cn", index = 1)
     private String name;
 
     @Attribute(name = "owner")
@@ -24,14 +29,14 @@ final public class Group implements Persistable {
     private Set<Name> ownersdn;
 
     @Transient
-    private List<Usuario> owners;
+    private Map<String, Usuario> owners;
 
     @Attribute(name = "uniqueMember")
     @JsonIgnore
     private Set<Name> membersdn;
 
     @Transient
-    private List<Usuario> members;
+    private Map<String, Usuario> members;
 
     @Transient
     private boolean newFlag;
@@ -61,11 +66,11 @@ final public class Group implements Persistable {
         this.membersdn = membersdn;
     }
 
-    public List<Usuario> getMembers() {
+    public Map<String, Usuario> getMembers() {
         return members;
     }
 
-    public void setMembers(List<Usuario> members) {
+    public void setMembers(Map<String, Usuario> members) {
         this.members = members;
     }
 
@@ -78,11 +83,11 @@ final public class Group implements Persistable {
         this.ownersdn = ownersdn;
     }
 
-    public List<Usuario> getOwners() {
+    public Map<String, Usuario> getOwners() {
         return owners;
     }
 
-    public void setOwners(List<Usuario> owners) {
+    public void setOwners(Map<String, Usuario> owners) {
         this.owners = owners;
     }
 
@@ -99,5 +104,47 @@ final public class Group implements Persistable {
 
     public void setNew(boolean flag) {
         this.newFlag = flag;
+    }
+
+    public Group addOwner(Usuario owner){
+        if(owners == null){
+            owners = new HashMap<>();
+        }
+
+        if(ownersdn == null){
+            ownersdn = new HashSet<Name>();
+        }
+
+        if(owners.get(owner.getUsername()) == null){
+            owners.put(owner.getUsername(), owner);
+        }
+
+        if(!ownersdn.contains(owner.getDn())){
+            log.trace("3. $owner dn: {}", owner.getDn());
+            ownersdn.add(owner.getDn());
+        }
+
+        addMember(owner);
+        return this;
+    }
+
+    public Group addMember(Usuario member){
+        if(members == null){
+            members = new HashMap<>();
+        }
+
+        if(membersdn == null){
+            membersdn = new HashSet<>();
+        }
+
+        if(members.get(member.getUsername()) == null){
+            members.put(member.getUsername(), member);
+        }
+
+        if(!membersdn.contains(member.getDn())){
+            membersdn.add(member.getDn());
+        }
+
+        return this;
     }
 }
