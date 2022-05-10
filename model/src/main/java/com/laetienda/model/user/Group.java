@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.*;
 
-@Entry(objectClasses = {"groupOfUniqueNames"}, base = "ou=wroups")
+@Entry(objectClasses = {"groupOfUniqueNames"})
 final public class Group implements Persistable {
     final private static Logger log = LoggerFactory.getLogger(Group.class);
     @Id
@@ -26,14 +26,14 @@ final public class Group implements Persistable {
 
     @Attribute(name = "owner")
     @JsonIgnore
-    private Set<Name> ownersdn;
+    private Set<String> ownersdn;
 
     @Transient
     private Map<String, Usuario> owners;
 
     @Attribute(name = "uniqueMember")
     @JsonIgnore
-    private Set<Name> membersdn;
+    private Set<String> membersdn;
 
     @Transient
     private Map<String, Usuario> members;
@@ -58,11 +58,11 @@ final public class Group implements Persistable {
     }
 
     @JsonIgnore
-    public Set<Name> getMembersdn() {
+    public Set<String> getMembersdn() {
         return membersdn;
     }
 
-    public void setMembersdn(Set<Name> membersdn) {
+    public void setMembersdn(Set<String> membersdn) {
         this.membersdn = membersdn;
     }
 
@@ -75,11 +75,11 @@ final public class Group implements Persistable {
     }
 
     @JsonIgnore
-    public Set<Name> getOwnersdn() {
+    public Set<String> getOwnersdn() {
         return ownersdn;
     }
 
-    public void setOwnersdn(Set<Name> ownersdn) {
+    public void setOwnersdn(Set<String> ownersdn) {
         this.ownersdn = ownersdn;
     }
 
@@ -112,7 +112,7 @@ final public class Group implements Persistable {
         }
 
         if(ownersdn == null){
-            ownersdn = new HashSet<Name>();
+            ownersdn = new HashSet<>();
         }
 
         if(owners.get(owner.getUsername()) == null){
@@ -121,7 +121,7 @@ final public class Group implements Persistable {
 
         if(!ownersdn.contains(owner.getDn())){
             log.trace("3. $owner dn: {}", owner.getDn());
-            ownersdn.add(owner.getDn());
+            ownersdn.add(owner.getDn().toString());
         }
 
         addMember(owner);
@@ -142,7 +142,7 @@ final public class Group implements Persistable {
         }
 
         if(!membersdn.contains(member.getDn())){
-            membersdn.add(member.getDn());
+            membersdn.add(member.getDn().toString());
         }
 
         return this;

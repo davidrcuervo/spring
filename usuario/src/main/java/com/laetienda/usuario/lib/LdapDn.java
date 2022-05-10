@@ -7,10 +7,12 @@ import javax.naming.Name;
 @Component
 public interface LdapDn {
     Name getUserDn(String uid);
+    public Name getUserDn();
+    public Name getDomainDn();
 
     Name getGroupDn(String cn);
 
-    Name group();
+    Name getGroupDn();
     public Name getCompleteGroupDn();
     public Name getCompleteGoupDn(String groupname);
 

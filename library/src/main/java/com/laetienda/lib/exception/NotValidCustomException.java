@@ -16,6 +16,12 @@ public class NotValidCustomException extends Exception{
         mistake = new Mistake(statuscode.value());
     }
 
+    /**
+     *
+     * @param message error message
+     * @param statuscode HttpStatus.code
+     * @param key name of the pointer error. Used by forms
+     */
     public NotValidCustomException(String message, HttpStatus statuscode, String key){
         super(message);
         this.status = statuscode;

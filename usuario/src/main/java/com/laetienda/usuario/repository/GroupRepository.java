@@ -12,7 +12,7 @@ public interface GroupRepository {
     public Group findByName(String name);
     public List<Group> findAll(Usuario owner);
     public List<Group> findAll(String username);
-    public Group update(String name, Group group);
+    public Group update(Group group, String name, String username);
     public Group delete(Group group);
 
     public boolean isOwner(Group group, String username);

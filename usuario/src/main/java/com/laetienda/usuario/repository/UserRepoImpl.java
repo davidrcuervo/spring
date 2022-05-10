@@ -2,6 +2,7 @@ package com.laetienda.usuario.repository;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.usuario.lib.LdapDn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +23,18 @@ public class UserRepoImpl implements UserRepository{
     @Autowired
     private UserLdapRepository repository;
 
+    @Autowired
+    private LdapDn dn;
+
     @Override
     public Usuario find(String username) {
         Usuario result = null;
-        Name dn = LdapNameBuilder.newInstance().add("ou", "people").add("uid", username).build();
+        Name userdn = dn.getUserDn(username);
 
         try {
-            result = repository.findById(dn).get();
+            result = repository.findById(userdn).get();
         }catch(NoSuchElementException e){
-            log.warn("User does not exist. $dn: {}", dn);
+            log.warn("User does not exist. $dn: {}", userdn);
             log.debug(e.getMessage(), e);
         }
 
@@ -72,7 +76,7 @@ public class UserRepoImpl implements UserRepository{
     }
 
     private Usuario save(Usuario user){
-        user.setDn(dn(user));
+        user.setDn(dn.getUserDn(user.getUsername()));
 
         user.setFullName(
                 user.getFirstname() + " " +
@@ -88,16 +92,12 @@ public class UserRepoImpl implements UserRepository{
     public void delete(Usuario user) throws NotValidCustomException {
 
         if(user != null) {
-            user.setDn(dn(user));
+            user.setDn(dn.getUserDn(user.getUsername()));
             repository.delete(user);
         }else{
             NotValidCustomException ex = new NotValidCustomException("Failed to remove user", HttpStatus.BAD_REQUEST);
             ex.addError("username", "Not user found with that username.");
             throw ex;
         }
-    }
-
-    private Name dn(Usuario user){
-        return LdapNameBuilder.newInstance().add("ou", "people").add("uid", user.getUsername()).build();
     }
 }

@@ -26,12 +26,22 @@ public class LdapDnImpl implements LdapDn {
     }
 
     @Override
+    public Name getUserDn() {
+        return null;
+    }
+
+    @Override
+    public Name getDomainDn() {
+        return null;
+    }
+
+    @Override
     public Name getGroupDn(String cn){
         return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
     }
 
     @Override
-    public Name group(){
+    public Name getGroupDn(){
         return LdapNameBuilder.newInstance(groupdn).build();
     }
 

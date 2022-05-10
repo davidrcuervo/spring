@@ -3,11 +3,9 @@ package com.laetienda.usuario.repository;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.lib.LdapDn;
-import com.laetienda.usuario.lib.LdapDnImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ldap.support.LdapNameBuilder;
 
 import javax.naming.Name;
 import java.util.*;
@@ -47,12 +45,17 @@ public class GroupRepoImpl implements GroupRepository{
         });
 
         group.getMembersdn().forEach((memberdn) -> {
-            log.trace("4. $member dn: {}", memberdn.toString());
+            log.trace("4. $member dn: {}", memberdn);
         });
 
         return repository.save(group);
     }
 
+    /**
+     *
+     * @param name
+     * @return group, null if group name does not exist
+     */
     @Override
     public Group findByName(String name) {
         log.trace("Group dn: {}", dn.getGroupDn(name));
@@ -76,7 +79,7 @@ public class GroupRepoImpl implements GroupRepository{
         log.trace("# of members: {}", result.getMembersdn().size());
         result.getMembersdn().forEach(
                 (memberdn) -> {
-                    String username = memberdn.get(3).split("=")[1];
+                    String username = memberdn.split(",")[0].split("=")[1];
                     members.put(username, userRepo.find(username));
                 });
         result.setMembers(members);
@@ -88,7 +91,7 @@ public class GroupRepoImpl implements GroupRepository{
         log.trace("# of owners: {}", result.getOwnersdn().size());
         result.getOwnersdn().forEach(
                 (ownerdn) -> {
-                    String username = ownerdn.get(3).split("=")[1];
+                    String username = ownerdn.split(",")[0].split("=")[1];
                     owners.put(username, userRepo.find(username));
                 });
         result.setOwners(owners);
@@ -102,7 +105,7 @@ public class GroupRepoImpl implements GroupRepository{
 //        log.trace("ownerdn: {}", ownerdn);
 //        log.trace("groupdn: {}", dn.getCompleteGroupDn().toString());
         repository.findAll(query()
-                .base(dn.group())
+                .base(dn.getGroupDn())
                 .where("objectclass").is("groupOfUniqueNames")
                 .and("owner").is(ownerdn)
          ).forEach(result::add);
@@ -124,22 +127,49 @@ public class GroupRepoImpl implements GroupRepository{
     }
 
     @Override
-    public Group update(String name, Group group) {
-        return null;
+    public Group update(Group group, String gname, String username) {
+        Group result = null;
+
+        Name olddn = dn.getGroupDn(gname);
+        Name newdn = dn.getGroupDn(group.getName());
+
+        if(gname.equals(group.getName())){
+            group.setDn(dn.getGroupDn(group.getName()));
+            repository.save(group);
+            result = findByName(group.getName());
+        }else{
+            Group temp = repository.findById(olddn).get();
+            temp.setName(group.getName());
+            temp.setDn(newdn);
+            create(temp, username);
+            temp = repository.findById(olddn).get();
+            repository.delete(temp);
+            result = update(group, group.getName(), username);
+        }
+
+        return result;
     }
 
     @Override
     public Group delete(Group group) {
+        Group result = group;
+        group.setDn(dn.getGroupDn(group.getName()));
+        repository.delete(group);
+
         return null;
     }
 
     @Override
     public boolean isOwner(Group group, String username) {
-        return group.getOwnersdn().contains(dn.getUserDn(username));
+        Name gdn = dn.getGroupDn(group.getName());
+        Name udn = dn.getUserDn(username);
+        return repository.findById(gdn).get().getOwnersdn().contains(udn.toString());
     }
 
     @Override
     public boolean isMember(Group group, String username) {
-        return group.getMembers().get(username) == null ? false : true;
+        Name gdn = dn.getGroupDn(group.getName());
+        Name udn = dn.getUserDn(username);
+        return repository.findById(gdn).get().getMembersdn().contains(udn.toString());
     }
 }

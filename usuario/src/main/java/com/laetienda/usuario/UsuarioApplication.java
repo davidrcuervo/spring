@@ -2,6 +2,7 @@ package com.laetienda.usuario;
 
 import com.laetienda.usuario.lib.LdapDn;
 import com.laetienda.usuario.lib.LdapDnImpl;
+import com.laetienda.usuario.lib.LdapDnImplB;
 import com.laetienda.usuario.repository.GroupRepoImpl;
 import com.laetienda.usuario.repository.GroupRepository;
 import com.laetienda.usuario.repository.UserRepoImpl;
@@ -21,7 +22,7 @@ public class UsuarioApplication {
 
 	@Bean
 	public LdapDn getDnBuilder(){
-		return new LdapDnImpl();
+		return new LdapDnImplB();
 	}
 
 	@Bean

@@ -37,8 +37,14 @@ public class GroupController {
         return ResponseEntity.ok(new GroupList(service.findAll()));
     }
 
+    @GetMapping("params.html")
+    public ResponseEntity<String> testParameters(@RequestParam String name){
+        log.trace("Running test parameters controller. $name: {}", name);
+        return ResponseEntity.ok("Succesfully. $name: " + name);
+    }
+
     @GetMapping("group.html")
-    public ResponseEntity<Group> findByName(@RequestParam String name){
+    public ResponseEntity<Group> findByName(@RequestParam String name) throws NotValidCustomException {
         return ResponseEntity.ok(service.findGroupByName(name));
     }
 
@@ -46,5 +52,18 @@ public class GroupController {
     public ResponseEntity<Group> create(@Valid @RequestBody Group group) throws NotValidCustomException {
         log.trace("Running group create controller. $Group: {}", group != null ? group.getName() : "null");
         return ResponseEntity.ok(service.create(group));
+    }
+
+    @PutMapping("update.html")
+    public ResponseEntity<Group> update(@RequestParam String name, @Valid @RequestBody Group group) throws NotValidCustomException{
+        log.trace("Running group update controller. $Group: {}", name);
+        return ResponseEntity.ok(service.update(group, name));
+    }
+
+    @DeleteMapping("delete.html")
+    public ResponseEntity<Boolean> delete(@RequestParam String name) throws NotValidCustomException {
+        log.trace("Running group delete controller. $Group: {}", name);
+        service.delete(name);
+        return ResponseEntity.ok(true);
     }
 }
