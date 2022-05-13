@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.naming.Name;
+import java.io.IOException;
 import java.util.*;
 
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
@@ -171,5 +172,44 @@ public class GroupRepoImpl implements GroupRepository{
         Name gdn = dn.getGroupDn(group.getName());
         Name udn = dn.getUserDn(username);
         return repository.findById(gdn).get().getMembersdn().contains(udn.toString());
+    }
+
+    @Override
+    public Group addMember(Group group, Usuario user) {
+        user.setDn(dn.getUserDn(user.getUsername()));
+        group.setDn(dn.getGroupDn(group.getName()));
+        group.addMember(user);
+        repository.save(group);
+        return findByName(group.getName());
+    }
+
+    @Override
+    public Group removeMember(Group group, Usuario user) throws IOException {
+        user.setDn(dn.getUserDn(user.getUsername()));
+        group.setDn(dn.getGroupDn(group.getName()));
+        group.removeMember(user);
+
+        repository.save(group);
+        return findByName(group.getName());
+    }
+
+    @Override
+    public Group addOwner(Group group, Usuario user) {
+        user.setDn(dn.getUserDn(user.getUsername()));
+        group.setDn(dn.getGroupDn(group.getName()));
+
+        group.addOwner(user);
+        repository.save(group);
+        return findByName(group.getName());
+    }
+
+    @Override
+    public Group removeOwner(Group group, Usuario user) throws IOException {
+        user.setDn(dn.getUserDn(user.getUsername()));
+        group.setDn(dn.getGroupDn(group.getName()));
+
+        group.removeOwner(user);
+        repository.save(group);
+        return findByName(group.getName());
     }
 }

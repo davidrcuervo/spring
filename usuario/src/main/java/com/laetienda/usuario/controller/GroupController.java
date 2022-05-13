@@ -38,9 +38,14 @@ public class GroupController {
     }
 
     @GetMapping("params.html")
-    public ResponseEntity<String> testParameters(@RequestParam String name){
-        log.trace("Running test parameters controller. $name: {}", name);
-        return ResponseEntity.ok("Succesfully. $name: " + name);
+    public ResponseEntity<String> testParameters(@RequestParam Map<String, String> params){
+        log.trace("Running test parameters controller");
+        log.trace("Running group addMember controller");
+        params.forEach((param, value) -> {
+            log.trace("${}: {}", param, value);
+        });
+
+        return ResponseEntity.ok("Succesfully");
     }
 
     @GetMapping("group.html")
@@ -65,5 +70,43 @@ public class GroupController {
         log.trace("Running group delete controller. $Group: {}", name);
         service.delete(name);
         return ResponseEntity.ok(true);
+    }
+
+    @GetMapping("isMember.html")
+    public ResponseEntity<Boolean> isMember(@RequestParam Map<String, String> params) throws NotValidCustomException {
+        log.trace("Running group isMember controller");
+        params.forEach((param, value) -> {
+            log.trace("${}: {}", param, value);
+        });
+
+        return ResponseEntity.ok(service.isMember(params.get("group"), params.get("user")));
+    }
+
+    @PutMapping("addMember.html")
+    public ResponseEntity<Group> addMember(@RequestParam Map<String, String> params) throws NotValidCustomException {
+        log.trace("Running group addMember controller");
+        params.forEach((param, value) -> {
+            log.trace("${}: {}", param, value);
+        });
+
+        return ResponseEntity.ok(service.addMember(params.get("group"), params.get("user")));
+    }
+
+    @DeleteMapping("removeMember.html")
+    public ResponseEntity<Group> removeMember(@RequestParam("user") String username, @RequestParam("group") String gname) throws NotValidCustomException {
+        log.trace("Running group removeMember controller. $user: {}, $Group: {}", username, gname);
+        return ResponseEntity.ok(service.removeMember(gname, username));
+    }
+
+    @PutMapping("addOwner.html")
+    public ResponseEntity<Group> addOwner(@RequestParam("user") String username, @RequestParam("group") String gname) throws NotValidCustomException {
+        log.trace("Running group add Owner controller. $user: {}, $Group: {}", username, gname);
+        return ResponseEntity.ok(service.addOwner(gname, username));
+    }
+
+    @DeleteMapping("removeOwner.html")
+    public ResponseEntity<Group> removeOwner(@RequestParam("user") String username, @RequestParam("group") String gname) throws NotValidCustomException {
+        log.trace("Running group remove Owner controller. $user: {}, $Group: {}", username, gname);
+        return ResponseEntity.ok(service.removeOwner(gname, username));
     }
 }

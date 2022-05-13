@@ -26,6 +26,11 @@ public class UserRepoImpl implements UserRepository{
     @Autowired
     private LdapDn dn;
 
+    /**
+     *
+     * @param username
+     * @return user, or null if user does not exist
+     */
     @Override
     public Usuario find(String username) {
         Usuario result = null;

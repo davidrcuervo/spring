@@ -12,8 +12,6 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,13 +31,13 @@ public class GroupTest {
     private TestRestTemplate restclient;
 
     @Test
-    public void hola(){
+    public void testHola(){
         String address = "http://localhost:" + port + apiurl + "/hola.html";
         assertEquals("Hello Group Word", restclient.getForEntity(address, String.class).getBody());
     }
 
     @Test
-    public void findAll(){
+    public void testFindAll(){
         String address = "http://localhost:" + port + apiurl + "/groups.html";
         GroupList result = restclient.getForEntity(address, GroupList.class).getBody();
         assertNotNull(result);
@@ -52,7 +50,7 @@ public class GroupTest {
     }
 
     @Test
-    public void findByName(){
+    public void testFindByName(){
         String address = "http://localhost:" + port + apiurl + "/group.html?name=manager";
         Group result = restclient.getForEntity(address, Group.class).getBody();
         assertNotNull(result);
@@ -63,7 +61,7 @@ public class GroupTest {
     }
 
      @Test
-    public void createEmptyGroup(){
+    public void testCreateEmptyGroup(){
          String address = "http://localhost:" + port + apiurl + "/create.html";
          Group group = new Group();
 
@@ -83,7 +81,7 @@ public class GroupTest {
      }
 
      @Test
-     public void createInavalidNameGroup(){
+     public void testCreateInavalidNameGroup(){
          String address = "http://localhost:" + port + apiurl + "/create.html";
          Group group = new Group();
          group.setName("manager");
@@ -105,11 +103,11 @@ public class GroupTest {
      }
 
     @Test
-    public void groupCycle(){
+    public void testGroupCycle(){
         create("testgroup");
+        addMember("testgroup", "lydac");
         update("testgroup", "newtestgroup");
-        addUser("testgroup", "lydac");
-        removeUser("newtestgroup", "lydac");
+        removeMember("newtestgroup", "lydac");
         addOwner("newtestgroup", "myself");
         removeOwner("newtestgroup", "myself");
         delete("newtestgroup");
@@ -131,16 +129,84 @@ public class GroupTest {
         assertEquals(HttpStatus.NOT_FOUND, findGroup(gname).getStatusCode());
     }
 
-    private void removeOwner(String newtestgroup, String myself) {
+    private void removeOwner(String gname, String username) {
+        String address = "http://localhost:{port}/api/v0/group/removeOwner.html?group={group}&user={user}";
+        Map<String, String> params = new HashMap<>();
+        params.put("group", gname);
+        params.put("user", username);
+        params.put("port", Integer.toString(port));
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity(headers);
+
+        ResponseEntity<Group> response = findGroup(gname);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().getOwners().containsKey(username));
+
+        response = restclient.exchange(address, HttpMethod.DELETE, entity, Group.class, params);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().getOwners().containsKey(username));
+
+        response = findGroup(gname);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.getBody().getOwners().containsKey(username));
     }
 
-    private void addOwner(String newtestgroup, String myself) {
+    private void addOwner(String gname, String username) {
+        String address = "http://localhost:{port}/api/v0/group/addOwner.html?group={group}&user={user}";
+        Map<String, String> params = new HashMap<>();
+        params.put("group", gname);
+        params.put("user", username);
+        params.put("port", Integer.toString(port));
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity(headers);
+
+        ResponseEntity<Group> response = findGroup(gname);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.getBody().getOwners().containsKey(username));
+
+        response = restclient.exchange(address, HttpMethod.PUT, entity, Group.class, params);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().getOwners().containsKey(username));
+
+        response = findGroup(gname);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().getOwners().containsKey(username));
     }
 
-    private void removeUser(String newtestgroup, String lydac) {
+    private void removeMember(String gname, String username) {
+        String address = "http://localhost:{port}/api/v0/group/removeMember.html?group={group}&user={user}";
+        Map<String, String> params = new HashMap<>();
+        params.put("group", gname);
+        params.put("user", username);
+        params.put("port", Integer.toString(port));
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity(headers);
+
+        ResponseEntity<Group> response = findGroup(gname);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().getMembers().containsKey(username));
+        assertTrue(Boolean.valueOf(isMember(gname, username).getBody()));
+
+        response = restclient.exchange(address, HttpMethod.DELETE, entity, Group.class, params);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().getMembers().containsKey(username));
+        assertFalse(Boolean.valueOf(isMember(gname, username).getBody()));
     }
 
     private void create(String gname){
@@ -185,13 +251,107 @@ public class GroupTest {
         assertNotNull(findGroup(newgname).getBody());
     }
 
-    private void addUser(String gname, String usernaeme){
+    private void addMember(String gname, String username){
+        String address = "http://localhost:{port}/api/v0/group/addMember.html?user={user}&group={group}";
+        Map<String, String> params = new HashMap<>();
+        params.put("port", Integer.toString(port));
+        params.put("user", username);
+        params.put("group", gname);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity(headers);
 
+        ResponseEntity<String> response = isMember(gname, username);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(Boolean.valueOf(isMember(gname, username).getBody()));
+
+        ResponseEntity<Group> gresponse = restclient.exchange(address, HttpMethod.PUT, entity, Group.class, params);
+        assertEquals(HttpStatus.OK, gresponse.getStatusCode());
+        assertNotNull(gresponse.getBody());
+        assertTrue(gresponse.getBody().getMembers().containsKey("lydac"));
+
+        response = isMember(gname, username);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Boolean.valueOf(response.getBody()));
     }
 
     private ResponseEntity<Group> findGroup(String gname){
         String address = "http://localhost:" + port + apiurl + "/group.html?name=" + gname;
         return restclient.getForEntity(address, Group.class);
+    }
+
+    @Test
+    public void testIsMember(){
+        ResponseEntity<String> response = isMember("manager", "admuser");
+//        ResponseEntity<String> response = isMember("newtestgroup", "lydac");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Boolean.valueOf(response.getBody()));
+
+        response = isMember("manager", "myself");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(Boolean.valueOf(response.getBody()));
+
+        response = isMember("groupname", "admuser");
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testRemoveInvalidGroup(){
+        String gname = "manager";
+        String address = "http://localhost:{port}/api/v0/group/delete.html?name={gname}";
+        Map<String, String> params = new HashMap<>();
+        params.put("port", Integer.toString(port));
+        params.put("gname", gname);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Group> entity = new HttpEntity<>(headers);
+
+        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
+        ResponseEntity<String> response = restclient.exchange(address, HttpMethod.DELETE, entity, String.class, params);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertFalse(Boolean.valueOf(response.getBody()));
+        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
+
+        params.replace("gname", "validUserAccounts");
+        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
+        response = restclient.exchange(address, HttpMethod.DELETE, entity, String.class, params);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertFalse(Boolean.valueOf(response.getBody()));
+        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
+    }
+
+    @Test
+    public void testRemoveInvalidOwner(){
+        String gname = "manager";
+        String username = "admuser";
+        String address = "http://localhost:{port}/api/v0/group/removeOwner.html?group={group}&user={user}";
+        Map<String, String> params = new HashMap<>();
+        params.put("group", gname);
+        params.put("user", username);
+        params.put("port", Integer.toString(port));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity(headers);
+
+        ResponseEntity<Group> response = findGroup(gname);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().getOwners().containsKey(username));
+
+        response = restclient.exchange(address, HttpMethod.DELETE, entity, Group.class, params);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+    }
+
+    private ResponseEntity<String> isMember(String gname, String username) throws HttpClientErrorException {
+        String address = "http://localhost:{port}/api/v0/group/isMember.html?user={user}&group={gname}";
+        Map<String, String> params = new HashMap<>();
+        params.put("port", Integer.toString(port));
+        params.put("gname", gname);
+        params.put("user", username);
+
+        return restclient.getForEntity(address, String.class, params);
     }
 
     @Test

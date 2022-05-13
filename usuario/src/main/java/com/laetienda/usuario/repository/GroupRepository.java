@@ -4,6 +4,7 @@ import com.laetienda.model.user.Group;
 import com.laetienda.model.user.Usuario;
 import org.springframework.stereotype.Repository;
 
+import java.io.IOException;
 import java.util.List;
 
 @Repository
@@ -17,4 +18,12 @@ public interface GroupRepository {
 
     public boolean isOwner(Group group, String username);
     public boolean isMember(Group group, String username);
+
+    public Group addMember(Group group, Usuario user);
+
+    public Group removeMember(Group group, Usuario user) throws IOException;
+
+    Group addOwner(Group group, Usuario user);
+
+    Group removeOwner(Group group, Usuario user) throws IOException;
 }

@@ -10,6 +10,7 @@ import javax.naming.Name;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.IOException;
 import java.util.*;
 
 @Entry(objectClasses = {"groupOfUniqueNames"})
@@ -143,6 +144,34 @@ final public class Group implements Persistable {
 
         if(!membersdn.contains(member.getDn())){
             membersdn.add(member.getDn().toString());
+        }
+
+        return this;
+    }
+
+    public Group removeMember(Usuario user) throws IOException {
+
+        if(ownersdn.contains(user.getDn().toString()) || owners.containsKey(user.getUsername())) {
+            log.info("User, ({}), is owner and can not be removed", user.getUsername());
+            throw new IOException("User can not be removed because he/she is owner");
+
+        }else{
+            membersdn.remove(user.getDn().toString());
+            members.remove(user.getUsername());
+        }
+
+        return this;
+    }
+
+    public Group removeOwner(Usuario user) throws IOException {
+
+        if(owners.size() <= 1 || ownersdn.size() <= 1){
+            String message = String.format("Owner, (%s), is the only owner of group, (%s), and can not be removed", user.getUsername(), name);
+            log.warn(message);
+            throw new IOException(message);
+        }else{
+            owners.remove(user.getUsername());
+            ownersdn.remove(user.getDn().toString());
         }
 
         return this;
