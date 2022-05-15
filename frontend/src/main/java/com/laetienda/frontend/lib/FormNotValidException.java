@@ -25,7 +25,7 @@ public class FormNotValidException extends HttpClientErrorException {
             mistake = new ObjectMapper().readValue(e.getResponseBodyAsString(), Mistake.class);
         } catch (JsonProcessingException ex) {
             log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
-            log.debug("Exception.", ex);
+            log.debug(ex.getMessage(), ex);
 
             mistake = new Mistake();
             mistake.setTimestamp(new Date());
@@ -37,7 +37,7 @@ public class FormNotValidException extends HttpClientErrorException {
     public FormNotValidException(Exception ex){
         super(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
-        log.debug("Exception.", ex);
+        log.debug(ex.getMessage(), ex);
 
         mistake = new Mistake();
         mistake.setTimestamp(new Date());

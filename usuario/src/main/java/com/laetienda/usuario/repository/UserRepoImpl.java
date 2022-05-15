@@ -2,6 +2,7 @@ package com.laetienda.usuario.repository;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.lib.LdapDn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +65,19 @@ public class UserRepoImpl implements UserRepository{
     }
 
     @Override
-    public List<Usuario> findAll() {
-        return repository.findAll();
+    public UsuarioList findAll() {
+        log.debug("running find all, ldap user repository");
+        UsuarioList result = new UsuarioList();
+
+        repository.findAll(query()
+                .base(dn.getUserDn())
+                .where("objectclass").is("inetOrgPerson")
+        ).forEach((user) -> {
+            log.trace("username: {} | fullname: {}", user.getUsername(), user.getFullName());
+            result.addUser(user);
+        });
+
+        return result;
     }
 
     @Override

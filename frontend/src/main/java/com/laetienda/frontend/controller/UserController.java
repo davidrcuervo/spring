@@ -26,7 +26,7 @@ public class UserController {
     @Autowired
     private ThankyouPageService thankyouService;
 
-    @Value("${api.user.add}")
+    @Value("${api.user.create}")
     private String apiAddUrl;
     @Autowired
     private RestClientService service;

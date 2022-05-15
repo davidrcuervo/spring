@@ -3,6 +3,7 @@ package com.laetienda.usuario.service;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CrudAction;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
-    public List<Usuario> findAll() {
+    public UsuarioList findAll() {
         return repository.findAll();
     }
 

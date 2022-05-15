@@ -3,6 +3,7 @@
 <head>
     <title layout:title-pattern="$LAYOUT_TITLE | $CONTENT_TITLE">La eTienda</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- STYLES -->
     <link th:href="@{/bootstrap/5.1.3/styles/bootstrap.min.css}" rel="stylesheet" />
@@ -41,7 +42,8 @@
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 col-lg">
                         <li class="nav-item dropdown mx-lg-auto">
                             <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#"
-                               th:classappend="${#request.requestURI == '/user/signup.html' ? 'active':''}">
+                               th:classappend="${activemainmenu == 'userandsettings' ? 'active':''}"
+                            >
                                 User & Settings
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -51,7 +53,7 @@
                                 <li><a class="dropdown-item" href="#">Log Out</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><i class="bi-gear-fill"></i> Settings:</li>
-                                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                <li><a class="dropdown-item" th:href="@{/manage/management.html}">Site Management</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -67,6 +69,8 @@
     </main>
     <footer>
         <div>URI: <span th:text="${#request.requestURI}">home.html</span></div>
+        <div>activemainmenu: <span th:text="${activemainmenu}">empty</span></div>
+        <div>activesidemenu: <span th:text="${activesidemenu}">empty</span></div>
     </footer>
 
 </body>

@@ -2,6 +2,7 @@ package com.laetienda.usuario.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.model.Prueba;
 import com.laetienda.usuario.service.UserService;
 import org.slf4j.Logger;
@@ -26,8 +27,8 @@ public class UserController {
     }
 
     @GetMapping("users.html")
-    public List<Usuario> getUsers(){
-        return service.findAll();
+    public ResponseEntity<UsuarioList> getUsers(){
+        return ResponseEntity.ok(service.findAll());
     }
     @GetMapping("user.html")
     public ResponseEntity<Usuario> getUser(@RequestParam String username){

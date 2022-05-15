@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}"
+>
+<head>
+
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <div class="navbar navbar-expand-md navbar-light bg-light">
+            <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" th:href="@{/manage/management.html}"><i class="bi-gear"></i> Management</a>
+            <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="row">
+            <div id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" th:href="@{/manage/users.html}"
+                                th:classappend="${activesidemenu == 'users.html' ? 'active' : ''}"
+                            >
+                                <i class="bi-person"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/manage/groups.html}"
+                               th:classappend="${activesidemenu == 'groups.html' ? 'active' : ''}"
+                            >
+                                <i class="bi-people"></i> Groups
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-10 col-md-9">
+                <div layout:fragment="management">
+                    <h1>Manage users, groups, etc</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
