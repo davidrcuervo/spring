@@ -1,24 +1,26 @@
 package com.laetienda.model.user;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GroupList {
 
-    private List<Group> groups;
+    private Map<String, Group> groups;
 
     public GroupList(){
-        groups = new ArrayList<>();
+        groups = new HashMap<>();
     }
-    public GroupList(List<Group> groups) {
+    public GroupList(Map<String, Group> groups) {
         this.groups = groups;
     }
 
-    public List<Group> getGroups() {
+    public Map<String, Group> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<Group> groups) {
+    public void setGroups(Map<String, Group> groups) {
         this.groups = groups;
     }
 }

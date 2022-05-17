@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class GroupServiceImpl implements GroupService{
     final private static Logger log = LoggerFactory.getLogger(GroupServiceImpl.class);
@@ -43,7 +44,7 @@ public class GroupServiceImpl implements GroupService{
     }
 
     @Override
-    public List<Group> findAll() {
+    public Map<String, Group> findAll() {
         return repository.findAll(USERNAME);
     }
 

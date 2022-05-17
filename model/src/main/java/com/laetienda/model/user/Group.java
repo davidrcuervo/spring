@@ -39,6 +39,9 @@ final public class Group implements Persistable {
     @Transient
     private Map<String, Usuario> members;
 
+    @Size(min = 4, max = 255)
+    @Attribute(name = "description")
+    private String description;
     @Transient
     private boolean newFlag;
 
@@ -175,5 +178,13 @@ final public class Group implements Persistable {
         }
 
         return this;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

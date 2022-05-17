@@ -42,7 +42,7 @@ public class GroupTest {
         GroupList result = restclient.getForEntity(address, GroupList.class).getBody();
         assertNotNull(result);
         assertTrue(result.getGroups().size() > 0);
-        result.getGroups().forEach((group) -> {
+        result.getGroups().forEach((name, group) -> {
             assertTrue(group.getOwners().size() > 0);
             assertTrue(group.getMembers().size() > 0);
             log.trace("Group: {}", group.getName());

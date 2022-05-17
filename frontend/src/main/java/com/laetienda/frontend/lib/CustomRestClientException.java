@@ -10,15 +10,15 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Date;
 
-public class FormNotValidException extends HttpClientErrorException {
-    final private static Logger log = LoggerFactory.getLogger(FormNotValidException.class);
+public class CustomRestClientException extends HttpClientErrorException {
+    final private static Logger log = LoggerFactory.getLogger(CustomRestClientException.class);
     private Mistake mistake;
-    public FormNotValidException(Mistake mistake, HttpClientErrorException e){
+    public CustomRestClientException(Mistake mistake, HttpClientErrorException e){
         super (e.getMessage(), e.getStatusCode(), e.getStatusText(), e.getResponseHeaders(), e.getResponseBodyAsByteArray(), null);
         setMistake(mistake);
     }
 
-    public FormNotValidException(HttpClientErrorException e){
+    public CustomRestClientException(HttpClientErrorException e){
         super (e.getMessage(), e.getStatusCode(), e.getStatusText(), e.getResponseHeaders(), e.getResponseBodyAsByteArray(), null);
 
         try {
@@ -34,7 +34,7 @@ public class FormNotValidException extends HttpClientErrorException {
         }
     }
 
-    public FormNotValidException(Exception ex){
+    public CustomRestClientException(Exception ex){
         super(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
         log.debug(ex.getMessage(), ex);

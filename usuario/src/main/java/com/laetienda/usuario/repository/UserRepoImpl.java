@@ -52,7 +52,7 @@ public class UserRepoImpl implements UserRepository{
         List<Usuario> result = new ArrayList<>();
 
         try {
-            LdapQuery ldapquery = query().where("objectclass").is("inetOrgPerson")
+            LdapQuery ldapquery = query().base(dn.getUserDn()).where("objectclass").is("inetOrgPerson")
                     .and("mail").is(email);
             repository.findAll(ldapquery).forEach(result::add);
             log.trace("Users found with email {}: {}", email, result.size());

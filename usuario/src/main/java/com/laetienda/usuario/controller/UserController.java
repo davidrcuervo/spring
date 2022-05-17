@@ -31,7 +31,7 @@ public class UserController {
         return ResponseEntity.ok(service.findAll());
     }
     @GetMapping("user.html")
-    public ResponseEntity<Usuario> getUser(@RequestParam String username){
+    public ResponseEntity<Usuario> getUser(@RequestParam String username) throws NotValidCustomException {
        log.trace("$username: {}", username);
        return ResponseEntity.ok(service.find(username));
     }

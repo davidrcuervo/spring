@@ -4,6 +4,7 @@ import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CrudAction;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
+import com.laetienda.usuario.repository.GroupRepository;
 import com.laetienda.usuario.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,12 @@ import static com.laetienda.lib.options.CrudAction.*;
 
 public class UserServiceImpl implements UserService {
     final private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    final private String USERNAME = "admuser";
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private GroupService gservice;
 
 //    public UserServiceImpl(UserRepository repository){
 //        this.repository = repository;
@@ -33,7 +38,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Usuario find(String username) {
+    public Usuario find(String username) throws NotValidCustomException {
+
+        Usuario result = repository.find(username);
+
+        if(result == null){
+            throw new NotValidCustomException(
+                    String.format("User, (%s), does not exist.", username),
+                    HttpStatus.NOT_FOUND,
+                    "username"
+            );
+        }
+
         return repository.find(username);
     }
 
@@ -105,6 +121,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Usuario user) throws NotValidCustomException {
+        //TODO test is not last owner of a group
+
+        //TODO Test if user is manager
+
+        //Test if it is tomcat or admuser
+        if(user.getUsername().equalsIgnoreCase("admuser") || user.getUsername().equalsIgnoreCase("tomcat")){
+            String message = String.format("User, (%s), can't be removed from the system", user.getUsername());
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "user");
+        }
+
         repository.delete(user);
     }
 }

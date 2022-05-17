@@ -6,22 +6,20 @@ import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface GroupRepository {
-    public Group create(Group group, String owner);
-    public Group findByName(String name);
-    public List<Group> findAll(Usuario owner);
-    public List<Group> findAll(String username);
-    public Group update(Group group, String name, String username);
-    public Group delete(Group group);
-
-    public boolean isOwner(Group group, String username);
-    public boolean isMember(Group group, String username);
-
-    public Group addMember(Group group, Usuario user);
-
-    public Group removeMember(Group group, Usuario user) throws IOException;
+    Group create(Group group, String owner);
+    Group findByName(String name);
+    Map<String, Group> findAll(Usuario owner);
+    Map<String, Group> findAll(String username);
+    Group update(Group group, String name, String username);
+    Group delete(Group group);
+    boolean isOwner(Group group, String username);
+    boolean isMember(Group group, String username);
+    Group addMember(Group group, Usuario user);
+    Group removeMember(Group group, Usuario user) throws IOException;
 
     Group addOwner(Group group, Usuario user);
 

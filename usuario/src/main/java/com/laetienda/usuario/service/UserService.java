@@ -11,7 +11,7 @@ import java.util.List;
 public interface UserService {
 
     public UsuarioList findAll();
-    public Usuario find(String username);
+    public Usuario find(String username) throws NotValidCustomException;
     public List<Usuario> findByEmail(String email);
     public Usuario create(Usuario user) throws NotValidCustomException;
     public Usuario update(Usuario user) throws NotValidCustomException;

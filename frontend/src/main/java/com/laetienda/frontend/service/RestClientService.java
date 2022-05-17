@@ -1,7 +1,10 @@
 package com.laetienda.frontend.service;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Usuario;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 public interface RestClientService {
@@ -9,7 +12,8 @@ public interface RestClientService {
     public <T> T post(String apiurl, Object data, Class<T> clazz);
     public <T> T find(String apiurl, String id, Class<T> clazz);
     public <T> T findall(String apiurl, Class<T> clazz);
-    public <T> T delete(String apiurl, Object data, Class<T> clazz);
+    public <T> T delete(String apiurl, Class<T> clazz, Map<String, String> params) throws NotValidCustomException;
+    public <T> T delete(String apiurl, Class<T> clazz);
     public <T> T modify(String apiurl, Object data, Class<T> clazz);
 
 }

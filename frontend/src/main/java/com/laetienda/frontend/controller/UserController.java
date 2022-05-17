@@ -1,6 +1,6 @@
 package com.laetienda.frontend.controller;
 
-import com.laetienda.frontend.lib.FormNotValidException;
+import com.laetienda.frontend.lib.CustomRestClientException;
 import com.laetienda.frontend.model.ThankyouPage;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
@@ -50,7 +50,7 @@ public class UserController {
             log.trace("email: {}", response.getEmail());
             ThankyouPage thankyou = thankyouService.set(new ThankyouPage("/thankyou/user/signup.html", "", "You have succesfully Signed Up!", "Thank you for your interest in our web site.", "/user/login.html", "Log In"));
             result = "redirect:" + thankyou.getKey();
-        }catch(FormNotValidException e){
+        }catch(CustomRestClientException e){
             model.addAttribute("errors", e.getMistake().getErrors());
             result = signUp(model, user);
         }

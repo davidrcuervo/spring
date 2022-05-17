@@ -100,8 +100,8 @@ public class GroupRepoImpl implements GroupRepository{
     }
 
     @Override
-    public List<Group> findAll(Usuario owner) {
-        List<Group> result = new ArrayList<Group>();
+    public Map<String, Group> findAll(Usuario owner) {
+        Map<String, Group> result = new HashMap<>();
         String ownerdn = dn.getCompleteUserDn(owner.getUsername()).toString();
 //        log.trace("ownerdn: {}", ownerdn);
 //        log.trace("groupdn: {}", dn.getCompleteGroupDn().toString());
@@ -109,20 +109,24 @@ public class GroupRepoImpl implements GroupRepository{
                 .base(dn.getGroupDn())
                 .where("objectclass").is("groupOfUniqueNames")
                 .and("owner").is(ownerdn)
-         ).forEach(result::add);
+         ).forEach((temp) -> {
+             this.findOwners(temp);
+             this.findMembers(temp);
+             result.put(temp.getName(), temp);
+        });
 
         log.trace("# of groups: {}", result.size());
-        result.forEach(
-                (group) -> {
-                    this.findOwners(group);
-                    this.findMembers(group);
-                });
+//        result.forEach(
+//                (group) -> {
+//                    this.findOwners(group);
+//                    this.findMembers(group);
+//                });
 
         return result;
     }
 
     @Override
-    public List<Group> findAll(String username) {
+    public Map<String, Group> findAll(String username) {
         Usuario owner = userRepo.find(username);
         return findAll(owner);
     }

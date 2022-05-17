@@ -9,7 +9,49 @@
 </head>
 <body>
 <div layout:fragment="management">
-    <h1 class="text-center">Manage Groups</h1>
+    <h2 class="pb-2 border-bottom">Manage Groups</h2>
+    <table class="table">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Group</th>
+                <th scope="col">Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody th:each="group : ${groups}">
+            <tr>
+                <td th:text="${group.key}">Group Name</td>
+                <td th:text="${group.value.description}">Description</td>
+                <td>
+                    <a th:href="@{|/manage/groups.html?group=${group.key}|}" title="Group Details" alt="Show" class="btn btn-primary">Show</a>
+                </td>
+            </tr>
+            <tr th:if="${param.group != null} and ${param.group[0]} eq ${group.key}">
+                <td colspan="3">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Username</td>
+                                <td>Full Name</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <td>Manager</td>
+                                <td>Manager User</td>
+                                <td>
+                                    <form method="POST">
+                                        <button type="submit" name="action" value="remove">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 </body>
 </html>

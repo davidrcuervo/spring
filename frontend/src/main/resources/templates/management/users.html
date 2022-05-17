@@ -10,19 +10,39 @@
 </head>
 <body>
     <div layout:fragment="management">
-        <h1 class="text-center">Manage Users</h1>
-        <div class="row">
-            <div class="col">USERNAME</div>
-            <div class="col">FULL NAME</div>
-            <div class="col"></div>
-        </div>
-        <div class="row" th:each="user : ${users}">
-            <div class="col" th:text="${user.key}">username</div>
-            <div class="col" th:text="${user.value.fullName}">full name</div>
-            <div class="col">
-                <a class="#" role="button" href="#" alt="tbd" title="tbd">Remove</a>
-            </div>
-        </div>
+        <h2 class="pb-2 border-bottom">Manage Users</h2>
+        <table class="table">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">USERNAME</th>
+                    <th scope="col">FULL NAME</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody th:each="user : ${users}">
+                <tr>
+                    <td th:text="${user.key}">username</td>
+                    <td th:text="${user.value.fullName}">full name</td>
+                    <td>
+                        <form method="POST">
+                            <input type="hidden" name="username" th:value="${user.key}">
+                            <button type="submit" name="action" th:value="DELETE">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${postErrors != null and postErrors.get(user.key) != null}">
+                    <td colspan="3" class="text-danger">
+                        <ul th:each="error : ${postErrors.get(user.key).errors}" class="list-unstyled ">
+                            <li>
+                                <ul th:each="detail : ${error.value}">
+                                    <li th:text="${detail}">error detail</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </body>
 </html>
