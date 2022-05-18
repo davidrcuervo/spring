@@ -26,7 +26,7 @@
             </div>
             <div class="row">
                 <div class="d-grid gap-2 col-md-6 mx-auto">
-                    <button type="submit" class="btn btn-primary" th:value="${form.action}">Submit</button>
+                    <button type="submit" th:class="${form.button.class}" name="action" th:value="${form.action}" th:text="${form.button.text}">Submit</button>
                 </div>
                 <div th:if="${errors != null and errors.get('form') != null}" class="text-danger">
                     <div th:each="error : ${errors.form}">

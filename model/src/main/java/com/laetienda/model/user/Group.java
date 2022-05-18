@@ -1,6 +1,9 @@
 package com.laetienda.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.laetienda.lib.annotation.HtmlForm;
+import com.laetienda.lib.annotation.HtmlInput;
+import com.laetienda.lib.interfaces.Forma;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Persistable;
@@ -13,16 +16,17 @@ import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.*;
 
+@HtmlForm(name = "group")
 @Entry(objectClasses = {"groupOfUniqueNames"})
-final public class Group implements Persistable {
+final public class Group implements Persistable, Forma {
     final private static Logger log = LoggerFactory.getLogger(Group.class);
     @Id
     @JsonIgnore
     private Name dn;
 
-    @NotNull @NotEmpty @Size(min = 4, max = 64)
+    @NotNull @NotEmpty @Size(min = 4, max = 64 )
+    @HtmlInput(label = "Name", placeholder = "Entry the name of the group", style_size="col-md-4")
     @Attribute(name = "cn")
-//    @DnAttribute(value = "cn", index = 1)
     private String name;
 
     @Attribute(name = "owner")
@@ -40,6 +44,7 @@ final public class Group implements Persistable {
     private Map<String, Usuario> members;
 
     @Size(min = 4, max = 255)
+    @HtmlInput(label = "Descriptions", placeholder = "Enter small description of the gruup, up to 255 characters", style_size="col-md-8")
     @Attribute(name = "description")
     private String description;
     @Transient

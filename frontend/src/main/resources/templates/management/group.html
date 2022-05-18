@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/management.html}"
+>
+<head>
+    <title th:text="|Manage ${param.groupname} Group|">Title</title>
+</head>
+<body>
+<div layout:fragment="management">
+    <h2 class="pb-2 border-bottom" th:text="|Manage ${param.groupname} Group|">Manage Groups</h2>
+
+<!--    SHOW FORM TO EDIT GROUP NAME AND DESCRIPTION-->
+
+    <span th:text="${form.addButtonAttribute('class', 'btn btn-secondary')}" />
+    <span th:text="${form.addButtonAttribute('text', 'Update')}" />
+    <div th:replace="layout/form.html :: form">
+        this should not appear
+    </div>
+
+<!--    MANAGE MEMBERS-->
+
+    <h3 class="mt-5 pb-2">Members</h3>
+    <div class="row align-items-center border-bottom" th:each="member : ${group.members}">
+        <div class="col-5" th:text="${member.key}">Username</div>
+        <div class="col-5" th:text="${member.value.fullName}">Full Name</div>
+        <div class="col-2">
+            <form method="POST">
+                <input type="hidden" name="gname" th:value="${group.name}" />
+                <input type="hidden" name="username" th:value="${member.key}" />
+                <button type="submit" name="action" value="removemember" title="Remove member from Group" class="btn btn-link"><i class="bi bi-trash-fill"></i></button>
+            </form>
+        </div>
+        <div class="w-100"></div>
+        <div th:if="${errors != null and param.action != null and param.action[0] == 'removemember' and param.username != null and param.username[0] == member.key}">
+            <div th:each="errorlist : ${errors}">
+                <ul th:each="error : ${errorlist.value}" class="list-unstyled text-warning">
+                    <li th:text="|${errorlist.key}: ${error}|">error</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<!--        ADD ANOTHER MEMBER FORM-->
+    <form method="post">
+        <div class="row align-items-center">
+            <div class="col-10">
+                <input type="hidden" name="gname" th:value="${param.groupname[0]}" />
+                <div class="input-group">
+                    <span class="input-group-text" id="addon-wrapping">@</span>
+                    <input type="text" name="username" class="form-control" placeholder="Type username of member to be added" />
+                </div>
+            </div>
+            <div class="col-2">
+                <button type="submit" name="action" value="addmember" title="Add Member to Group" class="btn btn-link"><i class="bi bi-plus-circle-fill"></i></button>
+            </div>
+        </div>
+    </form>
+    <div class="row" th:if="${errors != null and param.action != null and param.action[0] == 'addmember'}">
+        <div class="col">
+            <div th:each="errorlist : ${errors}">
+                <ul th:each="error : ${errorlist.value}" class="list-unstyled text-warning">
+                    <li th:text="|${errorlist.key}: ${error}|">error</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+<!--    MANAGER OWNERS-->
+
+    <h3 class="mt-5 pb-2">Owners</h3>
+    <div class="row align-items-center border-bottom" th:each="owner : ${group.owners}">
+        <div class="col-5" th:text="${owner.key}">Username</div>
+        <div class="col-5" th:text="${owner.value.fullName}">Full Name</div>
+        <div class="col-2">
+            <form method="POST">
+                <input type="hidden" name="gname" th:value="${group.name}" />
+                <input type="hidden" name="username" th:value="${owner.key}" />
+                <button type="submit" name="action" value="removeowner" title="Remove Owner From Group" class="btn btn-link"><i class="bi bi-trash-fill"></i></button>
+            </form>
+        </div>
+        <div class="w-100"></div>
+        <div th:if="${errors != null and param.action != null and param.action[0] == 'removeowner' and param.username != null and param.username[0] == owner.key}">
+            <div th:each="errorlist : ${errors}">
+                <ul th:each="error : ${errorlist.value}" class="list-unstyled text-warning">
+                    <li th:text="|${errorlist.key}: ${error}|">error</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<!--    ADD ANOTHER OWNER FORM-->
+    <form method="post">
+        <div class="row align-items-center">
+            <div class="col-10">
+                <input type="hidden" name="gname" th:value="${param.groupname[0]}" />
+                <div class="input-group">
+                    <div class="input-group-text">@</div>
+                    <input type="text" name="username" class="form-control" placeholder="Type the username of member that will be added as owner" />
+                </div>
+            </div>
+            <div class="col-2">
+                    <button type="submit" name="action" value="addowner" class="btn btn-link" title="Add owner to group"><i class="bi bi-plus-circle-fill"></i></button>
+            </div>
+        </div>
+    </form>
+    <div class="row align-items-center" th:if="${errors != null and param.action != null and param.action[0] == 'addowner'}">
+        <div class="col-md">
+            <div th:each="errorlist : ${errors}">
+                <ul th:each="error : ${errorlist.value}" class="list-unstyled text-warning">
+                    <li th:text="|${errorlist.key}: ${error}|">error</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

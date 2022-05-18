@@ -37,6 +37,8 @@ public class FormRepositoryImpl implements FormRepository {
                 result.setUrl(htmlForm.url());
                 result.setMethod(htmlForm.method());
                 result.setInputs(inputs);
+                result.addButtonAttribute("text", "Submit");
+                result.addButtonAttribute("class","btn btn-primary");
 
             }else{
                 log.debug("{} is not instance of {}", a.getClass().getSimpleName(), HtmlForm.class.getSimpleName());

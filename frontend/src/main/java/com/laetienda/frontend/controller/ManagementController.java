@@ -1,9 +1,12 @@
 package com.laetienda.frontend.controller;
 
 import com.laetienda.frontend.lib.CustomRestClientException;
+import com.laetienda.frontend.model.Form;
+import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.service.RestClientService;
-import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.model.Mistake;
+import com.laetienda.lib.options.HtmlFormAction;
+import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
@@ -11,11 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -32,8 +38,29 @@ public class ManagementController {
     @Value("${api.group.findall}")
     private String urlFindAllGroups;
 
+    @Value("${api.group.find}")
+    private String urlFindGroup;
+
+    @Value("${api.group.update}")
+    private String urlUpdateGroup;
+
+    @Value("${api.group.remove.member}")
+    private String urlGroupRemoveMember;
+
+    @Value("${api.group.remove.owner}")
+    private String urlGroupRemoveOwner;
+
+    @Value("${api.group.add.member}")
+    private String urlGroupAddMember;
+
+    @Value("${api.group.add.owner}")
+    private String urlGroupAddOwner;
+
     @Autowired
     private RestClientService restclient;
+
+    @Autowired
+    private FormRepository formRepository;
 
     @GetMapping("/{viewpath}")
     public String getView(@PathVariable String viewpath, Model model){
@@ -84,5 +111,58 @@ public class ManagementController {
         model.addAttribute("groups", groups.getGroups());
 
         return getView("groups.html", model);
+    }
+
+    @GetMapping("group.html")
+    public String getGroup(@RequestParam Map<String, String> params, Model model){
+        log.trace("Running getGroup controller. $Group: {}", params.get("groupname"));
+        Group group = restclient.find(urlFindGroup, Group.class, params);
+        Form form = formRepository.getForm(group);
+        form.setAction(HtmlFormAction.UPDATE);
+        model.addAttribute("group", group);
+        model.addAttribute("form", form);
+        return getView("group.html", model);
+    }
+
+    @PostMapping("group.html")
+    public String postGroupRequest(@RequestParam Map<String, String> params, Model model) throws HttpClientErrorException {
+        log.trace("Running postGroupRequest. $name: {}, $action: {}, $gname: {}, $username: {}", params.get("name"), params.get("action"), params.get("gname"), params.get("username"));
+        switch (params.get("action")){
+            case "removemember":
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupRemoveMember, HttpMethod.DELETE, null);
+            case "removeowner":
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupRemoveOwner, HttpMethod.DELETE, null);
+            case "addmember":
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupAddMember, HttpMethod.PUT, null);
+            case "addowner":
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupAddOwner, HttpMethod.PUT, null);
+            case "UPDATE":
+                Group data = restclient.find(urlFindGroup, Group.class, params);
+                data.setName(params.get("name"));
+                data.setDescription(params.get("description"));
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlUpdateGroup, HttpMethod.PUT, data);
+            default:
+                return "redirect:/notfound.html";
+        }
+    }
+
+    private String addAndRemoveOwnersAndMembersFromGroup(Map<String, String> params, Model model, String url, HttpMethod method, Group data) {
+        Map<String, List<String>> errors = new HashMap<>();
+        try{
+            Group group = restclient.send(url, method, data, Group.class, params);
+            return String.format("redirect:/manage/group.html?groupname=%s", group.getName());
+        }catch(CustomRestClientException e){
+            errors = e.getMistake().getErrors();
+
+            errors.forEach((key, list) -> {
+                log.trace("$error title: {}", key);
+                list.forEach((error -> {
+                    log.trace("$error: {}");
+                }));
+            });
+
+            model.addAttribute("errors", errors);
+            return getGroup(params, model);
+        }
     }
 }

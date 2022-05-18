@@ -1,8 +1,6 @@
 package com.laetienda.frontend.service;
 
 import com.laetienda.frontend.lib.CustomRestClientException;
-import com.laetienda.lib.exception.NotValidCustomException;
-import com.laetienda.model.user.UsuarioList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +39,8 @@ public class RestClientServiceImpl implements RestClientService {
     }
 
     @Override
-    public <T> T find(String apiurl, String id, Class<T> clazz) {
-        return null;
+    public <T> T find(String apiurl, Class<T> clazz, Map<String, String> params) throws CustomRestClientException{
+        return send(apiurl, HttpMethod.GET, null, clazz, params);
     }
 
     @Override
@@ -51,9 +49,8 @@ public class RestClientServiceImpl implements RestClientService {
     }
 
     @Override
-    public <T> T delete(String apiurl, Class<T> clazz, Map<String, String> params) throws NotValidCustomException {
-        throw new NotValidCustomException("Service not implemented", HttpStatus.INTERNAL_SERVER_ERROR, "application");
-//        return null;
+    public <T> T delete(String apiurl, Class<T> clazz, Map<String, String> params) throws CustomRestClientException {
+        return send(apiurl, HttpMethod.DELETE, null, clazz, params);
     }
 
     @Override
@@ -76,7 +73,8 @@ public class RestClientServiceImpl implements RestClientService {
      * @return
      * @param <T>
      */
-    private <T> T send(String apiurl, HttpMethod httpMethod, Object data, Class<T> clazz, Map<String, String> params) throws CustomRestClientException{
+    @Override
+    public <T> T send(String apiurl, HttpMethod httpMethod, Object data, Class<T> clazz, Map<String, String> params) throws CustomRestClientException{
         T result = null;
 
         HttpHeaders headers = new HttpHeaders();
