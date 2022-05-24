@@ -2,6 +2,7 @@ package com.laetienda.usuario.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Group;
+import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.repository.GroupRepository;
 import com.laetienda.usuario.repository.UserRepository;
@@ -162,6 +163,12 @@ public class GroupServiceImpl implements GroupService{
 
         return result;
     }
+
+    @Override
+    public GroupList findAllByMember(Usuario user) {
+        return repository.findAllByMember(user);
+    }
+
 
     private Group getGroupOwner(String gname) throws NotValidCustomException {
         Group result = repository.findByName(gname);

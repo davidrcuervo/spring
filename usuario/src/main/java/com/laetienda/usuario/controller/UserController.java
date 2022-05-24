@@ -1,6 +1,7 @@
 package com.laetienda.usuario.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.model.Prueba;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -27,7 +29,8 @@ public class UserController {
     }
 
     @GetMapping("users.html")
-    public ResponseEntity<UsuarioList> getUsers(){
+    public ResponseEntity<UsuarioList> findAll() throws NotValidCustomException {
+        log.trace("Running findAll user controller");
         return ResponseEntity.ok(service.findAll());
     }
     @GetMapping("user.html")
@@ -63,5 +66,11 @@ public class UserController {
         log.trace("delete user. $username: {}", username);
         service.delete(service.find(username));
         return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("authenticate.html")
+    public ResponseEntity<GroupList> authenticate(@RequestBody Usuario user) throws NotValidCustomException {
+        log.trace("Running authenticate user controller. $username: {}", user == null ? "empty" : user.getUsername());
+        return ResponseEntity.ok(service.authenticate(user));
     }
 }

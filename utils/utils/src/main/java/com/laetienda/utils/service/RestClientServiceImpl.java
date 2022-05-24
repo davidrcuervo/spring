@@ -1,6 +1,6 @@
-package com.laetienda.frontend.service;
+package com.laetienda.utils.service;
 
-import com.laetienda.frontend.lib.CustomRestClientException;
+import com.laetienda.lib.exception.CustomRestClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +8,9 @@ import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +18,9 @@ public class RestClientServiceImpl implements RestClientService {
     final private static Logger log = LoggerFactory.getLogger(RestClientServiceImpl.class);
     @Autowired
     private RestTemplate restclient;
+
+    @Autowired
+    private HttpSession session;
 
     public <T> T post(String url, Object data, Class<T> clazz){
 
@@ -79,6 +84,8 @@ public class RestClientServiceImpl implements RestClientService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Cookie", String.format("SESSION=%s", Base64.getEncoder().encodeToString(session.getId().getBytes())));
+        log.trace("SESSION: {}", Base64.getEncoder().encodeToString(session.getId().getBytes()));
         HttpEntity<?> entity;
 
         if(data == null){

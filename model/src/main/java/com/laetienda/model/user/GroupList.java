@@ -23,4 +23,13 @@ public class GroupList {
     public void setGroups(Map<String, Group> groups) {
         this.groups = groups;
     }
+
+    public GroupList addGroup(Group group){
+        if(groups == null){
+            groups = new HashMap<>();
+        }
+
+        groups.put(group.getName(), group);
+        return this;
+    }
 }

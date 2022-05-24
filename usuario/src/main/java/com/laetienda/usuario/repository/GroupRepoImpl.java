@@ -1,6 +1,7 @@
 package com.laetienda.usuario.repository;
 
 import com.laetienda.model.user.Group;
+import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.lib.LdapDn;
 import org.slf4j.Logger;
@@ -215,5 +216,18 @@ public class GroupRepoImpl implements GroupRepository{
         group.removeOwner(user);
         repository.save(group);
         return findByName(group.getName());
+    }
+
+    @Override
+    public GroupList findAllByMember(Usuario user) {
+        GroupList result = new GroupList();
+        repository.findAll(query()
+                .base(dn.getGroupDn())
+                .where("objectclass").is("groupOfUniqueNames")
+                .and("uniqueMember").is(dn.getUserDn(user.getUsername()).toString()))
+                .forEach(group -> {
+                    result.addGroup(group);
+                });
+        return result.getGroups().size() > 0 ? result : null;
     }
 }

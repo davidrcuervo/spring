@@ -2,6 +2,8 @@ package com.laetienda.usuario.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.user.Group;
+import com.laetienda.model.user.GroupList;
+import com.laetienda.model.user.Usuario;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -19,4 +21,6 @@ public interface GroupService {
     Group removeMember(String gname, String username) throws NotValidCustomException;
     Group addOwner(String gname, String username) throws NotValidCustomException;
     Group removeOwner(String gname, String username) throws NotValidCustomException;
+
+    GroupList findAllByMember(Usuario user);
 }

@@ -1,10 +1,10 @@
 package com.laetienda.frontend.controller;
 
-import com.laetienda.frontend.lib.CustomRestClientException;
+import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.frontend.model.ThankyouPage;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
-import com.laetienda.frontend.service.RestClientService;
+import com.laetienda.utils.service.RestClientService;
 import com.laetienda.model.user.Usuario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

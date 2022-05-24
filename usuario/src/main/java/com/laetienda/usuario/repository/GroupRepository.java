@@ -1,6 +1,7 @@
 package com.laetienda.usuario.repository;
 
 import com.laetienda.model.user.Group;
+import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import org.springframework.stereotype.Repository;
 
@@ -24,4 +25,6 @@ public interface GroupRepository {
     Group addOwner(Group group, Usuario user);
 
     Group removeOwner(Group group, Usuario user) throws IOException;
+
+    GroupList findAllByMember(Usuario user);
 }

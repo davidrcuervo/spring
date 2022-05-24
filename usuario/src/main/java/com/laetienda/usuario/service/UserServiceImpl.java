@@ -2,6 +2,7 @@ package com.laetienda.usuario.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CrudAction;
+import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.repository.GroupRepository;
@@ -10,7 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.security.Principal;
 import java.util.List;
 
 import static com.laetienda.lib.options.CrudAction.*;
@@ -21,6 +28,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private HttpServletRequest request;
     @Autowired
     private GroupService gservice;
 
@@ -33,8 +42,18 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
-    public UsuarioList findAll() {
-        return repository.findAll();
+    public UsuarioList findAll() throws NotValidCustomException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if(auth.getAuthorities().contains(new SimpleGrantedAuthority("manager"))){
+            return repository.findAll();
+        }else{
+            throw new NotValidCustomException(
+                "User is not authorized",
+                    HttpStatus.UNAUTHORIZED,
+                    "username"
+            );
+        }
     }
 
     @Override
@@ -132,5 +151,17 @@ public class UserServiceImpl implements UserService {
         }
 
         repository.delete(user);
+    }
+
+    @Override
+    public GroupList authenticate(Usuario user) throws NotValidCustomException {
+        GroupList result = null;
+        this.find(user.getUsername());
+
+        if(repository.authenticate(user)){
+            result = gservice.findAllByMember(user);
+        }
+
+        return result;
     }
 }

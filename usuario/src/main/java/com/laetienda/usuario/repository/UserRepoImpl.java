@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.support.LdapNameBuilder;
 
@@ -23,6 +24,9 @@ public class UserRepoImpl implements UserRepository{
 
     @Autowired
     private UserLdapRepository repository;
+
+    @Autowired
+    private LdapTemplate ldapTemplate;
 
     @Autowired
     private LdapDn dn;
@@ -100,10 +104,10 @@ public class UserRepoImpl implements UserRepository{
                 (user.getMiddlename() != null ? user.getMiddlename() + " " : "") +
                 user.getLastname()
         );
+        log.trace("fullName: {}", user.getFullName());
         log.trace("is new: {}", user.isNew());
         return repository.save(user);
     }
-
 
     @Override
     public void delete(Usuario user) throws NotValidCustomException {
@@ -116,5 +120,16 @@ public class UserRepoImpl implements UserRepository{
             ex.addError("username", "Not user found with that username.");
             throw ex;
         }
+    }
+
+    @Override
+    public boolean authenticate(Usuario user) {
+
+        boolean result = ldapTemplate.authenticate(
+                dn.getUserDn(user.getUsername()).toString(),
+                String.format("uid=%s", user.getUsername()),
+                user.getPassword());
+
+        return result;
     }
 }

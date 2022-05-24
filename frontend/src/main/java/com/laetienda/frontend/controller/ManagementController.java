@@ -1,9 +1,9 @@
 package com.laetienda.frontend.controller;
 
-import com.laetienda.frontend.lib.CustomRestClientException;
+import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.frontend.model.Form;
 import com.laetienda.frontend.repository.FormRepository;
-import com.laetienda.frontend.service.RestClientService;
+import com.laetienda.utils.service.RestClientService;
 import com.laetienda.lib.model.Mistake;
 import com.laetienda.lib.options.HtmlFormAction;
 import com.laetienda.model.user.Group;
@@ -20,6 +20,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import javax.servlet.http.HttpSession;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,32 +65,34 @@ public class ManagementController {
     private FormRepository formRepository;
 
     @GetMapping("/{viewpath}")
-    public String getView(@PathVariable String viewpath, Model model){
+    public String getView(@PathVariable String viewpath, Model model, HttpSession session){
         log.trace("$viewpath: {}", viewpath);
         model.addAttribute("activemainmenu", "userandsettings");
         model.addAttribute("activesidemenu",viewpath);
+        model.addAttribute("sessionId", session.getId());
+        model.addAttribute("encodedSessionId", Base64.getEncoder().encodeToString(session.getId().getBytes()));
         return "management/" + viewpath;
     }
 
     @GetMapping("users.html")
-    public String getUsers(Model model){
+    public String getUsers(Model model, HttpSession session){
         log.trace("Running manage users controller.");
-        Map<String, Usuario> users = restclient.findall(urlFindAllUsers, UsuarioList.class).getUsers();
+        Map<String, Usuario> users = restclient.send(urlFindAllUsers, HttpMethod.GET, null, UsuarioList.class, null).getUsers();
         model.addAttribute("users", users);
-        return getView("users.html", model);
+        return getView("users.html", model, session);
     }
 
-    @PostMapping("users.html")
-    public String postUserRequest(@RequestParam Map<String, String> params, Model model){
+    @RequestMapping (value="users.html", method=RequestMethod.POST)
+    public String postUserRequest(@RequestParam Map<String, String> params, Model model, HttpSession session){
         switch(params.get("action")){
             case("DELETE"):
-                return deleteUser(params.get("username"), model);
+                return deleteUser(params.get("username"), model, session);
             default:
-                return getUsers(model);
+                return getUsers(model, session);
         }
     }
 
-    private String deleteUser(@RequestParam String username, Model model){
+    private String deleteUser(@RequestParam String username, Model model, HttpSession session){
         log.trace("Running delete user controller. $username: {}", username);
         String address = urlRemoveUser.replaceFirst("\\{username\\}", username);
 
@@ -100,53 +104,53 @@ public class ManagementController {
             Map<String, Mistake> postErrors = new HashMap<>();
             postErrors.put(username, e.getMistake());
             model.addAttribute("postErrors", postErrors);
-            return getUsers(model);
+            return getUsers(model, session);
         }
     }
 
     @GetMapping("groups.html")
-    public String getGroups(Model model){
+    public String getGroups(Model model, HttpSession session){
         log.trace("Running getGroups (/manage/groups.html) controller");
         GroupList groups = restclient.findall(urlFindAllGroups, GroupList.class);
         model.addAttribute("groups", groups.getGroups());
 
-        return getView("groups.html", model);
+        return getView("groups.html", model, session);
     }
 
     @GetMapping("group.html")
-    public String getGroup(@RequestParam Map<String, String> params, Model model){
+    public String getGroup(@RequestParam Map<String, String> params, Model model, HttpSession session){
         log.trace("Running getGroup controller. $Group: {}", params.get("groupname"));
         Group group = restclient.find(urlFindGroup, Group.class, params);
         Form form = formRepository.getForm(group);
         form.setAction(HtmlFormAction.UPDATE);
         model.addAttribute("group", group);
         model.addAttribute("form", form);
-        return getView("group.html", model);
+        return getView("group.html", model, session);
     }
 
     @PostMapping("group.html")
-    public String postGroupRequest(@RequestParam Map<String, String> params, Model model) throws HttpClientErrorException {
+    public String postGroupRequest(@RequestParam Map<String, String> params, Model model, HttpSession session) throws HttpClientErrorException {
         log.trace("Running postGroupRequest. $name: {}, $action: {}, $gname: {}, $username: {}", params.get("name"), params.get("action"), params.get("gname"), params.get("username"));
         switch (params.get("action")){
             case "removemember":
-                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupRemoveMember, HttpMethod.DELETE, null);
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupRemoveMember, HttpMethod.DELETE, null, session);
             case "removeowner":
-                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupRemoveOwner, HttpMethod.DELETE, null);
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupRemoveOwner, HttpMethod.DELETE, null, session);
             case "addmember":
-                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupAddMember, HttpMethod.PUT, null);
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupAddMember, HttpMethod.PUT, null, session);
             case "addowner":
-                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupAddOwner, HttpMethod.PUT, null);
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlGroupAddOwner, HttpMethod.PUT, null, session);
             case "UPDATE":
                 Group data = restclient.find(urlFindGroup, Group.class, params);
                 data.setName(params.get("name"));
                 data.setDescription(params.get("description"));
-                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlUpdateGroup, HttpMethod.PUT, data);
+                return addAndRemoveOwnersAndMembersFromGroup(params, model, urlUpdateGroup, HttpMethod.PUT, data, session);
             default:
                 return "redirect:/notfound.html";
         }
     }
 
-    private String addAndRemoveOwnersAndMembersFromGroup(Map<String, String> params, Model model, String url, HttpMethod method, Group data) {
+    private String addAndRemoveOwnersAndMembersFromGroup(Map<String, String> params, Model model, String url, HttpMethod method, Group data, HttpSession session) {
         Map<String, List<String>> errors = new HashMap<>();
         try{
             Group group = restclient.send(url, method, data, Group.class, params);
@@ -162,7 +166,7 @@ public class ManagementController {
             });
 
             model.addAttribute("errors", errors);
-            return getGroup(params, model);
+            return getGroup(params, model, session);
         }
     }
 }

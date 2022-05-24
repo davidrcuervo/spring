@@ -26,6 +26,7 @@
                     <td>
                         <form method="POST">
                             <input type="hidden" name="username" th:value="${user.key}">
+                            <input type="hidden" th:name="${_csrf.parameterName}", th:value="${_csrf.token}" />
                             <button type="submit" name="action" th:value="DELETE">Remove</button>
                         </form>
                     </td>
