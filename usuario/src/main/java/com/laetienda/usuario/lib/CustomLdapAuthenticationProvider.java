@@ -36,7 +36,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
             List<GrantedAuthority> authorities = new ArrayList<>();
             GroupList groups = uService.authenticate(user);
 
-            if(groups != null && groups.getGroups().size() > 0){
+            if(groups != null){
                 groups.getGroups().forEach((key, group) -> {
                     authorities.add(new SimpleGrantedAuthority(group.getName()));
                 });

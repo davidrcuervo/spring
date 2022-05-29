@@ -6,9 +6,11 @@ import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.model.Prueba;
 import com.laetienda.usuario.service.UserService;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,7 @@ public class UserController {
         log.trace("Running findAll user controller");
         return ResponseEntity.ok(service.findAll());
     }
+
     @GetMapping("user.html")
     public ResponseEntity<Usuario> getUser(@RequestParam String username) throws NotValidCustomException {
        log.trace("$username: {}", username);
@@ -48,7 +51,6 @@ public class UserController {
     @PostMapping("create.html")
     public ResponseEntity<Usuario> create(@Valid @RequestBody Usuario user) throws NotValidCustomException {
         return ResponseEntity.ok(service.create(user));
-//        return ResponseEntity.ok(user);
     }
 
     @PostMapping("test")
@@ -62,10 +64,10 @@ public class UserController {
     }
 
     @DeleteMapping("delete.html")
-    public ResponseEntity<Usuario> delete(@RequestParam String username) throws NotValidCustomException {
+    public ResponseEntity<Boolean> delete(@RequestParam String username) throws NotValidCustomException {
         log.trace("delete user. $username: {}", username);
-        service.delete(service.find(username));
-        return ResponseEntity.ok(null);
+        service.delete(username);
+        return ResponseEntity.ok(true);
     }
 
     @PostMapping("authenticate.html")

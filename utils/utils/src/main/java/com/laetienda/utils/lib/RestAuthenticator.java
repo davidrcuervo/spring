@@ -41,18 +41,18 @@ public class RestAuthenticator implements AuthenticationProvider {
 
         try {
             GroupList response = restclient.send(urlApiUserAuthenticate, HttpMethod.POST, creds, GroupList.class, null);
+            List<GrantedAuthority> authorities = new ArrayList<>();
 
             if(response != null){
-                List<GrantedAuthority> authorities = new ArrayList<>();
                 response.getGroups().forEach((name, group) -> {
                     log.trace("User, ({}), role: {}", creds.getUsername(), group.getName());
                     authorities.add(new SimpleGrantedAuthority(group.getName()));
                 });
-                result = new UsernamePasswordAuthenticationToken(creds.getUsername(), creds.getPassword(), authorities);
+
             }else{
                 throw new BadCredentialsException("Invalid password");
             }
-
+            result = new UsernamePasswordAuthenticationToken(creds.getUsername(), creds.getPassword(), authorities);
         }catch(CustomRestClientException e){
             e.getMistake().getErrors().forEach((key, value) -> {
                 value.forEach((message) -> {

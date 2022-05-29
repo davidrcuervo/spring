@@ -1,5 +1,7 @@
 package com.laetienda.usuario;
 
+import com.laetienda.lib.service.TestRestClient;
+import com.laetienda.lib.service.TestRestClientImpl;
 import com.laetienda.usuario.lib.LdapDn;
 import com.laetienda.usuario.lib.LdapDnImpl;
 import com.laetienda.usuario.lib.LdapDnImplB;
@@ -42,6 +44,11 @@ public class UsuarioApplication {
 	@Bean
 	public GroupService getGroupService(){
 		return new GroupServiceImpl();
+	}
+
+	@Bean
+	public TestRestClient getTestRestClient(){
+		return new TestRestClientImpl();
 	}
 
 	public static void main(String[] args) {

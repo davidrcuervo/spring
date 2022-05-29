@@ -9,11 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,31 +24,27 @@ public class GroupController {
     @Value("${spring.ldap.username}")
     private String ldapusername;
 
-    @GetMapping("hola.html")
-    public ResponseEntity<String> hola(){
-        log.trace(ldapusername);
-        return ResponseEntity.ok("Hello Group Word");
-    }
+//    @GetMapping("groups.html")
+//    public ResponseEntity<GroupList> findAll(){
+//        log.trace("Running findAll groups controller");
+//        return ResponseEntity.ok(service.findAll());
+//    }
 
     @GetMapping("groups.html")
-    public ResponseEntity<GroupList> findAll(){
-        return ResponseEntity.ok(new GroupList(service.findAll()));
-    }
+    public ResponseEntity<GroupList> findAllByMember(@RequestParam("user") String username) throws NotValidCustomException {
 
-    @GetMapping("params.html")
-    public ResponseEntity<String> testParameters(@RequestParam Map<String, String> params){
-        log.trace("Running test parameters controller");
-        log.trace("Running group addMember controller");
-        params.forEach((param, value) -> {
-            log.trace("${}: {}", param, value);
-        });
-
-        return ResponseEntity.ok("Succesfully");
+        if(username == null) {
+            log.trace("Running findAll groups controller");
+            return ResponseEntity.ok(service.findAll());
+        }else {
+            log.trace("Running findAllByMember group controller. $username: {}", username);
+            return ResponseEntity.ok(service.findAllByMember(username));
+        }
     }
 
     @GetMapping("group.html")
     public ResponseEntity<Group> findByName(@RequestParam String name) throws NotValidCustomException {
-        return ResponseEntity.ok(service.findGroupByName(name));
+        return ResponseEntity.ok(service.findByName(name));
     }
 
     @PostMapping("create.html")

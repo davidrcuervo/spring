@@ -124,11 +124,20 @@ public class UserRepoImpl implements UserRepository{
 
     @Override
     public boolean authenticate(Usuario user) {
+        Name userdn = dn.getUserDn(user.getUsername());
+        log.trace("Authenticating user: {}", userdn);
+        boolean result = false;
 
-        boolean result = ldapTemplate.authenticate(
-                dn.getUserDn(user.getUsername()).toString(),
-                String.format("uid=%s", user.getUsername()),
-                user.getPassword());
+        try {
+            result = ldapTemplate.authenticate(
+                    userdn.toString(),
+                    String.format("uid=%s", user.getUsername()),
+                    user.getPassword());
+        }catch (Exception e){
+            log.info("Failed to authenticate user: {}, message: {}", user.getUsername(), e.getMessage());
+            log.debug(e.getMessage(), e);
+            result = false;
+        }
 
         return result;
     }

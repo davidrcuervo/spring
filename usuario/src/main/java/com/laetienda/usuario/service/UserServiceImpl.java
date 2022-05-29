@@ -2,6 +2,7 @@ package com.laetienda.usuario.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CrudAction;
+import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
@@ -16,9 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.security.Principal;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static com.laetienda.lib.options.CrudAction.*;
 
@@ -31,7 +32,10 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private HttpServletRequest request;
     @Autowired
-    private GroupService gservice;
+    private GroupService gService;
+
+    @Autowired
+    private GroupRepository gRepo;
 
 //    public UserServiceImpl(UserRepository repository){
 //        this.repository = repository;
@@ -43,9 +47,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UsuarioList findAll() throws NotValidCustomException {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if(auth.getAuthorities().contains(new SimpleGrantedAuthority("manager"))){
+        if(isUserInRole("manager")){
             return repository.findAll();
         }else{
             throw new NotValidCustomException(
@@ -59,17 +62,30 @@ public class UserServiceImpl implements UserService {
     @Override
     public Usuario find(String username) throws NotValidCustomException {
 
-        Usuario result = repository.find(username);
+        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("manager")){
+            Usuario result = repository.find(username);
+            if(result == null){
+                throw new NotValidCustomException(
+                        String.format("User, (%s), does not exist.", username),
+                        HttpStatus.NOT_FOUND,
+                        "username"
+                );
+            }
 
-        if(result == null){
+        }else{
             throw new NotValidCustomException(
-                    String.format("User, (%s), does not exist.", username),
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.UNAUTHORIZED.toString(),
+                    HttpStatus.UNAUTHORIZED,
                     "username"
             );
         }
 
         return repository.find(username);
+    }
+
+    private boolean isUserInRole(String role) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getAuthorities().contains(new SimpleGrantedAuthority(role));
     }
 
     @Override
@@ -101,7 +117,11 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
-        return this.save(user, CREATE);
+        //persist user in LDAP Directory
+        Usuario result =  this.save(user, CREATE);
+
+        //TODO add user to valid group
+        return result;
     }
 
     @Override
@@ -114,6 +134,7 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
+        //Persist user in LDAP directory
         return this.save(user, UPDATE);
     }
 
@@ -139,10 +160,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Usuario user) throws NotValidCustomException {
-        //TODO test is not last owner of a group
-
-        //TODO Test if user is manager
+    public void delete(String username) throws NotValidCustomException {
+        //find(username) test if logged user can remove the user
+        Usuario user = find(username);
 
         //Test if it is tomcat or admuser
         if(user.getUsername().equalsIgnoreCase("admuser") || user.getUsername().equalsIgnoreCase("tomcat")){
@@ -150,16 +170,50 @@ public class UserServiceImpl implements UserService {
             throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "user");
         }
 
-        repository.delete(user);
+        //TODO Test if user is manager
+
+        //Test if user is not last owner of a group
+        GroupList temp = gRepo.findAllByOwner(username);
+        for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()){
+            if(entry.getValue().getOwners().size() < 2) {
+                throw new NotValidCustomException("Can't remove last user of a group", HttpStatus.FORBIDDEN, "user");
+            }
+        }
+
+        try{
+            //remove user from group where is owner
+            for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()) {
+                gRepo.removeOwner(entry.getValue(), user);
+//                entry.getValue().removeOwner(user);
+            }
+
+            //Remove user from groups where is member
+            temp = gRepo.findAllByMember(username);
+            for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()){
+                log.trace("removing user from group: {}", entry.getKey());
+                gRepo.removeMember(entry.getValue(), user);
+//                entry.getValue().removeMember(user);
+            }
+
+            //remove user
+            repository.delete(user);
+        }catch (IOException e) {
+            throw new NotValidCustomException("Failed to remove user", HttpStatus.INTERNAL_SERVER_ERROR, "user", e.getMessage());
+        }
     }
 
     @Override
     public GroupList authenticate(Usuario user) throws NotValidCustomException {
         GroupList result = null;
-        this.find(user.getUsername());
 
-        if(repository.authenticate(user)){
-            result = gservice.findAllByMember(user);
+        if(repository.find(user.getUsername()) == null) {
+            throw new NotValidCustomException(
+                HttpStatus.NOT_FOUND.toString(),
+                HttpStatus.NOT_FOUND,
+                "username"
+            );
+        }else if(repository.authenticate(user)){
+            result = gService.findAllByMember(user);
         }
 
         return result;

@@ -6,13 +6,31 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
 @Service
 public interface GroupService {
 
-    Group findGroupByName(String name) throws NotValidCustomException;
-    Map<String, Group> findAll();
+    /**
+     * Return group if user is member, owner or manager
+     * @param name Name of the group
+     * @return
+     * @throws NotValidCustomException NotFound if group does not exist, or Unauthorized if user does not belong to group
+     */
+    Group findByName(String name) throws NotValidCustomException;
+
+    /**
+     * Find all groups if it is manager, or groups where user is member
+     * @return GroupList, getGroups().size() is 0 when there is no groups. Value will not be null
+     */
+    GroupList findAll();
+
+    /**
+     * Return list of Groups where member belongs to.
+     * @param username
+     * @return List of Groups
+     * @throws NotValidCustomException When user is not manager or user does not belong to group
+     */
+    GroupList findAllByMember(String username) throws NotValidCustomException;
+
     Group create(Group group) throws NotValidCustomException;
     Group update(Group group, String gname) throws NotValidCustomException;
     Group delete(String gname) throws NotValidCustomException;

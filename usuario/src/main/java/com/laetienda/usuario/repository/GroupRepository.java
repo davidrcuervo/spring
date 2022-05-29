@@ -11,13 +11,29 @@ import java.util.Map;
 
 @Repository
 public interface GroupRepository {
+
+    /**
+     *
+     * @param group
+     * @param owner
+     * @return
+     */
     Group create(Group group, String owner);
+
+    /**
+     *
+     * @return all groups in LDAP
+     */
+    GroupList findAll();
     Group findByName(String name);
-    Map<String, Group> findAll(Usuario owner);
-    Map<String, Group> findAll(String username);
+    GroupList findAllByOwner(Usuario owner);
+    GroupList findAllByOwner(String username);
+    GroupList findAllByMemberAndMember(String userA, String userB);
     Group update(Group group, String name, String username);
     Group delete(Group group);
     boolean isOwner(Group group, String username);
+    boolean isOwner(String gName, String username);
+    boolean isMember(String gname, String username);
     boolean isMember(Group group, String username);
     Group addMember(Group group, Usuario user);
     Group removeMember(Group group, Usuario user) throws IOException;
@@ -27,4 +43,5 @@ public interface GroupRepository {
     Group removeOwner(Group group, Usuario user) throws IOException;
 
     GroupList findAllByMember(Usuario user);
+    GroupList findAllByMember(String username);
 }

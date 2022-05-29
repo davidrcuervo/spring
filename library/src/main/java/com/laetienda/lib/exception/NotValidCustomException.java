@@ -26,11 +26,18 @@ public class NotValidCustomException extends Exception{
         super(message);
         this.status = statuscode;
         mistake = new Mistake(statuscode.value());
-        mistake.add(key, message);
-//        log.trace("$error code: {}", statuscode.value());
+        addError(key, message);
+    }
+
+    public NotValidCustomException(String message, HttpStatus statuscode, String pointer, String detail){
+        super(message);
+        this.status = statuscode;
+        mistake = new Mistake(statuscode.value());
+        addError(pointer, detail);
     }
 
     public void addError(String key, String message){
+        log.debug("Error: ${} -> {}", key, message);
         mistake.add(key, message);
     }
 

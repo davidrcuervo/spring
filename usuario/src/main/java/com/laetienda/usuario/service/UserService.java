@@ -16,7 +16,6 @@ public interface UserService {
     public List<Usuario> findByEmail(String email);
     public Usuario create(Usuario user) throws NotValidCustomException;
     public Usuario update(Usuario user) throws NotValidCustomException;
-    public void delete(Usuario user) throws NotValidCustomException;
-
+    public void delete(String username) throws NotValidCustomException;
     GroupList authenticate(Usuario user) throws NotValidCustomException;
 }
