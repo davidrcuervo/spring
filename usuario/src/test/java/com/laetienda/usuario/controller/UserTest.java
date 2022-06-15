@@ -2,6 +2,7 @@ package com.laetienda.usuario.controller;
 
 import com.laetienda.lib.model.AuthCredentials;
 import com.laetienda.lib.service.TestRestClient;
+import com.laetienda.lib.service.TestRestClientImpl;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 
 import java.util.HashMap;
@@ -23,6 +25,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Import(TestRestClientImpl.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserTest {
     final private static String ADMUSER = "admuser";
