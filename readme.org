@@ -1,8 +1,14 @@
 #+tittle: Web Application that uses Spring Boot framework
 #+LANGUAGE: EN
 #+AUTHOR: MySelf.1664
+#+STARTUP: overview
 
 * About
+* Installation
+** Security
+** Database
+** OpenLdap
+
 * API
 
 ** v0
@@ -20,4 +26,4 @@
 + Bootstrap: [[https://getbootstrap.com/docs/5.1/getting-started/introduction/][Bootstrap 5.1 Documentation]]
 
 
-#  LocalWords:  API
+#  LocalWords:  API OpenLdap

@@ -28,7 +28,7 @@ class MessengerApplicationTests {
 
 	final private static String ADMUSER = "admuser";
 	final private static String ADMUSER_PASSWORD = "secret";
-	@LocalServerPort
+	@Value("${local.server.port}")
 	private int port;
 
 	@Autowired
