@@ -12,4 +12,5 @@ public interface EmailService {
      * @throws NotValidCustomException
      */
     void sendMessage(EmailMessage message) throws ResponseStatusException;
+    public void testMailer();
 }

@@ -2,23 +2,24 @@ package com.laetienda.messenger.service;
 
 import com.laetienda.model.messager.EmailMessage;
 
+import org.apache.logging.log4j.message.SimpleMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerErrorException;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 @Service
 public class EmailServiceImpl implements EmailService{
@@ -41,7 +42,13 @@ public class EmailServiceImpl implements EmailService{
             Context context = new Context();
             context.setVariables(message.getVariables());
             helper.setFrom(senderAddress);
-            helper.setTo(Arrays.toString(message.getTo().toArray()));
+
+            for(String to : message.getTo()){
+                log.trace("email address to: {}", to);
+                helper.setTo(to);
+            }
+
+//            helper.setTo(Arrays.toString(message.getTo().toArray()));
             helper.setSubject(message.getSubject());
             String html = templateEngine.process(message.getView(), context);
             helper.setText(html, true);
@@ -55,5 +62,16 @@ public class EmailServiceImpl implements EmailService{
             log.debug(e.getMessage(), e);
             throw new ServerErrorException(errorMessage, e);
         }
+    }
+
+    @Override
+    public void testMailer() {
+        log.trace("Sending test message");
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("myself@la-etienda.com");
+        message.setTo("davidrcuervo@gmail.com");
+        message.setSubject("Java Mail test message");
+        message.setText("Body of Java Mail test message");
+        emailSender.send(message);
     }
 }

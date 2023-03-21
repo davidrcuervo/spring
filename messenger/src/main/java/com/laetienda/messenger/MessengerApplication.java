@@ -1,13 +1,13 @@
 package com.laetienda.messenger;
 
-import com.laetienda.lib.service.TestRestClient;
-import com.laetienda.lib.service.TestRestClientImpl;
+import com.laetienda.utils.lib.CustomRestAuthenticationProvider;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.utils.service.RestClientServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -21,6 +21,11 @@ public class MessengerApplication {
 	@Bean
 	public RestClientService getRestClientService(){
 		return new RestClientServiceImpl();
+	}
+
+	@Bean
+	public CustomRestAuthenticationProvider getAuthenticationProvider(){
+		return new CustomRestAuthenticationProvider();
 	}
 
 	public static void main(String[] args) {

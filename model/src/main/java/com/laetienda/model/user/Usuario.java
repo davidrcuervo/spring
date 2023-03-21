@@ -12,9 +12,9 @@ import org.springframework.ldap.odm.annotations.Id;
 import org.springframework.ldap.odm.annotations.Transient;
 
 import javax.naming.Name;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 @Entry(
         base = "ou=people",
         objectClasses = {"person", "inetOrgPerson", "top"}

@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+//import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 
@@ -269,6 +270,7 @@ public class UserTest {
         assertEquals("Middle", response.getBody().getMiddlename());
         assertEquals("Test Middle Surename", response.getBody().getFullName());
     }
+
 
     private void testUserCycleCreate(String username) {
         ResponseEntity<Usuario> response = findByUsername(username);

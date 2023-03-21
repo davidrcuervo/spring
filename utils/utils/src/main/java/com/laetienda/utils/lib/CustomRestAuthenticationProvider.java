@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class RestAuthenticator implements AuthenticationProvider {
-    final private static Logger log = LoggerFactory.getLogger(RestAuthenticator.class);
+public class CustomRestAuthenticationProvider implements AuthenticationProvider {
+    final private static Logger log = LoggerFactory.getLogger(CustomRestAuthenticationProvider.class);
 
     @Autowired
     private RestClientService restclient;

@@ -1,7 +1,6 @@
 package com.laetienda.frontend;
 
-import com.laetienda.utils.lib.RestAuthenticator;
-import org.springframework.beans.factory.annotation.Value;
+import com.laetienda.utils.lib.CustomRestAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -11,8 +10,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.session.web.http.CookieSerializer;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
 @EnableWebSecurity
@@ -62,7 +59,7 @@ public class FrontendSecurityConfiguration extends WebSecurityConfigurerAdapter 
 
     @Bean
     public AuthenticationProvider getAuthenticationProvider(){
-        return new RestAuthenticator();
+        return new CustomRestAuthenticationProvider();
     }
 
     @Bean

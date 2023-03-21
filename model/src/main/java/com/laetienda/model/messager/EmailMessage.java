@@ -2,8 +2,7 @@ package com.laetienda.model.messager;
 
 import org.hibernate.validator.constraints.UniqueElements;
 
-import javax.validation.Valid;
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.util.*;
 
 public class EmailMessage {

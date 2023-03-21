@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -47,7 +46,7 @@ class MessengerApplicationTests {
 	private String urlSendMessage;
 
 	@BeforeEach
-	void createTestUser(){
+	public void createTestUser(){
 		Usuario user = getTestMessengerUser();
 		log.trace("urlUSerCreate: {}", urlUserCreate);
 		Map<String, String> params = new HashMap<>();
@@ -60,7 +59,7 @@ class MessengerApplicationTests {
 	}
 
 	@AfterEach
-	void deleteTestUser(){
+	public void deleteTestUser(){
 		Usuario user = getTestMessengerUser();
 		Map<String, String> params = new HashMap<>();
 		params.put("username", user.getUsername());
@@ -84,19 +83,20 @@ class MessengerApplicationTests {
 		assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode(), "Message is missing subject, message and addresses");
 
 		//It should fail because message is missing information
-		message.setSubject("test");
+		message.setSubject("Web project. Spring Java Mailer test");
 		resp = restClient.send(urlSendMessage, port, HttpMethod.POST, message, String.class, null, user.getUsername(), user.getPassword());
 		assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode(), "Message is missing arguments");
 
 		//It should fail because message is missing information
-		message.addToAddress("address@mail.com");
+		message.addToAddress("davidrcuervo@gmail.com");
 		resp = restClient.send(urlSendMessage, port, HttpMethod.POST, message, String.class, null, user.getUsername(), user.getPassword());
 		assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode(), "Message is missing subject, message and addresses");
 
 		//All required information has been added message should be sent
 
+		message.setView("default/test.html");
 		resp = restClient.send(urlSendMessage, port, HttpMethod.POST, message, String.class, null, user.getUsername(), user.getPassword());
-		assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+		assertEquals(HttpStatus.OK, resp.getStatusCode());
 		assertTrue(Boolean.valueOf(resp.getBody()));
 	}
 
@@ -108,7 +108,7 @@ class MessengerApplicationTests {
 		//email address to has not valid format
 	}
 
-	private Usuario getTestMessengerUser(){
+	private static Usuario getTestMessengerUser(){
 		Usuario user = new Usuario();
 		user.setUsername("junitTestMessengerUser");
 		user.setFirstname("Test");

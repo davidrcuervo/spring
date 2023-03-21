@@ -2,6 +2,7 @@ package com.laetienda.usuario;
 
 import com.laetienda.lib.service.TestRestClient;
 import com.laetienda.lib.service.TestRestClientImpl;
+import com.laetienda.usuario.lib.CustomLdapAuthenticationProvider;
 import com.laetienda.usuario.lib.LdapDn;
 import com.laetienda.usuario.lib.LdapDnImpl;
 import com.laetienda.usuario.lib.LdapDnImplB;
@@ -18,6 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -53,6 +55,10 @@ public class UsuarioApplication {
 		return builder.build();
 	}
 
+	@Bean
+	public CustomLdapAuthenticationProvider getAuthenticationProvider(){
+		return new CustomLdapAuthenticationProvider();
+	}
 	public static void main(String[] args) {
 		SpringApplication.run(UsuarioApplication.class, args);
 	}

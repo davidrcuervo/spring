@@ -22,6 +22,7 @@ import java.util.List;
 @Component
 public class CustomLdapAuthenticationProvider implements AuthenticationProvider {
     final private static Logger log = LoggerFactory.getLogger(CustomLdapAuthenticationProvider.class);
+
     @Autowired
     private UserService uService;
 
