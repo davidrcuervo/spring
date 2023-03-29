@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
 public class ThankyouPageServiceImpl implements ThankyouPageService{
     final private static Logger log = LoggerFactory.getLogger(ThankyouPageServiceImpl.class);

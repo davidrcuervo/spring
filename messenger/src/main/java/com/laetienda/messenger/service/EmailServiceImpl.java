@@ -40,7 +40,7 @@ public class EmailServiceImpl implements EmailService{
             MimeMessage  mimeMessage = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
             Context context = new Context();
-            context.setVariables(message.getVariables());
+            context.setVariable("message", message);
             helper.setFrom(senderAddress);
 
             for(String to : message.getTo()){

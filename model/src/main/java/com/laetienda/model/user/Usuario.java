@@ -64,6 +64,9 @@ final public class Usuario implements Persistable, Forma {
     @Transient
     private String password2;
 
+    @Attribute(name="labeledURI")
+    private String token;
+
     @Transient @JsonIgnore
     private boolean isNew;
     public Usuario() {
@@ -154,5 +157,13 @@ final public class Usuario implements Persistable, Forma {
 
     public void setNew(boolean aNew) {
         isNew = aNew;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

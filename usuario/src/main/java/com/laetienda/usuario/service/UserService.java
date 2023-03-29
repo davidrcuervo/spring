@@ -7,6 +7,7 @@ import com.laetienda.model.user.UsuarioList;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public interface UserService {
@@ -17,5 +18,8 @@ public interface UserService {
     public Usuario create(Usuario user) throws NotValidCustomException;
     public Usuario update(Usuario user) throws NotValidCustomException;
     public void delete(String username) throws NotValidCustomException;
+    public Usuario emailValidation(String encToken) throws NotValidCustomException;
     GroupList authenticate(Usuario user) throws NotValidCustomException;
+    String requestPasswordRecovery(String username) throws NotValidCustomException;
+    Boolean passwordRecovery(Map<String, String> params) throws NotValidCustomException;
 }

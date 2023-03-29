@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default.html}"
+>
+<head>
+    <title>Email Confirmation</title>
+</head>
+<body>
+<table>
+    <tr>
+        <td layout:fragment="content" style="padding:0;">
+            <h1>Confirm you Email Address.</h1>
+            <p><b>Subject:</b> <span th:text="${message.subject}">subject</span></p>
+            <div th:each="entry : ${message.to}">
+                <p><b>to:</b> <span th:text="${entry}">empty</span></p>
+            </div>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In tempus adipiscing felis, sit amet blandit ipsum volutpat sed. Morbi porttitor, eget accumsan et dictum, nisi libero ultricies ipsum, posuere neque at erat.</p>
+            <p><a th:href="@{${message.variables.link}}">Click here to confirm your email</a></p>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

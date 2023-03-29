@@ -2,15 +2,20 @@ package com.laetienda.usuario.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CrudAction;
+import com.laetienda.model.messager.EmailMessage;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.repository.GroupRepository;
 import com.laetienda.usuario.repository.UserRepository;
+import com.laetienda.utils.service.RestClientService;
+import com.laetienda.lib.service.ToolBoxService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,14 +23,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.laetienda.lib.options.CrudAction.*;
 
 public class UserServiceImpl implements UserService {
     final private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     final private String USERNAME = "admuser";
+
     @Autowired
     private UserRepository repository;
 
@@ -36,6 +41,21 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private GroupRepository gRepo;
+
+    @Autowired
+    private RestClientService client;
+
+    @Autowired
+    private ToolBoxService tb;
+
+    @Value("${api.mailer.send}")
+    private String urlSendMessage;
+
+    @Value("${api.frontend.user.emailValidation}")
+    private String urlFrontendEmailValidation;
+
+    @Value("${api.frontend.user.passwordrecovery}")
+    private String urlFrontendUserPasswordRecovery;
 
 //    public UserServiceImpl(UserRepository repository){
 //        this.repository = repository;
@@ -62,7 +82,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Usuario find(String username) throws NotValidCustomException {
 
-        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("manager")){
+        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
             Usuario result = repository.find(username);
             if(result == null){
                 throw new NotValidCustomException(
@@ -117,11 +137,18 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
-        //persist user in LDAP Directory
-        Usuario result =  this.save(user, CREATE);
+        if(user.getToken() != null){
+            ex.addError("usuario", "Weird error user already has a token");
+            throw ex;
+        }
 
-        //TODO add user to valid group
-        return result;
+        String token = setTokenAndSendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation);
+
+        if(token != null){
+            user.setToken(token);
+        }
+
+        return this.save(user, CREATE);
     }
 
     @Override
@@ -203,6 +230,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Usuario emailValidation(String encToken) throws NotValidCustomException {
+        String token = tb.decrypt(encToken, System.getProperty("jasypt.encryptor.password"));
+        log.trace("validating user email. $token: {}", token);
+        Usuario user = repository.findByToken(token);
+        String username = request.getUserPrincipal().getName();
+
+        if(user == null){
+            throw new NotValidCustomException("Not valid token to confirm email address.", HttpStatus.BAD_REQUEST, "user");
+
+        }else if(!username.toLowerCase().equals(user.getUsername().toLowerCase())){
+            throw new NotValidCustomException("Link token does not below to authenticated user", HttpStatus.CONFLICT, "user");
+
+        }else {
+            gService.addMemberToValidUserAccounts(username);
+            user.setToken(null);
+            repository.update(user);
+        }
+
+        return user;
+    }
+
+    @Override
     public GroupList authenticate(Usuario user) throws NotValidCustomException {
         GroupList result = null;
 
@@ -214,6 +263,61 @@ public class UserServiceImpl implements UserService {
             );
         }else if(repository.authenticate(user)){
             result = gService.findAllByMember(user);
+        }
+
+        return result;
+    }
+
+    @Override
+    public String requestPasswordRecovery(String username) throws NotValidCustomException {
+
+        Usuario user = repository.find(username);
+
+        String token = setTokenAndSendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
+        user.setToken(token);
+
+        repository.update(user);
+        return token;
+    }
+
+    @Override
+    public Boolean passwordRecovery(Map<String, String> params) throws NotValidCustomException {
+        return null;
+    }
+
+    private String setTokenAndSendEmail(Usuario user, String view, String subject, String urlValue) throws NotValidCustomException{
+        String result = null;
+
+        //CREATE USER TOKEN
+        Usuario usrToken = null;
+        String token;
+
+        do{
+            token = tb.newToken(12);
+            usrToken = repository.findByToken(token);
+        }while(usrToken != null);
+
+        user.setToken(token);
+        String encToken = tb.encrypt(token, System.getProperty("jasypt.encryptor.password"));
+
+        //SEND MAILER TO CONFIRM USER PARAMETERS
+        EmailMessage message = new EmailMessage();
+        Map<String, Object> variables = new HashMap<>();
+        String urlEvaluated = urlValue.replaceFirst("\\{token\\}",encToken);
+        log.trace("email validation link: {}", urlEvaluated);
+        variables.put("link", urlEvaluated);
+
+        message.setVariables(variables);
+        message.setView(view);
+        message.setSubject(subject);
+        message.setTo(new HashSet<String>(Arrays.asList(user.getEmail())));
+        String resp = client.send(urlSendMessage, HttpMethod.POST, message, String.class, null);
+
+        if(Boolean.valueOf(resp)){
+            log.trace("Token and email has been sent successfully");
+            result = token;
+        }else{
+            throw new NotValidCustomException("Failed to send email.", HttpStatus.INTERNAL_SERVER_ERROR, "user");
         }
 
         return result;

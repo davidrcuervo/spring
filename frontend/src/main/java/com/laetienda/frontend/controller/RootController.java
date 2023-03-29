@@ -19,6 +19,7 @@ public class RootController {
 
     @GetMapping({"/", "home", "home.html", "index", "index.html"})
     public String home(){
+//        return "Welcome to the home page!";
         return "Root/home";
     }
 }

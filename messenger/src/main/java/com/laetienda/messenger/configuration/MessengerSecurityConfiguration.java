@@ -21,7 +21,8 @@ public class MessengerSecurityConfiguration {
         http
             .authorizeRequests((requests) ->
                     requests.
-                            requestMatchers("/anonymous*").anonymous().
+                            requestMatchers("/api/v0/email/preview/template.html").permitAll().
+                            requestMatchers("/api/v0/email/sendMessage.html").permitAll().
                             anyRequest().authenticated()
             )
                 .httpBasic()

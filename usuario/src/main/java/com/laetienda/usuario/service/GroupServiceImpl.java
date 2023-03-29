@@ -163,6 +163,12 @@ public class GroupServiceImpl implements GroupService{
         return repository.addMember(group, user);
     }
 
+    @Override
+    public Group addMemberToValidUserAccounts(String username) throws NotValidCustomException{
+        Group result = repository.findByName("validUserAccounts");
+        return repository.addMember(result, getUser(username));
+    }
+
     private Usuario getUser(String username) throws NotValidCustomException {
         Usuario result = userRepo.find(username);
 

@@ -3,6 +3,7 @@ package com.laetienda.messenger.controller;
 import com.laetienda.messenger.service.EmailService;
 import com.laetienda.model.messager.EmailMessage;
 import com.laetienda.model.user.Usuario;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,6 @@ public class EmailController {
         log.trace("running holapost email controller. $email: {}", usuario.getEmail());
         return ResponseEntity.ok(true);
     }
-
 
     @PostMapping("sendMessage.html")
     public ResponseEntity<Boolean> sendMessage(@Valid @RequestBody EmailMessage message) throws ResponseStatusException{

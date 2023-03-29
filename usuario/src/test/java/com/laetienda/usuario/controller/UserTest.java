@@ -3,6 +3,7 @@ package com.laetienda.usuario.controller;
 import com.laetienda.lib.model.AuthCredentials;
 import com.laetienda.lib.service.TestRestClient;
 import com.laetienda.lib.service.TestRestClientImpl;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 //import org.springframework.boot.web.server.LocalServerPort;
@@ -42,6 +44,12 @@ public class UserTest {
     final private static String GROUP_FIND_ALL_BY_MEMBER = "http://localhost:{port}/api/v0/group/groups.html?user={username}";
     final private static String GROUP_FIND_BY_NAME = "http://localhost:{port}/api/v0/group/group.html?name={gname}";
 
+    @Value("${test.api.user.emailvalidation}")
+    private String urlTestApiUserEmailValidation;
+
+    @Value("${test.api.group.ismember}")
+    private String urlTestApiGroupIsMember;
+
     @LocalServerPort
     private int port;
 
@@ -50,6 +58,9 @@ public class UserTest {
 
     @Autowired
     private TestRestClient restClient;
+
+    @Autowired
+    private ToolBoxService tb;
 
     private final String apiurl = "/api/v0/user";
 
@@ -229,7 +240,8 @@ public class UserTest {
 
     @Test
     public void testUserCycle(){
-        testUserCycleCreate("testuser");
+        Usuario user = testUserCycleCreate("testuser");
+        testUserCycleConfirmEmail(user);
         testUserCycleUpdate("testuser");
         testUserCycleDelete("testuser");
     }
@@ -271,8 +283,32 @@ public class UserTest {
         assertEquals("Test Middle Surename", response.getBody().getFullName());
     }
 
+    private void testUserCycleConfirmEmail(Usuario user){
+        String encToken = tb.encrypt(user.getToken(), System.getProperty("jasypt.encryptor.password"));
+        Map<String, String> params1 = new HashMap<>();
+        params1.put("gName", "validUserAccounts");
+        params1.put("username", user.getUsername());
 
-    private void testUserCycleCreate(String username) {
+        //CHECK USER IS NOT IN VALID ROLE
+        ResponseEntity<String> response = restClient.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, "admuser", "secret");
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(Boolean.parseBoolean(response.getBody()));
+
+        //CONFIRM EMAIL ADDRESS
+        Map<String, String> params2 = new HashMap<>();
+        params2.put("token", encToken);
+        response = restClient.send(urlTestApiUserEmailValidation, port, HttpMethod.GET, user, String.class, params2, user.getUsername(), getUser().getPassword());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Boolean.parseBoolean(response.getBody()));
+
+        //CHECK USER IS IN VALID ROLE
+        response = restClient.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, user.getUsername(), getUser().getPassword());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Boolean.parseBoolean(response.getBody()));
+    }
+
+
+    private Usuario testUserCycleCreate(String username) {
         ResponseEntity<Usuario> response = findByUsername(username);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 
@@ -306,6 +342,8 @@ public class UserTest {
 
         ResponseEntity<GroupList> response2 = restClient.send(AUTHENTICATE, port, HttpMethod.POST, null, GroupList.class, null, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        return response.getBody();
     }
 
     @Test

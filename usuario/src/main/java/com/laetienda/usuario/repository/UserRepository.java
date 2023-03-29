@@ -16,6 +16,6 @@ public interface UserRepository  {
     public Usuario create(Usuario user);
     public Usuario update(Usuario user);
     public void delete(Usuario user) throws NotValidCustomException;
-
+    public Usuario findByToken(String token);
     boolean authenticate(Usuario user);
 }

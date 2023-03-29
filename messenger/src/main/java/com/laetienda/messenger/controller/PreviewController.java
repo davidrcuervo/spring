@@ -1,5 +1,8 @@
 package com.laetienda.messenger.controller;
 
+import com.laetienda.model.messager.EmailMessage;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -12,12 +15,19 @@ import java.util.Map;
 public class PreviewController {
     final private static Logger log = LoggerFactory.getLogger(PreviewController.class);
 
-    @GetMapping("/{templateName}")
-    public String getTemplate(@PathVariable String templateName, @RequestParam Map<String, String> variables){
+    @PostMapping("/hola.html")
+    public String hola(){
+        log.trace("Running /api/v0/email/preview/hola.html controller ");
+        return "default/test.html";
+    }
+
+    @PostMapping("/template.html")
+    public String getTemplate(@Valid @RequestBody EmailMessage message, HttpServletRequest req){
         log.trace("Running email preview");
-        String template = variables.containsKey("template") ? variables.get("template") : "default";
-        String result = String.format("%s/%s", template, templateName);
-        log.trace("$path: {}", result);
-        return result;
+
+        req.setAttribute("message", message);
+        log.trace("$path: {}", message.getView());
+
+        return message.getView();
     }
 }

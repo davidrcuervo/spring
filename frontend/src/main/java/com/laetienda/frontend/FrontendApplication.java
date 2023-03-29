@@ -6,6 +6,7 @@ import com.laetienda.frontend.repository.ThankyouPageRepoImpl;
 import com.laetienda.frontend.repository.ThankyouPageRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
 import com.laetienda.frontend.service.ThankyouPageServiceImpl;
+import com.laetienda.utils.lib.CustomRestAuthenticationProvider;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.utils.service.RestClientServiceImpl;
 import org.springframework.boot.SpringApplication;
@@ -42,6 +43,10 @@ public class FrontendApplication {
 		return new RestClientServiceImpl();
 	}
 
+	@Bean
+	public CustomRestAuthenticationProvider customRestAuthenticationProvider(){
+		return new CustomRestAuthenticationProvider();
+	}
 	public static void main(String[] args) {
 		SpringApplication.run(FrontendApplication.class, args);
 	}

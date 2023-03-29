@@ -39,14 +39,17 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
 
             if(groups != null){
                 groups.getGroups().forEach((key, group) -> {
-                    authorities.add(new SimpleGrantedAuthority(group.getName()));
+                    String role = String.format("ROLE_%s", group.getName().toString().toUpperCase());
+                    log.trace("User: {} -> has role: {}", authentication.getName(), role);
+                    authorities.add(new SimpleGrantedAuthority(role));
                 });
 
             }else{
                 throw new BadCredentialsException("Invalid password");
             }
 
-            return new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), authorities);
+            Authentication result = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), authorities);
+            return result;
         } catch (NotValidCustomException e) {
             throw new BadCredentialsException("Ivalid username");
         }

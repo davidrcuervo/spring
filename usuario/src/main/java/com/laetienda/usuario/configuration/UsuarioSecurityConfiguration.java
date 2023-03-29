@@ -4,12 +4,10 @@ import com.laetienda.usuario.lib.CustomLdapAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-//import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 @Configuration
 @EnableWebSecurity
@@ -23,12 +21,15 @@ public class UsuarioSecurityConfiguration /*extends WebSecurityConfigurerAdapter
         http
                 .authorizeRequests((requests) ->
                         requests.
-                                requestMatchers("/anonymous*").anonymous().
+//                                requestMatchers("/anonymous*").anonymous().
                                 requestMatchers("/api/v0/user/authenticate.html").permitAll().
                                 requestMatchers("/api/v0/user/create.html").permitAll().
-                                anyRequest().authenticated()
+                                requestMatchers("/api/v0/user/requestpasswordrecovery.html").permitAll().
+                                requestMatchers("/api/v0/user/passwordrecovery.html").permitAll().
+                                requestMatchers("/api/v0/user/emailvalidation.html").authenticated().
+                                anyRequest().hasRole("VALIDUSERACCOUNTS")
                         )
-//                .and()
+
                 .httpBasic()
                 .and()
                 .csrf().disable();
@@ -40,12 +41,4 @@ public class UsuarioSecurityConfiguration /*extends WebSecurityConfigurerAdapter
     public void registerProvider(AuthenticationManagerBuilder auth){
         auth.authenticationProvider(customLdapAuthenticationProvider);
     }
-
-    //    BEFORE Spring Security 5.7.0
-//    @Autowired
-//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.authenticationProvider(getAuthenticationProvider());
-////        auth.authenticationProvider(new CustomLdapAuthenticationProvider());
-//    }
-
 }

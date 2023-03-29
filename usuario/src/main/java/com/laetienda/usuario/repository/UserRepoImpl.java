@@ -13,6 +13,7 @@ import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.support.LdapNameBuilder;
 
 import javax.naming.Name;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -137,6 +138,39 @@ public class UserRepoImpl implements UserRepository{
             log.info("Failed to authenticate user: {}, message: {}", user.getUsername(), e.getMessage());
             log.debug(e.getMessage(), e);
             result = false;
+        }
+
+        return result;
+    }
+
+    @Override
+    public Usuario findByToken(String token){
+        log.debug("Find user by token. $token: {}", token);
+        Usuario result = null;
+        List<Usuario> temp = new ArrayList<>();
+
+        try {
+            LdapQuery ldapquery = query().base(dn.getUserDn()).where("objectclass").is("inetOrgPerson")
+                    .and("labeledURI").is(token);
+
+            repository.findAll(ldapquery).forEach(temp::add);
+            log.trace("lenght of users with token. $lenght: {}", temp.size());
+
+            if(temp.size() == 0) {
+                result = null;
+            }else if(temp.size() == 1){
+                result = temp.get(0);
+                log.trace("Users found with token {}: {}", token, result.getId());
+            }else{
+                throw new IOException("There is more than one user with same token");
+            }
+
+        }catch(NoSuchElementException e){
+            log.warn("User token not found. $: {}", token);
+//            log.debug(e.getMessage(), e);
+        }catch(IOException e){
+            log.error("There is more than one user with same token. $token {}", token);
+            log.debug(e.getMessage(), e);
         }
 
         return result;

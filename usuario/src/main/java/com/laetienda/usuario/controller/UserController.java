@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 //import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v0/user")
@@ -61,6 +61,7 @@ public class UserController {
 
     @PutMapping("update.html")
     public ResponseEntity<Usuario> update(@Valid @RequestBody Usuario user) throws NotValidCustomException{
+        log.trace("Running user update controller. $username: {}", user == null ? "empty" : user.getUsername());
         return ResponseEntity.ok(service.update(user));
     }
 
@@ -75,5 +76,30 @@ public class UserController {
     public ResponseEntity<GroupList> authenticate(@RequestBody Usuario user) throws NotValidCustomException {
         log.trace("Running authenticate user controller. $username: {}", user == null ? "empty" : user.getUsername());
         return ResponseEntity.ok(service.authenticate(user));
+    }
+
+    @GetMapping("emailvalidation.html")
+    public ResponseEntity<Boolean> emailValidation(@RequestParam(name="token") String encToken) throws NotValidCustomException{
+        log.trace("Running emailvalidation user controller. $encToken: {}", encToken);
+        service.emailValidation(encToken);
+        return ResponseEntity.ok(true);
+    }
+
+    @PostMapping("requestpasswordrecovery.html")
+    public ResponseEntity<String> requestPasswordRecovery(@RequestParam String username) throws NotValidCustomException{
+        log.trace("Running requestPasswordRecovery user controller. $username: {}", username);
+        return ResponseEntity.ok(service.requestPasswordRecovery(username));
+    }
+
+    @PostMapping("passwordrecovery.html")
+    public ResponseEntity<Boolean> passwordRecovery(@RequestParam Map<String, String> parameters) throws NotValidCustomException{
+        log.trace("Running passwordRecovery user controller");
+
+        for(Map.Entry<String, String> entry : parameters.entrySet()){
+            log.trace("${}: {}", entry.getKey(), entry.getValue());
+        }
+
+
+        throw new NotValidCustomException("Function not implemented", HttpStatus.INTERNAL_SERVER_ERROR, "user");
     }
 }
