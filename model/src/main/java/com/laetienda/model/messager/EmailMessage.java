@@ -1,9 +1,11 @@
 package com.laetienda.model.messager;
 
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.UniqueElements;
 
-import jakarta.validation.constraints.*;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class EmailMessage {
 

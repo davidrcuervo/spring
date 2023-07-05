@@ -2,6 +2,7 @@ package com.laetienda.utils.lib;
 
 import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.lib.model.AuthCredentials;
+
 import com.laetienda.model.user.GroupList;
 import com.laetienda.utils.service.RestClientService;
 import org.slf4j.Logger;
