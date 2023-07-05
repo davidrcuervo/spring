@@ -29,7 +29,7 @@ public class GroupRepoImpl implements GroupRepository{
     @Override
     public Group create(Group group, String ownerusername) {
         Usuario owner = userRepo.find(ownerusername);
-        owner.setDn(dn.getCompleteUserDn(ownerusername));
+        owner.setDnTest(dn.getCompleteUserDn(ownerusername));
         log.trace("1. $owner dn: {}", dn.getCompleteUserDn(ownerusername).toString());
         log.trace("2. $owner dn: {}", owner.getDn().toString());
         group.setDn(dn.getGroupDn(group.getName()));
@@ -37,12 +37,12 @@ public class GroupRepoImpl implements GroupRepository{
         group.addOwner(owner);
 
         group.getOwners().forEach((username, ownuser) -> {
-            ownuser.setDn(dn.getCompleteUserDn(username));
+            ownuser.setDnTest(dn.getCompleteUserDn(username));
             group.addOwner(ownuser);
         });
 
         group.getMembers().forEach((username, memuser) -> {
-            memuser.setDn(dn.getCompleteUserDn(username));
+            memuser.setDnTest(dn.getCompleteUserDn(username));
             group.addMember(memuser);
         });
 
@@ -217,7 +217,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group addMember(Group group, Usuario user) {
-        user.setDn(dn.getUserDn(user.getUsername()));
+        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
         group.addMember(user);
         repository.save(group);
@@ -226,7 +226,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group removeMember(Group group, Usuario user) throws IOException {
-        user.setDn(dn.getUserDn(user.getUsername()));
+        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
         group.removeMember(user);
 
@@ -236,7 +236,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group addOwner(Group group, Usuario user) {
-        user.setDn(dn.getUserDn(user.getUsername()));
+        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
 
         group.addOwner(user);
@@ -246,7 +246,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group removeOwner(Group group, Usuario user) throws IOException {
-        user.setDn(dn.getUserDn(user.getUsername()));
+        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
 
         group.removeOwner(user);

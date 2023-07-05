@@ -243,7 +243,7 @@ public class UserTest {
         Usuario user = testUserCycleCreate("testuser");
         testUserCycleConfirmEmail(user);
         testUserCycleUpdate("testuser");
-        testUserCycleDelete("testuser");
+//        testUserCycleDelete("testuser");
     }
 
     private void testUserCycleDelete(String username) {

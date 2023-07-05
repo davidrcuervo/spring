@@ -21,5 +21,5 @@ public interface UserService {
     public Usuario emailValidation(String encToken) throws NotValidCustomException;
     GroupList authenticate(Usuario user) throws NotValidCustomException;
     String requestPasswordRecovery(String username) throws NotValidCustomException;
-    Boolean passwordRecovery(Map<String, String> params) throws NotValidCustomException;
+    Usuario passwordRecovery(String encToken, Map<String, String> params) throws NotValidCustomException;
 }

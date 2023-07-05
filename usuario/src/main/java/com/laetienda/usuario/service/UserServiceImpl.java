@@ -8,6 +8,7 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.repository.GroupRepository;
+import com.laetienda.usuario.repository.SpringUserRepository;
 import com.laetienda.usuario.repository.UserRepository;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.lib.service.ToolBoxService;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,6 +35,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private SpringUserRepository springRepository;
 
     @Autowired
     private HttpServletRequest request;
@@ -81,9 +86,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Usuario find(String username) throws NotValidCustomException {
-
+        Usuario result = null;
         if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
-            Usuario result = repository.find(username);
+//            Usuario result = repository.find(username);
+            result = springRepository.findByUsername(username);
+            log.trace("User found. Full Name: {}", result.getFullName());
             if(result == null){
                 throw new NotValidCustomException(
                         String.format("User, (%s), does not exist.", username),
@@ -100,7 +107,7 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-        return repository.find(username);
+        return result;
     }
 
     private boolean isUserInRole(String role) {
@@ -122,18 +129,16 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
-        if(repository.findByEmail(user.getEmail()).size() > 0){
+        List<Usuario> uEmails = springRepository.findByEmail(user.getEmail());
+        log.trace("uMails.size = {}", uEmails.size());
+        if(uEmails != null && uEmails.size() > 0){
+//        if(repository.findByEmail(user.getEmail()).size() > 0){
             ex.addError("email", "This email address has been already registered");
             throw ex;
         }
 
-        if(user.getPassword() == null || user.getPassword().isBlank() == true){
-            ex.addError("password", "password must not be empty");
-            throw ex;
-        }
-
-        if(!user.getPassword().equals(user.getPassword2())){
-            ex.addError("password2", "password and confirmation password are not equal");
+        if(!isValidPassword(user.getPassword(), user.getPassword2())){
+            ex.addError("password", "password must not be empty or they are not equal");
             throw ex;
         }
 
@@ -148,7 +153,10 @@ public class UserServiceImpl implements UserService {
             user.setToken(token);
         }
 
-        return this.save(user, CREATE);
+//        user.setId(LdapUtils.emptyLdapName());
+//        log.trace("New uyser id: {}", user.getDn().toString());
+        return repository.create(user);
+//        return this.save(user, CREATE);
     }
 
     @Override
@@ -244,8 +252,7 @@ public class UserServiceImpl implements UserService {
 
         }else {
             gService.addMemberToValidUserAccounts(username);
-            user.setToken(null);
-            repository.update(user);
+            repository.deleteToken(user.getUsername(), token);
         }
 
         return user;
@@ -256,6 +263,7 @@ public class UserServiceImpl implements UserService {
         GroupList result = null;
 
         if(repository.find(user.getUsername()) == null) {
+            log.trace("invalid user. {}", user.getUsername());
             throw new NotValidCustomException(
                 HttpStatus.NOT_FOUND.toString(),
                 HttpStatus.NOT_FOUND,
@@ -263,6 +271,8 @@ public class UserServiceImpl implements UserService {
             );
         }else if(repository.authenticate(user)){
             result = gService.findAllByMember(user);
+        }else{
+            log.trace("Invalid credentials. User: {}", user.getUsername());
         }
 
         return result;
@@ -281,8 +291,40 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean passwordRecovery(Map<String, String> params) throws NotValidCustomException {
-        return null;
+    public Usuario passwordRecovery(String encToken, Map<String, String> params) throws NotValidCustomException {
+        String token = tb.decrypt(encToken, System.getProperty("jasypt.encryptor.password"));
+        log.trace("Decrypted token: $token: {}", token);
+
+        Usuario result = springRepository.findByToken(token);
+        if(result == null)
+            throw new NotValidCustomException("Not valid token", HttpStatus.BAD_REQUEST, "User");
+
+        if(isValidPassword(params.get("password"), params.get("password2"))) {
+//             result = repository.findByToken(token);
+             result.setPassword(params.get("password"));
+             result.setToken(null);
+             result = springRepository.save(result);
+
+        }else{
+            throw new NotValidCustomException("Not valid password", HttpStatus.BAD_REQUEST, "password");
+        }
+
+        return result;
+    }
+
+    private Boolean isValidPassword(String password, String password2) throws NotValidCustomException{
+
+        Boolean result = false;
+
+        if(password == null || password.isBlank() == true){
+            throw new NotValidCustomException( "password must not be empty", HttpStatus.BAD_REQUEST,"password");
+        } else if(!password.equals(password2)){
+            throw new NotValidCustomException("password and confirmation password are not equal", HttpStatus.BAD_REQUEST, "password2");
+        } else {
+            result = true;
+        }
+
+        return result;
     }
 
     private String setTokenAndSendEmail(Usuario user, String view, String subject, String urlValue) throws NotValidCustomException{
@@ -294,7 +336,7 @@ public class UserServiceImpl implements UserService {
 
         do{
             token = tb.newToken(12);
-            usrToken = repository.findByToken(token);
+            usrToken = springRepository.findByToken(token);
         }while(usrToken != null);
 
         user.setToken(token);
@@ -303,7 +345,7 @@ public class UserServiceImpl implements UserService {
         //SEND MAILER TO CONFIRM USER PARAMETERS
         EmailMessage message = new EmailMessage();
         Map<String, Object> variables = new HashMap<>();
-        String urlEvaluated = urlValue.replaceFirst("\\{token\\}",encToken);
+        String urlEvaluated = urlValue.replaceFirst("\\{encToken\\}",encToken);
         log.trace("email validation link: {}", urlEvaluated);
         variables.put("link", urlEvaluated);
 

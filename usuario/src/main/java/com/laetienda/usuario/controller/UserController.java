@@ -86,20 +86,20 @@ public class UserController {
     }
 
     @PostMapping("requestpasswordrecovery.html")
-    public ResponseEntity<String> requestPasswordRecovery(@RequestParam String username) throws NotValidCustomException{
-        log.trace("Running requestPasswordRecovery user controller. $username: {}", username);
-        return ResponseEntity.ok(service.requestPasswordRecovery(username));
+    public ResponseEntity<String> requestPasswordRecovery(@RequestBody Map<String, String> params) throws NotValidCustomException{
+        log.trace("Running requestPasswordRecovery user controller. $username: {}", params.get("username"));
+        return ResponseEntity.ok(service.requestPasswordRecovery(params.get("username")));
     }
 
     @PostMapping("passwordrecovery.html")
-    public ResponseEntity<Boolean> passwordRecovery(@RequestParam Map<String, String> parameters) throws NotValidCustomException{
+    public ResponseEntity<Usuario> passwordRecovery(@RequestParam(name="token") String encToken, @RequestBody Map<String, String> parameters) throws NotValidCustomException{
+//        throw new NotValidCustomException("Function not implemented", HttpStatus.INTERNAL_SERVER_ERROR, "user");
         log.trace("Running passwordRecovery user controller");
 
         for(Map.Entry<String, String> entry : parameters.entrySet()){
             log.trace("${}: {}", entry.getKey(), entry.getValue());
         }
 
-
-        throw new NotValidCustomException("Function not implemented", HttpStatus.INTERNAL_SERVER_ERROR, "user");
+        return ResponseEntity.ok(service.passwordRecovery(encToken, parameters));
     }
 }

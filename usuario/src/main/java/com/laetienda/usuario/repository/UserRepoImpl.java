@@ -10,10 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.query.LdapQuery;
-import org.springframework.ldap.support.LdapNameBuilder;
 
 import javax.naming.Name;
+import javax.naming.directory.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,7 +25,7 @@ public class UserRepoImpl implements UserRepository{
     final private static Logger log = LoggerFactory.getLogger(UserRepoImpl.class);
 
     @Autowired
-    private UserLdapRepository repository;
+    private SpringUserRepository repository;
 
     @Autowired
     private LdapTemplate ldapTemplate;
@@ -87,26 +88,76 @@ public class UserRepoImpl implements UserRepository{
 
     @Override
     public Usuario create(Usuario user) {
-        user.setNew(true);
-        return save(user);
+        Name userDn = dn.getUserDn(user.getUsername());
+        log.trace("new user dn: {}", userDn);
+        ldapTemplate.bind(userDn, null, buildAttributes(user));
+        Usuario result = repository.findByUsername(user.getUsername());
+        return result;
     }
 
     @Override
     public Usuario update(Usuario user) {
+        repository.save(user);
         user.setNew(false);
         return save(user);
     }
 
+    private Attributes buildAttributes(Usuario user){
+        BasicAttribute ocattr = new BasicAttribute("objectclass");
+        ocattr.add("top");
+        ocattr.add("person");
+        ocattr.add("inetOrgPerson");
+        Attributes attrs = new BasicAttributes();
+        attrs.put(ocattr);
+        attrs.put("uid", user.getUsername());
+
+        user.setFullName(
+                user.getFirstname() + " " +
+                        (user.getMiddlename() != null ? user.getMiddlename() + " " : "") +
+                        user.getLastname()
+        );
+
+        attrs.put("cn", user.getFullName());
+        attrs.put("givenName", user.getFirstname());
+
+        if(user.getMiddlename() != null && !user.getMiddlename().isBlank()) {
+            attrs.put("displayName", user.getMiddlename());
+        }
+
+        attrs.put("sn", user.getLastname());
+        attrs.put("mail", user.getEmail());
+        attrs.put("userPassword", user.getPassword().getBytes(StandardCharsets.UTF_8));
+        attrs.put("labeledURI", user.getToken());
+        return attrs;
+    }
+
+    @Override
+    public Usuario deleteToken(String username, String token) {
+        Name userDn = dn.getUserDn(username);
+        ModificationItem tokenItem = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute("labeledURI"));
+        ldapTemplate.modifyAttributes(userDn, new ModificationItem[]{tokenItem});
+        return find(username);
+    }
+
+    private Usuario deleteAttribute(String username, String attribute, String value){
+
+        Name userDn = dn.getUserDn(username);
+
+        return find(username);
+    }
+
     private Usuario save(Usuario user){
-        user.setDn(dn.getUserDn(user.getUsername()));
+        user.setDnTest(dn.getUserDn(user.getUsername()));
 
         user.setFullName(
                 user.getFirstname() + " " +
                 (user.getMiddlename() != null ? user.getMiddlename() + " " : "") +
                 user.getLastname()
         );
+        log.trace("dn: {}", user.getDn());
         log.trace("fullName: {}", user.getFullName());
         log.trace("is new: {}", user.isNew());
+
         return repository.save(user);
     }
 
@@ -114,7 +165,7 @@ public class UserRepoImpl implements UserRepository{
     public void delete(Usuario user) throws NotValidCustomException {
 
         if(user != null) {
-            user.setDn(dn.getUserDn(user.getUsername()));
+            user.setDnTest(dn.getUserDn(user.getUsername()));
             repository.delete(user);
         }else{
             NotValidCustomException ex = new NotValidCustomException("Failed to remove user", HttpStatus.BAD_REQUEST);

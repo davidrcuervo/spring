@@ -10,12 +10,13 @@ import java.util.List;
 @Repository
 public interface UserRepository  {
 
-    public Usuario find(String username);
-    public List<Usuario> findByEmail(String email);
-    public UsuarioList findAll();
-    public Usuario create(Usuario user);
-    public Usuario update(Usuario user);
-    public void delete(Usuario user) throws NotValidCustomException;
-    public Usuario findByToken(String token);
+    Usuario find(String username);
+    List<Usuario> findByEmail(String email);
+    UsuarioList findAll();
+    Usuario create(Usuario user);
+    Usuario update(Usuario user);
+    Usuario deleteToken(String username, String token);
+    void delete(Usuario user) throws NotValidCustomException;
+    Usuario findByToken(String token);
     boolean authenticate(Usuario user);
 }

@@ -6,10 +6,7 @@ import com.laetienda.lib.annotation.HtmlInput;
 import com.laetienda.lib.interfaces.Forma;
 import com.laetienda.lib.options.HtmlInputType;
 import org.springframework.data.domain.Persistable;
-import org.springframework.ldap.odm.annotations.Attribute;
-import org.springframework.ldap.odm.annotations.Entry;
-import org.springframework.ldap.odm.annotations.Id;
-import org.springframework.ldap.odm.annotations.Transient;
+import org.springframework.ldap.odm.annotations.*;
 
 import javax.naming.Name;
 import jakarta.validation.constraints.Email;
@@ -20,11 +17,11 @@ import jakarta.validation.constraints.Size;
         objectClasses = {"person", "inetOrgPerson", "top"}
 )
 @HtmlForm(name="usuario", url = "/user/signup.html")
-final public class Usuario implements Persistable, Forma {
+final public class Usuario implements Forma {
 
     @Id
     @JsonIgnore
-    private Name dn;
+    private Name id;
 
     @NotNull @Size(min=5, max=64)
     @HtmlInput(label = "Username", placeholder = "Place the username", style_size="col-md-12")
@@ -64,6 +61,7 @@ final public class Usuario implements Persistable, Forma {
     @Transient
     private String password2;
 
+//    @JsonIgnore
     @Attribute(name="labeledURI")
     private String token;
 
@@ -73,12 +71,17 @@ final public class Usuario implements Persistable, Forma {
 
     }
 
+    @JsonIgnore
     public Name getDn() {
-        return dn;
+        return id;
     }
 
-    public void setDn(Name dn) {
-        this.dn = dn;
+    public void setId(Name id){
+        this.id = id;
+    }
+
+    public void setDnTest(Name dn) {
+        this.id = dn;
     }
 
     public String getUsername() {
@@ -145,12 +148,12 @@ final public class Usuario implements Persistable, Forma {
         this.password2 = password2;
     }
 
-    @Override @JsonIgnore
+    @JsonIgnore
     public Object getId() {
         return getUsername();
     }
 
-    @Override @JsonIgnore
+    @JsonIgnore
     public boolean isNew() {
         return this.isNew;
     }
