@@ -22,6 +22,7 @@ public class UsuarioSecurityConfiguration /*extends WebSecurityConfigurerAdapter
                 .authorizeRequests((requests) ->
                         requests.
 //                                requestMatchers("/anonymous*").anonymous().
+                                requestMatchers("/api/v0/user/home.html").authenticated().
                                 requestMatchers("/api/v0/user/authenticate.html").permitAll().
                                 requestMatchers("/api/v0/user/create.html").permitAll().
                                 requestMatchers("/api/v0/user/requestpasswordrecovery.html").permitAll().

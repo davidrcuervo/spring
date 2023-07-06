@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface UserRepository  {
 
-    Usuario find(String username);
-    List<Usuario> findByEmail(String email);
+//    Usuario find(String username);
+//    List<Usuario> findByEmail(String email);
     UsuarioList findAll();
     Usuario create(Usuario user);
     Usuario update(Usuario user);

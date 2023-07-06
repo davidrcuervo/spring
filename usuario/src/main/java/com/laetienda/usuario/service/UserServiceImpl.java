@@ -117,14 +117,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<Usuario> findByEmail(String email) {
-        return repository.findByEmail(email);
+        return springRepository.findByEmail(email);
     }
 
     @Override
     public Usuario create(Usuario user) throws NotValidCustomException{
         NotValidCustomException ex = new NotValidCustomException("Failed to persist user", HttpStatus.BAD_REQUEST);
 
-        if(repository.find(user.getUsername()) != null){
+        if(springRepository.findByUsername(user.getUsername()) != null){
             ex.addError("username", "This username is already being used");
             throw ex;
         }
@@ -162,9 +162,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Usuario update(Usuario user) throws NotValidCustomException {
         NotValidCustomException ex = new NotValidCustomException("Failed to persist user", HttpStatus.BAD_REQUEST);
-        Usuario tmpuser = repository.find(user.getUsername());
+        Usuario tmpuser = springRepository.findByUsername(user.getUsername());
 
-        if(!user.getEmail().equals(tmpuser.getEmail()) && repository.findByEmail(user.getEmail()).size() > 0){
+        if(!user.getEmail().equals(tmpuser.getEmail()) && springRepository.findByEmail(user.getEmail()).size() > 0){
             ex.addError("email", "This email address has been already registered");
             throw ex;
         }
@@ -262,7 +262,7 @@ public class UserServiceImpl implements UserService {
     public GroupList authenticate(Usuario user) throws NotValidCustomException {
         GroupList result = null;
 
-        if(repository.find(user.getUsername()) == null) {
+        if(springRepository.findByUsername(user.getUsername()) == null) {
             log.trace("invalid user. {}", user.getUsername());
             throw new NotValidCustomException(
                 HttpStatus.NOT_FOUND.toString(),
@@ -281,7 +281,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String requestPasswordRecovery(String username) throws NotValidCustomException {
 
-        Usuario user = repository.find(username);
+        Usuario user = springRepository.findByUsername(username);
 
         String token = setTokenAndSendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
         user.setToken(token);

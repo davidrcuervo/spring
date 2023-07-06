@@ -33,43 +33,6 @@ public class UserRepoImpl implements UserRepository{
     @Autowired
     private LdapDn dn;
 
-    /**
-     *
-     * @param username
-     * @return user, or null if user does not exist
-     */
-    @Override
-    public Usuario find(String username) {
-        Usuario result = null;
-        Name userdn = dn.getUserDn(username);
-
-        try {
-            result = repository.findById(userdn).get();
-        }catch(NoSuchElementException e){
-            log.warn("User does not exist. $dn: {}", userdn);
-            log.debug(e.getMessage(), e);
-        }
-
-        return result;
-    }
-
-    @Override
-    public List<Usuario> findByEmail(String email) {
-        List<Usuario> result = new ArrayList<>();
-
-        try {
-            LdapQuery ldapquery = query().base(dn.getUserDn()).where("objectclass").is("inetOrgPerson")
-                    .and("mail").is(email);
-            repository.findAll(ldapquery).forEach(result::add);
-            log.trace("Users found with email {}: {}", email, result.size());
-        }catch(NoSuchElementException e){
-            log.warn("email not found. $email: {}", email);
-            log.debug(e.getMessage(), e);
-        }
-
-        return result;
-    }
-
     @Override
     public UsuarioList findAll() {
         log.debug("running find all, ldap user repository");
@@ -136,14 +99,14 @@ public class UserRepoImpl implements UserRepository{
         Name userDn = dn.getUserDn(username);
         ModificationItem tokenItem = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute("labeledURI"));
         ldapTemplate.modifyAttributes(userDn, new ModificationItem[]{tokenItem});
-        return find(username);
+        return repository.findByUsername(username);
     }
 
     private Usuario deleteAttribute(String username, String attribute, String value){
 
         Name userDn = dn.getUserDn(username);
 
-        return find(username);
+        return repository.findByUsername(username);
     }
 
     private Usuario save(Usuario user){
