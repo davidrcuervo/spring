@@ -3,9 +3,7 @@ package com.laetienda.model.messager;
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.UniqueElements;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EmailMessage {
 
