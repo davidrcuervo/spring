@@ -12,4 +12,5 @@ public interface SpringUserRepository extends LdapRepository<Usuario> {
     Usuario findByToken(String token);
     Usuario findByUsername(String username);
     List<Usuario> findByEmail(String email);
+//    List<Usuario> findAll();
 }

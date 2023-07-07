@@ -12,11 +12,11 @@ public interface UserRepository  {
 
 //    Usuario find(String username);
 //    List<Usuario> findByEmail(String email);
+//    Usuario create(Usuario user);
+//    Usuario update(Usuario user);
+//    Usuario deleteToken(String username, String token);
+//    Usuario findByToken(String token);
+//    void delete(Usuario user) throws NotValidCustomException;
     UsuarioList findAll();
-    Usuario create(Usuario user);
-    Usuario update(Usuario user);
-    Usuario deleteToken(String username, String token);
-    void delete(Usuario user) throws NotValidCustomException;
-    Usuario findByToken(String token);
     boolean authenticate(Usuario user);
 }

@@ -128,9 +128,9 @@ final public class Group implements Persistable, Forma {
             owners.put(owner.getUsername(), owner);
         }
 
-        if(!ownersdn.contains(owner.getDn())){
-            log.trace("3. $owner dn: {}", owner.getDn());
-            ownersdn.add(owner.getDn().toString());
+        if(!ownersdn.contains(owner.getId())){
+            log.trace("3. $owner dn: {}", owner.getId());
+            ownersdn.add(owner.getId().toString());
         }
 
         addMember(owner);
@@ -150,8 +150,8 @@ final public class Group implements Persistable, Forma {
             members.put(member.getUsername(), member);
         }
 
-        if(!membersdn.contains(member.getDn())){
-            membersdn.add(member.getDn().toString());
+        if(!membersdn.contains(member.getId())){
+            membersdn.add(member.getId().toString());
         }
 
         return this;
@@ -159,12 +159,12 @@ final public class Group implements Persistable, Forma {
 
     public Group removeMember(Usuario user) throws IOException {
 
-        if(ownersdn.contains(user.getDn().toString()) || owners.containsKey(user.getUsername())) {
+        if(ownersdn.contains(user.getId().toString()) || owners.containsKey(user.getUsername())) {
             log.info("User, ({}), is owner and can not be removed", user.getUsername());
             throw new IOException("User can not be removed because he/she is owner");
 
         }else{
-            membersdn.remove(user.getDn().toString());
+            membersdn.remove(user.getId().toString());
             members.remove(user.getUsername());
         }
 
@@ -179,7 +179,7 @@ final public class Group implements Persistable, Forma {
             throw new IOException(message);
         }else{
             owners.remove(user.getUsername());
-            ownersdn.remove(user.getDn().toString());
+            ownersdn.remove(user.getId().toString());
         }
 
         return this;

@@ -18,31 +18,33 @@ public class GroupRepoImpl implements GroupRepository{
     private final static Logger log = LoggerFactory.getLogger(GroupRepoImpl.class);
 
     @Autowired
-    private GroupLdapRepository repository;
+    private SpringLdapRepository repository;
 
     @Autowired
     private UserRepository userRepo;
 
     @Autowired
+    private SpringUserRepository springUserRepository;
+    @Autowired
     private LdapDn dn;
 
     @Override
     public Group create(Group group, String ownerusername) {
-        Usuario owner = userRepo.find(ownerusername);
-        owner.setDnTest(dn.getCompleteUserDn(ownerusername));
+        Usuario owner = springUserRepository.findByUsername(ownerusername);
+//        owner.setDnTest(dn.getCompleteUserDn(ownerusername));
         log.trace("1. $owner dn: {}", dn.getCompleteUserDn(ownerusername).toString());
-        log.trace("2. $owner dn: {}", owner.getDn().toString());
+        log.trace("2. $owner dn: {}", owner.getId().toString());
         group.setDn(dn.getGroupDn(group.getName()));
         group.setNew(true);
         group.addOwner(owner);
 
         group.getOwners().forEach((username, ownuser) -> {
-            ownuser.setDnTest(dn.getCompleteUserDn(username));
+//            ownuser.setDnTest(dn.getCompleteUserDn(username));
             group.addOwner(ownuser);
         });
 
         group.getMembers().forEach((username, memuser) -> {
-            memuser.setDnTest(dn.getCompleteUserDn(username));
+//            memuser.setDnTest(dn.getCompleteUserDn(username));
             group.addMember(memuser);
         });
 
@@ -98,7 +100,7 @@ public class GroupRepoImpl implements GroupRepository{
         result.getMembersdn().forEach(
                 (memberdn) -> {
                     String username = memberdn.split(",")[0].split("=")[1];
-                    members.put(username, userRepo.find(username));
+                    members.put(username, springUserRepository.findByUsername(username));
                 });
         result.setMembers(members);
         return result;
@@ -110,7 +112,7 @@ public class GroupRepoImpl implements GroupRepository{
         result.getOwnersdn().forEach(
                 (ownerdn) -> {
                     String username = ownerdn.split(",")[0].split("=")[1];
-                    owners.put(username, userRepo.find(username));
+                    owners.put(username, springUserRepository.findByUsername(username));
                 });
         result.setOwners(owners);
         return result;
@@ -217,7 +219,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group addMember(Group group, Usuario user) {
-        user.setDnTest(dn.getUserDn(user.getUsername()));
+//        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
         group.addMember(user);
         repository.save(group);
@@ -226,7 +228,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group removeMember(Group group, Usuario user) throws IOException {
-        user.setDnTest(dn.getUserDn(user.getUsername()));
+//        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
         group.removeMember(user);
 
@@ -236,7 +238,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group addOwner(Group group, Usuario user) {
-        user.setDnTest(dn.getUserDn(user.getUsername()));
+//        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
 
         group.addOwner(user);
@@ -246,7 +248,7 @@ public class GroupRepoImpl implements GroupRepository{
 
     @Override
     public Group removeOwner(Group group, Usuario user) throws IOException {
-        user.setDnTest(dn.getUserDn(user.getUsername()));
+//        user.setDnTest(dn.getUserDn(user.getUsername()));
         group.setDn(dn.getGroupDn(group.getName()));
 
         group.removeOwner(user);

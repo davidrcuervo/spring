@@ -5,6 +5,7 @@ import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.repository.GroupRepository;
+import com.laetienda.usuario.repository.SpringUserRepository;
 import com.laetienda.usuario.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,9 @@ public class GroupServiceImpl implements GroupService{
 
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private SpringUserRepository springUserRepository;
 
     @Override
     public Group findByName(String name) throws NotValidCustomException {
@@ -170,7 +174,7 @@ public class GroupServiceImpl implements GroupService{
     }
 
     private Usuario getUser(String username) throws NotValidCustomException {
-        Usuario result = userRepo.find(username);
+        Usuario result = springUserRepository.findByUsername(username);
 
         if(result == null){
             throw new NotValidCustomException("User does not exist, it is not possible to add to group.", HttpStatus.BAD_REQUEST, "username");

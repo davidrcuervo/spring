@@ -12,12 +12,14 @@ import javax.naming.Name;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.ldap.support.LdapNameBuilder;
+
 @Entry(
         base = "ou=people",
         objectClasses = {"person", "inetOrgPerson", "top"}
 )
 @HtmlForm(name="usuario", url = "/user/signup.html")
-final public class Usuario implements Forma {
+final public class Usuario implements Persistable, Forma {
 
     @Id
     @JsonIgnore
@@ -25,11 +27,11 @@ final public class Usuario implements Forma {
 
     @NotNull @Size(min=5, max=64)
     @HtmlInput(label = "Username", placeholder = "Place the username", style_size="col-md-12")
-    @Attribute(name = "uid")
-    private String username;    //userid, uid
-
     @Attribute(name = "cn")
-    private String fullName;
+    private String username;
+
+//    @Attribute(name = "cn")
+//    private String fullName;
 
     @NotNull @Size(max=20)
     @HtmlInput(label = "First Name", placeholder = "Insert your first name", style_size="col-md-4")
@@ -61,28 +63,28 @@ final public class Usuario implements Forma {
     @Transient
     private String password2;
 
-//    @JsonIgnore
+    @JsonIgnore
     @Attribute(name="labeledURI")
     private String token;
 
     @Transient @JsonIgnore
-    private boolean isNew;
+    private boolean isNew = false;
     public Usuario() {
 
     }
 
-    @JsonIgnore
-    public Name getDn() {
-        return id;
-    }
+//    @JsonIgnore
+//    public Name getDn() {
+//        return id;
+//    }
 
     public void setId(Name id){
         this.id = id;
     }
 
-    public void setDnTest(Name dn) {
-        this.id = dn;
-    }
+//    public void setDnTest(Name dn) {
+//        this.id = dn;
+//    }
 
     public String getUsername() {
         return username;
@@ -93,12 +95,14 @@ final public class Usuario implements Forma {
     }
 
     public String getFullName() {
-        return fullName;
+        return getFirstname() + " " +
+                (getMiddlename() != null ? getMiddlename() + " " : "") +
+                getLastname();
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+//    public void setFullName(String fullName) {
+//        this.fullName = fullName;
+//    }
 
     public String getFirstname() {
         return firstname;
@@ -149,8 +153,8 @@ final public class Usuario implements Forma {
     }
 
     @JsonIgnore
-    public Object getId() {
-        return getUsername();
+    public Name getId() {
+        return getId();
     }
 
     @JsonIgnore
