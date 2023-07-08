@@ -48,7 +48,7 @@ final public class Group implements Persistable, Forma {
     @Attribute(name = "description")
     private String description;
     @Transient
-    private boolean newFlag;
+    private boolean newFlag = false;
 
     public Name getDn() {
         return dn;

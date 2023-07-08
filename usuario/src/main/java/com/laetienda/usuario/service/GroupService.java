@@ -42,4 +42,6 @@ public interface GroupService {
     Group removeOwner(String gname, String username) throws NotValidCustomException;
 
     GroupList findAllByMember(Usuario user);
+
+    GroupList testSpringLdapGroup(String gname);
 }

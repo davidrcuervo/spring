@@ -103,4 +103,10 @@ public class GroupController {
         log.trace("Running group remove Owner controller. $user: {}, $Group: {}", username, gname);
         return ResponseEntity.ok(service.removeOwner(gname, username));
     }
+
+    @GetMapping("helloword.html")
+    public ResponseEntity<GroupList> helloWord(@RequestParam("username") String username){
+        log.trace("Running hello word in group controller. group: {}", username);
+        return ResponseEntity.ok(service.testSpringLdapGroup(username));
+    }
 }

@@ -21,6 +21,7 @@ public class UsuarioSecurityConfiguration /*extends WebSecurityConfigurerAdapter
         http
                 .authorizeRequests((requests) ->
                         requests.
+                                requestMatchers("/api/v0/group/helloword.html").permitAll().
 //                                requestMatchers("/anonymous*").anonymous().
                                 requestMatchers("/api/v0/user/home.html").authenticated().
                                 requestMatchers("/api/v0/user/authenticate.html").permitAll().

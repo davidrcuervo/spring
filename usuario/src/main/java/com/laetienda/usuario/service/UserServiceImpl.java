@@ -220,26 +220,24 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        try{
-            //remove user from group where is owner
-            for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()) {
-                gRepo.removeOwner(entry.getValue(), user);
+        //remove user from group where is owner
+        for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()) {
+            gService.removeOwner(entry.getKey(), username);
+//                gRepo.removeOwner(entry.getValue(), user);
 //                entry.getValue().removeOwner(user);
-            }
-
-            //Remove user from groups where is member
-            temp = gRepo.findAllByMember(username);
-            for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()){
-                log.trace("removing user from group: {}", entry.getKey());
-                gRepo.removeMember(entry.getValue(), user);
-//                entry.getValue().removeMember(user);
-            }
-
-            //remove user
-            springRepository.delete(user);
-        }catch (IOException e) {
-            throw new NotValidCustomException("Failed to remove user", HttpStatus.INTERNAL_SERVER_ERROR, "user", e.getMessage());
         }
+
+        //Remove user from groups where is member
+        temp = gRepo.findAllByMember(username);
+        for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()){
+            log.trace("removing user from group: {}", entry.getKey());
+            gService.removeMember(entry.getKey(), username);
+//                gRepo.removeMember(entry.getValue(), user);
+//                entry.getValue().removeMember(user);
+        }
+
+        //remove user
+        springRepository.delete(user);
     }
 
     @Override
