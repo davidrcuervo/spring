@@ -255,7 +255,8 @@ public class GroupServiceImpl implements GroupService{
         Usuario result = springUserRepository.findByUsername(username);
 
         if(result == null){
-            throw new NotValidCustomException("User does not exist, it is not possible to add to group.", HttpStatus.BAD_REQUEST, "username");
+            String message = String.format("User, %s, does not exist, it is not possible to add to group.", username);
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "username");
         }
 
         return result;

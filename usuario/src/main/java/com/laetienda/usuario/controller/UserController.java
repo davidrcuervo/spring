@@ -39,7 +39,7 @@ public class UserController {
 
     @GetMapping("user.html")
     public ResponseEntity<Usuario> getUser(@RequestParam String username) throws NotValidCustomException {
-       log.trace("$username: {}", username);
+       log.trace("Find user by username. $username: {}", username);
        return ResponseEntity.ok(service.find(username));
     }
 
@@ -51,6 +51,7 @@ public class UserController {
 
     @PostMapping("create.html")
     public ResponseEntity<Usuario> create(@Valid @RequestBody Usuario user) throws NotValidCustomException {
+        log.trace("Creating user. $username: {}", user.getUsername());
         return ResponseEntity.ok(service.create(user));
     }
 

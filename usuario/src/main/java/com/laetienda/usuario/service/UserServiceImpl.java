@@ -89,13 +89,15 @@ public class UserServiceImpl implements UserService {
         if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
 //            Usuario result = repository.find(username);
             result = springRepository.findByUsername(username);
-            log.trace("User found. Full Name: {}", result.getFullName());
+
             if(result == null){
                 throw new NotValidCustomException(
                         String.format("User, (%s), does not exist.", username),
                         HttpStatus.NOT_FOUND,
                         "username"
                 );
+            }else{
+                log.trace("User found. Full Name: {}", result.getFullName());
             }
 
         }else{

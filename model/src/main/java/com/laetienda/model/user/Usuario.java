@@ -154,7 +154,7 @@ final public class Usuario implements Persistable, Forma {
 
     @JsonIgnore
     public Name getId() {
-        return getId();
+        return this.id;
     }
 
     @JsonIgnore

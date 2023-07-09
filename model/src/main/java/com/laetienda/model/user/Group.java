@@ -50,6 +50,7 @@ final public class Group implements Persistable, Forma {
     @Transient
     private boolean newFlag = false;
 
+    @JsonIgnore
     public Name getDn() {
         return dn;
     }

@@ -1,2 +1,4 @@
 /library/target/
 /.idea/
+/API/User/.api.output
+/API/Group/.api.output

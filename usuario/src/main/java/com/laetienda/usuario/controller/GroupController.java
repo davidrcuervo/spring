@@ -105,8 +105,9 @@ public class GroupController {
     }
 
     @GetMapping("helloword.html")
-    public ResponseEntity<GroupList> helloWord(@RequestParam("username") String username){
+    public ResponseEntity<String> helloWord(@RequestParam("username") String username){
         log.trace("Running hello word in group controller. group: {}", username);
-        return ResponseEntity.ok(service.testSpringLdapGroup(username));
+        String result = String.format("Hello %s, Welcome to Group Controller.", username);
+        return ResponseEntity.ok(result);
     }
 }
