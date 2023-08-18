@@ -9,6 +9,7 @@ import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.lib.LdapDn;
 import com.laetienda.usuario.repository.GroupRepository;
+import com.laetienda.usuario.repository.SpringGroupRepository;
 import com.laetienda.usuario.repository.SpringUserRepository;
 import com.laetienda.usuario.repository.UserRepository;
 import com.laetienda.utils.service.RestClientService;
@@ -28,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 
 import javax.naming.Name;
+import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.util.*;
 
@@ -42,6 +44,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private SpringUserRepository springRepository;
+
+    @Autowired
+    private SpringGroupRepository springGroupRepository;
 
     @Autowired
     private HttpServletRequest request;
@@ -256,11 +261,13 @@ public class UserServiceImpl implements UserService {
             throw new NotValidCustomException("Link token does not below to authenticated user", HttpStatus.CONFLICT, "user");
 
         }else {
-            gService.addMemberToValidUserAccounts(username);
+            Group group = springGroupRepository.findByName("validUserAccounts");
+            group.addMember(user);
+            springGroupRepository.save(group);
+
             user.setToken(null);
             return springRepository.save(user);
         }
-
     }
 
     @Override
@@ -277,7 +284,9 @@ public class UserServiceImpl implements UserService {
         }else if(repository.authenticate(user)){
             result = gService.findAllByMember(user);
         }else{
-            log.trace("Invalid credentials. User: {}", user.getUsername());
+            String message = String.format("Invalid credentials. User: %s", user.getUsername());
+            log.info(message);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "password");
         }
 
         return result;
@@ -299,21 +308,25 @@ public class UserServiceImpl implements UserService {
     public Usuario passwordRecovery(String encToken, Map<String, String> params) throws NotValidCustomException {
         String token = tb.decrypt(encToken, System.getProperty("jasypt.encryptor.password"));
         log.trace("Decrypted token: $token: {}", token);
+        String newPass = params.get("password");
 
-        Usuario result = springRepository.findByToken(token);
-        if(result == null)
+        Usuario tmpUser = springRepository.findByToken(token);
+
+        if(tmpUser == null)
             throw new NotValidCustomException("Not valid token", HttpStatus.BAD_REQUEST, "User");
 
-        if(isValidPassword(params.get("password"), params.get("password2"))) {
-             result.setPassword(params.get("password"));
-             result.setToken(null);
-             result = springRepository.save(result);
+        if(isValidPassword(newPass, params.get("password2"))) {
+            String username = tmpUser.getUsername();
+//             result.setPassword(params.get("password"));
+             repository.modifyAtrribute(username, "userPassword", newPass, DirContext.REPLACE_ATTRIBUTE);
+             repository.modifyAtrribute(username, "labeledURI", null, DirContext.REMOVE_ATTRIBUTE);
+//             result.setToken(null);
+//             result = springRepository.save(result);
+            return springRepository.findByUsername(username);
 
         }else{
             throw new NotValidCustomException("Not valid password", HttpStatus.BAD_REQUEST, "password");
         }
-
-        return result;
     }
 
     private Boolean isValidPassword(String password, String password2) throws NotValidCustomException{
@@ -361,7 +374,7 @@ public class UserServiceImpl implements UserService {
 
         if(Boolean.valueOf(resp)){
             log.trace("Token and email has been sent successfully");
-            result = token;
+            result = String.format("token: %s", encToken);
         }else{
             throw new NotValidCustomException("Failed to send email.", HttpStatus.INTERNAL_SERVER_ERROR, "user");
         }

@@ -119,13 +119,14 @@ public class UserRepoImpl implements UserRepository{
 //        return attrs;
 //    }
 
-//    @Override
-//    public Usuario deleteToken(String username, String token) {
-//        Name userDn = dn.getUserDn(username);
-//        ModificationItem tokenItem = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute("labeledURI"));
-//        ldapTemplate.modifyAttributes(userDn, new ModificationItem[]{tokenItem});
-//        return repository.findByUsername(username);
-//    }
+    @Override
+    public Usuario modifyAtrribute(String username, String attribute, String value, int action) {
+        Name userDn = dn.getUserDn(username);
+        Attribute attr = new BasicAttribute(attribute, value);
+        ModificationItem tokenItem = new ModificationItem(action, attr);
+        ldapTemplate.modifyAttributes(userDn, new ModificationItem[]{tokenItem});
+        return repository.findByUsername(username);
+    }
 //
 //    private Usuario deleteAttribute(String username, String attribute, String value){
 //

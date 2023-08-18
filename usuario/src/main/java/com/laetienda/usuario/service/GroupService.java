@@ -36,7 +36,6 @@ public interface GroupService {
     Group delete(String gname) throws NotValidCustomException;
     Boolean isMember(String gname, String username) throws NotValidCustomException;
     Group addMember(String gname, String username) throws NotValidCustomException;
-    Group addMemberToValidUserAccounts(String username) throws NotValidCustomException;
     Group removeMember(String gname, String username) throws NotValidCustomException;
     Group addOwner(String gname, String username) throws NotValidCustomException;
     Group removeOwner(String gname, String username) throws NotValidCustomException;
@@ -44,4 +43,5 @@ public interface GroupService {
     GroupList findAllByMember(Usuario user);
 
     GroupList testSpringLdapGroup(String gname);
+//    Group addMemberToValidUserAccounts(String username) throws NotValidCustomException;
 }

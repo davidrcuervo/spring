@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 
-METHOD=PUT
-#PARAMETERS_REQUIRED: group, name
+METHOD=POST
+#PARAMETERS_REQUIRED: -
 #PARAMETERS_OPTIONAL: -
-#REQUEST_BODY: -
-#RESPONSE_BODY: group
-#AUTHORIZATION: VALID_ACCOUNT & Owner of Group
+#REQUEST_BODY: username
+#RESPONSE_BODY: STRING(token)
+#AUTHORIZATION: ANY
 
 source ../variables.sh
 set -o xtrace
 
-REQUEST=$GROUP_API/addOwner.html
+REQUEST=$USER_API/requestpasswordrecovery.html
 
 RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/json" \
-b-u $USERNAME:$PASSWORD --basic \
-$REQUEST?\
-group=testgroup\&\
-user=shellapitestuser)
+--write-out "%{http_code}" --output .api.output \
+--data '{
+"username":"shellapitestuser"
+}' \
+$REQUEST)
 
 cat .api.output
 

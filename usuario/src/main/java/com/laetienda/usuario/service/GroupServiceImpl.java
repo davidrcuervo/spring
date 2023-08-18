@@ -246,10 +246,10 @@ public class GroupServiceImpl implements GroupService{
 //        return repository.addMember(group, user);
     }
 
-    @Override
-    public Group addMemberToValidUserAccounts(String username) throws NotValidCustomException{
-        return addMember("validUserAccounts", username);
-    }
+//    @Override
+//    public Group addMemberToValidUserAccounts(String username) throws NotValidCustomException{
+//        return addMember("validUserAccounts", username);
+//    }
 
     private Usuario getUser(String username) throws NotValidCustomException {
         Usuario result = springUserRepository.findByUsername(username);
@@ -323,15 +323,17 @@ public class GroupServiceImpl implements GroupService{
 
     private Group getGroupOwner(String gname) throws NotValidCustomException {
         Group result = springGroupRepository.findByName(gname);
+        String username = getLoggedUser();
 
         if(result == null){
             String message = String.format("Group, (name: %s), does not exist.", gname);
             throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "name");
 
-        }else if(repository.isOwner(gname, getLoggedUser())){
+        }else if(repository.isOwner(gname, username)){
             log.debug("Group, ({}), found and privileges are granted", gname);
         }else{
-            throw new NotValidCustomException("User is not owner, and can't remove the group", HttpStatus.UNAUTHORIZED, "group");
+            String message = String.format("User, %s, is not owner of group, %s, and can't edit the group", username, gname);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "group");
         }
 
         return result;

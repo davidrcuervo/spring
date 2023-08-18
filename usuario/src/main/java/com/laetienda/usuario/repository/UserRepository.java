@@ -19,4 +19,5 @@ public interface UserRepository  {
 //    void delete(Usuario user) throws NotValidCustomException;
     UsuarioList findAll();
     boolean authenticate(Usuario user);
+    Usuario modifyAtrribute(String username, String attribute, String value, int action);
 }
