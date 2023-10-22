@@ -6,6 +6,7 @@ import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 

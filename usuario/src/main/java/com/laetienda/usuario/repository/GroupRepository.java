@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 public interface GroupRepository {
 
 //    GroupList findAllByOwner(Usuario owner);
-//    Group findByName(String name);
+    Group findByName(String name);
 //    boolean isOwner(Group group, String username);
 //    boolean isMember(Group group, String username);
 //    GroupList findAllByMember(Usuario user);

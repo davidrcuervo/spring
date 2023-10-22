@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-METHOD=
-#PARAMETERS_REQUIRED:
-#PARAMETERS_OPTIONAL:
+METHOD=DELETE
+#PARAMETERS_REQUIRED: username
+#PARAMETERS_OPTIONAL: none
 #REQUEST_BODY:
-#RESPONSE_BODY:
-#AUTHORIZATION:
+#RESPONSE_BODY: Boolean
+#AUTHORIZATION: Self or manager
 
 source ../variables.sh
 set -o xtrace
 
-REQUEST=$GROUP_API/path.html
+REQUEST=$USER_API/delete.html?username=shellapitestuser
 
 RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/json" -m $MAX_TIME \
 --write-out "%{http_code}" --output .api.output \
-#-u $USERNAME:$PASSWORD --basic \
+-u "shellapitestuser":"passrecovery" --basic \
 $REQUEST)
 
 cat .api.output

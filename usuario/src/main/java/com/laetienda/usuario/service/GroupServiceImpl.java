@@ -49,7 +49,7 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public Group findByName(String gname) throws NotValidCustomException {
-        Group result = springGroupRepository.findByName(gname);
+        Group result = repository.findByName(gname);
         String username = getLoggedUser();
 
         if(result == null) {
@@ -62,50 +62,52 @@ public class GroupServiceImpl implements GroupService{
         }else{
             throw new NotValidCustomException("User is not member of the group", HttpStatus.UNAUTHORIZED, "user");
         }
-        findOwners(result);
-        findMembers(result);
 
-        return buildGroup(result);
-    }
-
-    private Group buildGroup(Group group){
-        findMembers(group);
-        findOwners(group);
-        return group;
-    }
-
-    private GroupList buildGroupList(GroupList groups){
-        groups.getGroups().forEach((gname, group) -> {
-            findOwners(group);
-            findMembers(group);
-        });
-
-        return groups;
-    }
-
-    private Group findOwners(Group group) {
-        Map<String, Usuario> owners = new HashMap<>();
-        log.trace("# of owners: {}", group.getOwnersdn().size());
-        group.getOwnersdn().forEach(
-                (ownerdn) -> {
-                    String username = ownerdn.split(",")[0].split("=")[1];
-                    owners.put(username, springUserRepository.findByUsername(username));
-                });
-        group.setOwners(owners);
-        return group;
-    }
-
-    private Group findMembers(Group result) {
-        Map<String, Usuario> members = new HashMap<>();
-        log.trace("# of members: {}", result.getMembersdn().size());
-        result.getMembersdn().forEach(
-                (memberdn) -> {
-                    String username = memberdn.split(",")[0].split("=")[1];
-                    members.put(username, springUserRepository.findByUsername(username));
-                });
-        result.setMembers(members);
         return result;
+//        findOwners(result);
+//        findMembers(result);
+
+//        return buildGroup(result);
     }
+
+//    private Group buildGroup(Group group){
+//        findMembers(group);
+//        findOwners(group);
+//        return group;
+//    }
+
+//    private GroupList buildGroupList(GroupList groups){
+//        groups.getGroups().forEach((gname, group) -> {
+//            findOwners(group);
+//            findMembers(group);
+//        });
+//
+//        return groups;
+//    }
+
+//    private Group findOwners(Group group) {
+//        Map<String, Usuario> owners = new HashMap<>();
+//        log.trace("# of owners: {}", group.getOwnersdn().size());
+//        group.getOwnersdn().forEach(
+//                (ownerdn) -> {
+//                    String username = ownerdn.split(",")[0].split("=")[1];
+//                    owners.put(username, springUserRepository.findByUsername(username));
+//                });
+//        group.setOwners(owners);
+//        return group;
+//    }
+
+//    private Group findMembers(Group result) {
+//        Map<String, Usuario> members = new HashMap<>();
+//        log.trace("# of members: {}", result.getMembersdn().size());
+//        result.getMembersdn().forEach(
+//                (memberdn) -> {
+//                    String username = memberdn.split(",")[0].split("=")[1];
+//                    members.put(username, springUserRepository.findByUsername(username));
+//                });
+//        result.setMembers(members);
+//        return result;
+//    }
 
     @Override
     public GroupList findAll() {
@@ -120,7 +122,7 @@ public class GroupServiceImpl implements GroupService{
             result = repository.findAllByMember(getLoggedUser());
         }
 
-        return buildGroupList(result);
+        return result;
     }
 
     @Override
@@ -136,14 +138,14 @@ public class GroupServiceImpl implements GroupService{
 
         }
 
-        return buildGroupList(result);
+        return result;
     }
 
     @Override
     public Group create(Group group) throws NotValidCustomException {
         Group result = null;
 
-        if(springGroupRepository.findByName(group.getName()) != null){
+        if(repository.findByName(group.getName()) != null){
             log.trace("Can't create group. Group name already exists. $name: {}", group.getName());
             throw new NotValidCustomException("Group already exists", HttpStatus.BAD_REQUEST, "name");
         }else{
@@ -155,13 +157,13 @@ public class GroupServiceImpl implements GroupService{
             result = springGroupRepository.save(group);
         }
 
-        return buildGroup(result);
+        return result;
     }
 
     @Override
     public Group update(Group group, String gname) throws NotValidCustomException {
-        Group result = springGroupRepository.findByName(group.getName());
-        Group temp = springGroupRepository.findByName(gname);
+        Group result = repository.findByName(group.getName());
+        Group temp = repository.findByName(gname);
 
         if(temp == null) {
             throw new NotValidCustomException("Group (" + gname + ") does not exist", HttpStatus.NOT_FOUND, "name");
@@ -194,7 +196,7 @@ public class GroupServiceImpl implements GroupService{
             throw new NotValidCustomException("User is not owner of group", HttpStatus.UNAUTHORIZED, "name");
         }
 
-        return buildGroup(result);
+        return result;
     }
 
     @Override
@@ -265,18 +267,39 @@ public class GroupServiceImpl implements GroupService{
     @Override
     public Group removeMember(String gname, String username) throws NotValidCustomException {
         Group result = null;
+        String authUsername = request.getUserPrincipal().getName();
 
-        try{
-            Group group = getGroupOwner(gname);
-            Usuario user = getUser(username);
-            group.removeMember(user);
+        try {
+            //test if is owner OR self member
+            if(repository.isOwner(gname, username) || authUsername.equals(username)){
+                //remove
+                Group group = repository.findByName(gname);
+                Usuario user = springUserRepository.findByUsername(username);
+                group.removeMember(user);
 
-            result = springGroupRepository.save(group);
-        }catch(IOException e){
+                //persist
+                result = springGroupRepository.save(group);
+            }else{
+                String message = String.format("'%s' user is not authorized to remove '%s' user from '%s' group", authUsername, username, gname);
+                throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "user");
+            }
+        } catch (IOException e) {
             throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "user");
         }
 
         return result;
+
+//        try{
+//            Group group = getGroupOwner(gname);
+//            Usuario user = getUser(username);
+//            group.removeMember(user);
+//
+//            result = springGroupRepository.save(group);
+//        }catch(IOException e){
+//            throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "user");
+//        }
+
+//        return result;
     }
 
     @Override
@@ -322,7 +345,7 @@ public class GroupServiceImpl implements GroupService{
 
 
     private Group getGroupOwner(String gname) throws NotValidCustomException {
-        Group result = springGroupRepository.findByName(gname);
+        Group result = repository.findByName(gname);
         String username = getLoggedUser();
 
         if(result == null){

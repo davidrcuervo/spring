@@ -30,6 +30,9 @@ cat .api.output
 if [[ "$RESPONSE_CODE" -eq "200" ]]
 then
   RESULT=0
+else if [[ "$RESPONSE_CODE" -eq "000" ]]
+then
+  RESULT=-1
 else
   RESULT=$RESPONSE_CODE
 fi

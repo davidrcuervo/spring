@@ -29,6 +29,8 @@ public class UsuarioSecurityConfiguration /*extends WebSecurityConfigurerAdapter
                                 requestMatchers("/api/v0/user/requestpasswordrecovery.html").permitAll().
                                 requestMatchers("/api/v0/user/passwordrecovery.html").permitAll().
                                 requestMatchers("/api/v0/user/emailvalidation.html").authenticated().
+                                requestMatchers("/api/v0/user/update.html").authenticated().
+                                requestMatchers("/api/v0/user/delete.html").authenticated().
                                 anyRequest().hasRole("VALIDUSERACCOUNTS")
                         )
 

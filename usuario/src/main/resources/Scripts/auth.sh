@@ -1,25 +1,24 @@
 #!/usr/bin/env bash
 
 METHOD=POST
-#PARAMETERS_REQUIRED: token
-#PARAMETERS_OPTIONAL: -
-#REQUEST_BODY: password, password2
-#RESPONSE_BODY: USER
+#PARAMETERS_REQUIRED:
+#PARAMETERS_OPTIONAL:
+#REQUEST_BODY: USER{username, password}
+#RESPONSE_BODY: GROUP_LIST
 #AUTHORIZATION: ANY
 
-source ../variables.sh
 set -o xtrace
-
-REQUEST=$USER_API/passwordrecovery.html
+USERNAME=$1
+PASSWORD=$2
+REQUEST=http://127.0.0.1:8081/api/v0/user/authenticate.html
 
 RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/json" \
 --write-out "%{http_code}" --output .api.output \
 --data '{
-"password":"passrecovery",
-"password2":"passrecovery"
+"username":"'$USERNAME'",
+"password":"'$PASSWORD'"
 }' \
-$REQUEST?\
-token=$1)
+$REQUEST)
 
 cat .api.output
 

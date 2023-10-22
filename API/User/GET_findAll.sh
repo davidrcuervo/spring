@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-METHOD=
-#PARAMETERS_REQUIRED:
+METHOD=GET
+#PARAMETERS_REQUIRED: None
 #PARAMETERS_OPTIONAL:
-#REQUEST_BODY:
-#RESPONSE_BODY:
-#AUTHORIZATION:
+#REQUEST_BODY: None
+#RESPONSE_BODY: UserList
+#AUTHORIZATION: manager
 
 source ../variables.sh
 set -o xtrace
 
-REQUEST=$GROUP_API/path.html
+REQUEST=$USER_API/users.html
 
 RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/json" -m $MAX_TIME \
 --write-out "%{http_code}" --output .api.output \
-#-u $USERNAME:$PASSWORD --basic \
+-u $USERNAME:$PASSWORD --basic \
 $REQUEST)
 
 cat .api.output

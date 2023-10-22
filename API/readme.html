@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2023-10-22 Sun 17:05 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Readme</title>
+<meta name="author" content="David Cuervo" />
+<meta name="generator" content="Org Mode" />
+</head>
+<body>
+<div id="content" class="content">
+<div id="outline-container-org3442624" class="outline-2">
+<h2 id="org3442624">User <code>[8/9]</code></h2>
+<div class="outline-text-2" id="text-org3442624">
+</div>
+<div id="outline-container-org4c4db28" class="outline-3">
+<h3 id="org4c4db28"><span class="done DONE">DONE</span> find users</h3>
+<div class="outline-text-3" id="text-org4c4db28">
+</div>
+</div>
+
+<div id="outline-container-org0fe4f4d" class="outline-3">
+<h3 id="org0fe4f4d"><span class="done DONE">DONE</span> find user</h3>
+<div class="outline-text-3" id="text-org0fe4f4d">
+</div>
+</div>
+
+<div id="outline-container-orgb643ed7" class="outline-3">
+<h3 id="orgb643ed7"><span class="done DONE">DONE</span> create user</h3>
+<div class="outline-text-3" id="text-orgb643ed7">
+<div class="org-src-container">
+<pre class="src src-shell">  curl -i -X POST -H "Content-Type: application/json" \
+  -d '{
+    "username":"postman",
+    "firstname":"Post",
+    "lastname":"Man",
+    "email":"postman@mail.com",
+    "password":"postpassword1234",
+    "password2":"postpassword1234"
+}' \
+  http://172.27.176.1:8081/api/v0/user/create.html
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9229596" class="outline-3">
+<h3 id="org9229596"><span class="done DONE">DONE</span> update user</h3>
+<div class="outline-text-3" id="text-org9229596">
+</div>
+</div>
+
+<div id="outline-container-org742c023" class="outline-3">
+<h3 id="org742c023"><span class="todo TODO">TODO</span> delete user</h3>
+<div class="outline-text-3" id="text-org742c023">
+</div>
+</div>
+
+<div id="outline-container-org89f6249" class="outline-3">
+<h3 id="org89f6249"><span class="done DONE">DONE</span> authenticate</h3>
+<div class="outline-text-3" id="text-org89f6249">
+<div class="org-src-container">
+<pre class="src src-shell">curl -i -X GET -u admuser:secret http://172.29.0.1:8081/api/v0/user/authenticate.html
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgf6cdc69" class="outline-3">
+<h3 id="orgf6cdc69"><span class="done DONE">DONE</span> email validation</h3>
+<div class="outline-text-3" id="text-orgf6cdc69">
+</div>
+</div>
+<div id="outline-container-org8e5f81c" class="outline-3">
+<h3 id="org8e5f81c"><span class="done DONE">DONE</span> request password recovery</h3>
+<div class="outline-text-3" id="text-org8e5f81c">
+</div>
+</div>
+<div id="outline-container-orgbde433e" class="outline-3">
+<h3 id="orgbde433e"><span class="done DONE">DONE</span> password recovery</h3>
+<div class="outline-text-3" id="text-orgbde433e">
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2a6dd11" class="outline-2">
+<h2 id="org2a6dd11">Group</h2>
+</div>
+</div>
+</body>
+</html>

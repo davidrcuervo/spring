@@ -75,6 +75,37 @@ public class GroupRepoImpl implements GroupRepository{
         return result;
     }
 
+    public Group findByName(String gname){
+        Group result = repository.findByName(gname);
+        result = findMembers(result);
+        result = findOwners(result);
+        return result;
+    }
+
+    private Group findOwners(Group group) {
+        Map<String, Usuario> owners = new HashMap<>();
+        log.trace("# of owners: {}", group.getOwnersdn().size());
+        group.getOwnersdn().forEach(
+                (ownerdn) -> {
+                    String username = ownerdn.split(",")[0].split("=")[1];
+                    owners.put(username, springUserRepository.findByUsername(username));
+                });
+        group.setOwners(owners);
+        return group;
+    }
+
+    private Group findMembers(Group result) {
+        Map<String, Usuario> members = new HashMap<>();
+        log.trace("# of members: {}", result.getMembersdn().size());
+        result.getMembersdn().forEach(
+                (memberdn) -> {
+                    String username = memberdn.split(",")[0].split("=")[1];
+                    members.put(username, springUserRepository.findByUsername(username));
+                });
+        result.setMembers(members);
+        return result;
+    }
+
 //    @Override
 //    public Group findByName(String name) {
 //        log.trace("Group dn: {}", dn.getGroupDn(name));
@@ -154,6 +185,8 @@ public class GroupRepoImpl implements GroupRepository{
         String userdn2 = dn.getUserDn(username2).toString();
 
         repository.findByMembersdnAndMembersdn(userdn1,userdn2).forEach(group -> {
+            group = findOwners(group);
+            group = findMembers(group);
             result.addGroup(group);
         });
 
@@ -284,6 +317,8 @@ public class GroupRepoImpl implements GroupRepository{
         GroupList result = new GroupList();
 
         repository.findByMembersdn(dn.getUserDn(username).toString()).forEach(group -> {
+            group = findMembers(group);
+            group = findOwners(group);
             result.addGroup(group);
         });
 

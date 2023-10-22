@@ -6,11 +6,11 @@ source ../variables.sh
 set -o xtrace
 RESULT=1
 
-RESPONSE_CODE=$(curl -i --request GET --header "Content-Type: application/json" \
+RESPONSE_CODE=$(curl -i --request GET --header "Content-Type: application/json" -m $MAX_TIME \
 --write-out "%{http_code}" --output .api.output \
 -u $USERNAME:$PASSWORD --basic \
 $USER_API/user.html?\
-username=postman)
+username=shellapitestuser)
 
 cat .api.output
 

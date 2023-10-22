@@ -1,7 +1,6 @@
 package com.laetienda.usuario.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
-import com.laetienda.lib.options.CrudAction;
 import com.laetienda.model.messager.EmailMessage;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
@@ -20,20 +19,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.ldap.support.LdapNameBuilder;
-import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import javax.naming.Name;
 import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.util.*;
-
-import static com.laetienda.lib.options.CrudAction.*;
 
 public class UserServiceImpl implements UserService {
     final private static Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
@@ -116,8 +111,15 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    private boolean isUserInRole(String role) {
+    private boolean isUserInRole(String role_name) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String role = String.format("ROLE_%s", role_name.toUpperCase());
+        log.trace("Required role: {}", role);
+
+//        for(GrantedAuthority t : auth.getAuthorities()){
+//            log.trace("User has role. $role: {}", t.getAuthority());
+//        }
+
         return auth.getAuthorities().contains(new SimpleGrantedAuthority(role));
     }
 
@@ -154,7 +156,8 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
-        String token = setTokenAndSendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation);
+        String token = getToken();
+        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation, token);
 
         if(token != null){
             user.setToken(token);
@@ -168,38 +171,50 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Usuario update(Usuario user) throws NotValidCustomException {
-        NotValidCustomException ex = new NotValidCustomException("Failed to persist user", HttpStatus.BAD_REQUEST);
+        user.setId(dn.getUserDn(user.getUsername()));
         Usuario tmpuser = springRepository.findByUsername(user.getUsername());
 
-        if(!user.getEmail().equals(tmpuser.getEmail()) && springRepository.findByEmail(user.getEmail()).size() > 0){
+        if(!(request.getUserPrincipal().getName().equals(user.getUsername()) || isUserInRole("ROLE_MANAGER"))){
+            throw new NotValidCustomException(
+                    HttpStatus.UNAUTHORIZED.toString(),
+                    HttpStatus.UNAUTHORIZED,
+                    "username"
+            );
+        }
+
+        if(!user.getEmail().equals(tmpuser.getEmail())){
+            user = updateEmail(user);
+        }
+
+        //Persist user in LDAP directory
+        user.setNew(false);
+        return springRepository.save(user);
+    }
+
+    private Usuario updateEmail(Usuario user) throws NotValidCustomException {
+        NotValidCustomException ex = new NotValidCustomException("Failed to persist user", HttpStatus.BAD_REQUEST);
+
+        if(springRepository.findByEmail(user.getEmail()).size() > 0){
             ex.addError("email", "This email address has been already registered");
             throw ex;
         }
 
-        //Persist user in LDAP directory
-        return springRepository.save(user);
-    }
+        //CREATE TOKEN AND SEND EMAIL TO VALIDATE ADDRESS
+        String token = getToken();
+        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation, token);
+        user.setToken(token);
 
-//    private Usuario save(Usuario user, CrudAction action) throws NotValidCustomException{
-//
-//        Usuario result = user;
-//        NotValidCustomException ex = new NotValidCustomException("Failed to persist user", HttpStatus.BAD_REQUEST);
-//
-//        switch(action){
-//
-//            case CREATE:
-//                result = repository.create(user);
-//                break;
-//
-//            case UPDATE:
-//                result = repository.update(user);
-//                break;
-//
-//            default:
-//        }
-//
-//        return result;
-//    }
+        //DISABLE ACCOUNT
+        try {
+            Group group = gRepo.findByName("validUserAccounts");
+            group.removeMember(user);
+            springGroupRepository.save(group);
+        } catch (IOException e) {
+            ex.addError("user", e.getMessage());
+        }
+
+        return user;
+    }
 
     @Override
     public void delete(String username) throws NotValidCustomException {
@@ -211,13 +226,11 @@ public class UserServiceImpl implements UserService {
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "user");
         }
 
-        //Test if it is tomcat or admuser
-        if(user.getUsername().equalsIgnoreCase("admuser") || user.getUsername().equalsIgnoreCase("tomcat")){
+        //Test if it is self user or manager
+        if(!(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER"))){
             String message = String.format("User, (%s), can't be removed from the system", user.getUsername());
             throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "user");
         }
-
-        //TODO Test if user is manager
 
         //Test if user is not last owner of a group
         GroupList temp = gRepo.findAllByOwner(username);
@@ -297,7 +310,9 @@ public class UserServiceImpl implements UserService {
 
         Usuario user = springRepository.findByUsername(username);
 
-        String token = setTokenAndSendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
+        String token = getToken();
+
+        sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery, token);
         user.setToken(token);
 
         springRepository.save(user);
@@ -344,27 +359,28 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    private String setTokenAndSendEmail(Usuario user, String view, String subject, String urlValue) throws NotValidCustomException{
-        String result = null;
+    private String getToken(){
 
-        //CREATE USER TOKEN
+        String result = null;
         Usuario usrToken = null;
-        String token;
 
         do{
-            token = tb.newToken(12);
-            usrToken = springRepository.findByToken(token);
+            result = tb.newToken(12);
+            log.trace("user token. $token: {}", result);
+            usrToken = springRepository.findByToken(result);
         }while(usrToken != null);
 
-        user.setToken(token);
+        return result;
+    }
+
+    private void sendEmail(Usuario user, String view, String subject, String urlValue, String token) throws NotValidCustomException{
+
         String encToken = tb.encrypt(token, System.getProperty("jasypt.encryptor.password"));
+        String urlEvaluated = urlValue.replaceFirst("\\{encToken\\}",encToken);
+        Map<String, Object> variables = new HashMap<String, Object>() {{put("link", urlEvaluated);}};
 
         //SEND MAILER TO CONFIRM USER PARAMETERS
         EmailMessage message = new EmailMessage();
-        Map<String, Object> variables = new HashMap<>();
-        String urlEvaluated = urlValue.replaceFirst("\\{encToken\\}",encToken);
-        log.trace("email validation link: {}", urlEvaluated);
-        variables.put("link", urlEvaluated);
 
         message.setVariables(variables);
         message.setView(view);
@@ -374,11 +390,8 @@ public class UserServiceImpl implements UserService {
 
         if(Boolean.valueOf(resp)){
             log.trace("Token and email has been sent successfully");
-            result = String.format("token: %s", encToken);
         }else{
             throw new NotValidCustomException("Failed to send email.", HttpStatus.INTERNAL_SERVER_ERROR, "user");
         }
-
-        return result;
     }
 }
