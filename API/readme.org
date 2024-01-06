@@ -8,12 +8,12 @@
 #+OPTIONS: html-style:nil html-scripts:nil org-html-head-include-default-style:nil
 #+STARTUP: overview
 #+COLUMNS: %ITEM %TODO %METHOD %PATH %AUTHORIZATION
-* User [8/9]
+* User [2/9]
   :PROPERTIES:
   :PORT:     8081
   :PATH:     /api/v0/user
   :END:
-** DONE find users
+** TODO find users
      :PROPERTIES:
      :path:     users.html
      :METHOD:   GET
@@ -51,7 +51,7 @@
   http://172.27.176.1:8081/api/v0/user/create.html
 #+END_SRC
      
-** DONE update user
+** TODO update user
      :PROPERTIES:
      :PATH:     update.html
      :METHOD:   PUT
@@ -68,7 +68,7 @@
      :AUTHORIZATION: manager or self
      :END:
 
-** DONE authenticate
+** TODO authenticate
      :PROPERTIES:
      :path:     authenticate.html
      :METHOD:   post
@@ -81,14 +81,14 @@
   curl -i -X GET -u admuser:secret http://172.29.0.1:8081/api/v0/user/authenticate.html
 #+END_SRC
      
-** DONE email validation
+** TODO email validation
 :PROPERTIES:
 :PATH:     emailvalidation.html?token={token}
 :METHOD:   GET
 :RESPONSE_BODY: user
 :AUTHORIZATION: self
 :END:
-** DONE request password recovery
+** TODO request password recovery
 :PROPERTIES:
 :PATH:     requestpasswordrecovery.html
 :METHOD:   POST
@@ -97,7 +97,7 @@
 :DESCRIPTION: Send email whith token to recover password
 :AUTHORIZATION: any
 :END:
-** DONE password recovery
+** TODO password recovery
 :PROPERTIES:
 :DESCRIPTION: Validate token, and passwords then change password
 :PATH:     passwordrecovery.html?token={encToken}

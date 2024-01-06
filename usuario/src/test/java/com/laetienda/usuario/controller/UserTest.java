@@ -243,7 +243,7 @@ public class UserTest {
         Usuario user = testUserCycleCreate("testuser");
         testUserCycleConfirmEmail(user);
         testUserCycleUpdate("testuser");
-//        testUserCycleDelete("testuser");
+        testUserCycleDelete("testuser");
     }
 
     private void testUserCycleDelete(String username) {
@@ -253,7 +253,7 @@ public class UserTest {
 
         ResponseEntity<Usuario> response = findByUsername(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertNotNull(response  .getBody());
 
         ResponseEntity<String> response1 = restClient.send(address, port, HttpMethod.DELETE, null, String.class, params, "testuser", "secretpassword");
         assertEquals(HttpStatus.OK, response1.getStatusCode());
@@ -284,7 +284,7 @@ public class UserTest {
     }
 
     private void testUserCycleConfirmEmail(Usuario user){
-        String encToken = tb.encrypt(user.getToken(), System.getProperty("jasypt.encryptor.password"));
+//        String encToken = tb.encrypt(user.getToken(), System.getProperty("jasypt.encryptor.password"));
         Map<String, String> params1 = new HashMap<>();
         params1.put("gName", "validUserAccounts");
         params1.put("username", user.getUsername());
@@ -296,7 +296,7 @@ public class UserTest {
 
         //CONFIRM EMAIL ADDRESS
         Map<String, String> params2 = new HashMap<>();
-        params2.put("token", encToken);
+        params2.put("token", user.getEncToken());
         response = restClient.send(urlTestApiUserEmailValidation, port, HttpMethod.GET, user, String.class, params2, user.getUsername(), getUser().getPassword());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Boolean.parseBoolean(response.getBody()));
@@ -334,6 +334,7 @@ public class UserTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(username, response.getBody().getUsername());
+        Usuario result = response.getBody();
 
         response = findByUsername(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -343,7 +344,7 @@ public class UserTest {
         ResponseEntity<GroupList> response2 = restClient.send(AUTHENTICATE, port, HttpMethod.POST, null, GroupList.class, null, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        return response.getBody();
+        return result;
     }
 
     @Test

@@ -12,7 +12,7 @@ set -o xtrace
 
 REQUEST=$USER_API/create.html
 
-RESPONSE_CODE=$(curl -i --request POST --header "Content-Type: application/json" \
+RESPONSE_CODE=$(curl -i --request POST --header "Content-Type: application/json" -m $MAX_TIME \
 --write-out "%{http_code}" --output .api.output \
 --data '{
 "username":"shellapitestuser",

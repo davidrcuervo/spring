@@ -14,7 +14,7 @@ REQUEST=$USER_API/emailvalidation.html
 
 RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/json" \
 --write-out "%{http_code}" --output .api.output \
--u shellapitestuser:passrecovery --basic \
+-u shellapitestuser:shellapipassword1234 --basic \
 $REQUEST?\
 token=$1)
 

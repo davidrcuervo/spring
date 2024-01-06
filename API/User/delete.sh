@@ -14,7 +14,7 @@ REQUEST=$USER_API/delete.html?username=shellapitestuser
 
 RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/json" -m $MAX_TIME \
 --write-out "%{http_code}" --output .api.output \
--u "shellapitestuser":"passrecovery" --basic \
+-u "shellapitestuser":"shellapipassword1234" --basic \
 $REQUEST)
 
 cat .api.output

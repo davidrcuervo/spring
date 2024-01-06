@@ -67,6 +67,9 @@ final public class Usuario implements Persistable, Forma {
     @Attribute(name="labeledURI")
     private String token;
 
+    @Transient
+    private String encToken;
+
     @Transient @JsonIgnore
     private boolean isNew = false;
     public Usuario() {
@@ -168,6 +171,14 @@ final public class Usuario implements Persistable, Forma {
 
     public String getToken() {
         return token;
+    }
+
+    public void setEncToken(String encToken){
+        this.encToken = encToken;
+    }
+
+    public String getEncToken(){
+        return encToken;
     }
 
     public void setToken(String token) {

@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Usuario find(String username) throws NotValidCustomException {
         Usuario result = null;
-        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
+        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("manager")){
 //            Usuario result = repository.find(username);
             result = springRepository.findByUsername(username);
 
@@ -157,7 +157,8 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = getToken();
-        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation, token);
+        user.setEncToken(tb.encrypt(token, System.getProperty("jasypt.encryptor.password")));
+//        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation);
 
         if(token != null){
             user.setToken(token);
@@ -201,7 +202,8 @@ public class UserServiceImpl implements UserService {
 
         //CREATE TOKEN AND SEND EMAIL TO VALIDATE ADDRESS
         String token = getToken();
-        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation, token);
+        user.setEncToken(tb.encrypt(token, System.getProperty("jasypt.encryptor.password")));
+        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation);
         user.setToken(token);
 
         //DISABLE ACCOUNT
@@ -311,8 +313,9 @@ public class UserServiceImpl implements UserService {
         Usuario user = springRepository.findByUsername(username);
 
         String token = getToken();
+        user.setEncToken(tb.encrypt(token, System.getProperty("jasypt.encryptor.password")));
 
-        sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery, token);
+        sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
         user.setToken(token);
 
         springRepository.save(user);
@@ -373,10 +376,9 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    private void sendEmail(Usuario user, String view, String subject, String urlValue, String token) throws NotValidCustomException{
+    private void sendEmail(Usuario user, String view, String subject, String urlValue) throws NotValidCustomException{
 
-        String encToken = tb.encrypt(token, System.getProperty("jasypt.encryptor.password"));
-        String urlEvaluated = urlValue.replaceFirst("\\{encToken\\}",encToken);
+        String urlEvaluated = urlValue.replaceFirst("\\{encToken\\}", user.getEncToken());
         Map<String, Object> variables = new HashMap<String, Object>() {{put("link", urlEvaluated);}};
 
         //SEND MAILER TO CONFIRM USER PARAMETERS
