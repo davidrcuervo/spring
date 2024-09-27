@@ -1,0 +1,19 @@
+dn: olcDatabase={2}mdb,cn=config
+changetype: add
+objectClass: olcDatabaseConfig
+objectClass: olcMdbConfig
+olcDatabase: {2}mdb
+olcDbDirectory: /opt/myslapd/etienda/data
+olcSuffix: dc=la-etienda,dc=com
+olcRootDN: cn=sysadmin,dc=la-etienda,dc=com
+olcRootPW: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
+olcDbIndex: objectClass eq
+olcDbIndex: cn,uid eq
+olcDbIndex: uidNumber,gidNumber eq
+olcDbIndex: member,memberUid eq
+olcDbMaxSize: 1073741824
+olcAccess: {0}to attrs=userPassword by self write by anonymous auth by * none
+# olcAccess: {1}to attrs=shadowLastChange by self write by * read
+# olcAccess: {2}to * by * read
+# olcLastMod: TRUE
+# olcDbCheckpoint: 512 30

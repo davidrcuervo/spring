@@ -1,0 +1,14 @@
+services:
+  myubuntu:
+    image: ubuntu:24.04
+    secrets:
+      - db-password
+    volumes:
+      - /var/data/docker/db/postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=web
+      - POSTGRES_USER=web
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+secrets:
+  db-password:
+    file: ./private/db-password.txt

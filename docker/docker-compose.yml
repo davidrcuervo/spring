@@ -1,0 +1,39 @@
+services:
+  mydatabase:
+    image: mypostgres:24.04
+    restart: always
+    build:
+      dockerfile: dockerfiles/mypostgres.2404.Dockerfile
+      args:
+        - POSTGRES_UID=110
+        - POSTGRES_GID=119
+    secrets:
+      - db-password
+    volumes:
+      - /var/data/docker/db/postgresql:/opt/mypostgres/data
+    environment:
+      - POSTGRES_DB=web
+      - POSTGRES_USER=web
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    ports:
+      - "5432:5432"
+  myldap:
+    image: myslapd:24.04
+    restart: always
+    user: openldap
+    secrets:
+      - ldap-password
+    volumes:
+      - /var/data/docker/openldap/etienda:/opt/myslapd/etienda/data
+    build:
+      dockerfile: dockerfiles/myldap.2404.Dockerfile
+      args:
+        - OPENLDAP_UID=109
+        - OPENLDAP_GID=117
+    ports:
+      - "389:389"
+secrets:
+  db-password:
+    file: ./private/db-password.txt
+  ldap-password:
+    file: ./private/ldap-password.txt

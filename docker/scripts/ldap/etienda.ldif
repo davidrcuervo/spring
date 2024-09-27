@@ -1,0 +1,53 @@
+dn: dc=la-etienda,dc=com
+changetype: add
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: la-etienda
+dc: la-etienda
+
+dn: ou=people,dc=la-etienda,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+description: People who has been registered in the domain
+
+dn: cn=sysadmin,dc=la-etienda,dc=com
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: sysadmin
+description: LDAP super administrator
+userPassword: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
+
+dn: cn=tomcat,ou=people,dc=la-etienda,dc=com
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: tomcat
+description: LDAP super administrator
+userPassword: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
+
+dn: ou=Groups,dc=la-etienda,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+description: Groups of the domain
+
+dn: cn=sysadmins,ou=Groups,dc=la-etienda,dc=com
+changetype: add
+objectClass: groupOfNames
+cn: sysadmins
+description: Group of system administrators. They can do everything in the directory.
+member: cn=sysadmin,dc=la-etienda,dc=com
+owner: cn=sysadmin,dc=la-etienda,dc=com
+
+dn: cn=managers,ou=Groups,dc=la-etienda,dc=com
+changetype: add
+objectClass: groupOfNames
+cn: managers
+description: Group of managers
+member: cn=sysadmin,dc=la-etienda,dc=com
+owner: cn=sysadmin,dc=la-etienda,dc=com
