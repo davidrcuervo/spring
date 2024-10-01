@@ -1,4 +1,9 @@
-/library/target/
+/frontend/target
+/library/target
+/messenger/target
+/usuario/target
+/model/target
+/utils/target
 /.idea/
 /API/User/.api.output
 /API/Group/.api.output

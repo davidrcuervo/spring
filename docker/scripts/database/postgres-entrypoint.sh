@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DATABASE_PASSWORD=$(cat /run/secrets/db-password.txt)
+DATABASE_PASSWORD=$(cat /run/secrets/db-password)
 LOG_PATH=/opt/mypostgres/logs/postgresql.$(date +%F.%Hh%Mm%Ss).log
 DATA_PATH=/opt/mypostgres/data
 HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf

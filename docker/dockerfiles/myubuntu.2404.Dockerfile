@@ -9,8 +9,7 @@ RUN apt update
 RUN apt upgrade -y
 
 #install required packages
-RUN apt install -y openssl
-RUN apt install -y sudo
+RUN apt install -y openssl sudo openssh-client
 
 #copy private files
 WORKDIR /var/docker/build

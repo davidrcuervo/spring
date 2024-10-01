@@ -17,7 +17,7 @@ RUN sudo -u postgres mkdir -m 700 data
 RUN sudo -u postgres mkdir -m 755 logs
 
 #Install postgres
-RUN apt install -y postgresql vim
+RUN apt install -y postgresql
 
 #copy files, scripts, etc
 COPY ../scripts/database/. scripts/.
