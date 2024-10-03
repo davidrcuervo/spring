@@ -4,7 +4,7 @@
 /usuario/target
 /model/target
 /utils/target
-/.idea/
+/.idea
 /API/User/.api.output
 /API/Group/.api.output
 /docker/private
