@@ -30,7 +30,7 @@ RUN chmod 700 -R etienda
 
 #install ldap directory
 RUN /etc/init.d/slapd start && \
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.github.ssh.config.ldif
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.config.ldif
 #    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.ldif
 
 #RUN
