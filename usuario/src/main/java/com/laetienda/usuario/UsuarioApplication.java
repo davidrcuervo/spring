@@ -15,12 +15,18 @@ import com.laetienda.utils.service.RestClientService;
 import com.laetienda.utils.service.RestClientServiceImpl;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.lib.service.ToolBoxServiceImpl;
+import com.laetienda.utils.service.UserAndGroupApiRepoImpl;
+import com.laetienda.utils.service.UserAndGroupApiRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
 
 @SpringBootApplication
 @EnableLdapRepositories(basePackages = "com.laetienda.usuario.repository")
@@ -70,8 +76,17 @@ public class UsuarioApplication {
 		return new RestClientServiceImpl();
 	}
 
+	@Bean
+//	@Scope(value="request", proxyMode= ScopedProxyMode.DEFAULT)
+	public UserAndGroupApiRepository getUserAndGroupApiRepository() throws IOException {
+		return new UserAndGroupApiRepoImpl();
+	}
+
 	public static void main(String[] args) {
-		SpringApplication.run(UsuarioApplication.class, args);
+		SpringApplication usuarioSpringApplication = new SpringApplication(UsuarioApplication.class);
+		usuarioSpringApplication.setAdditionalProfiles("production");
+		usuarioSpringApplication.run(args);
+//		SpringApplication.run(UsuarioApplication.class, args);
 	}
 
 }

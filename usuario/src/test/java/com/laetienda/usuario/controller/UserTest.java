@@ -9,8 +9,11 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 
-import org.apache.coyote.Response;
+import com.laetienda.utils.service.UserAndGroupApiRepository;
+import jakarta.servlet.http.HttpSession;
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.jasypt.encryption.StringEncryptor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,17 +21,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-//import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@Import(TestRestClientImpl.class)
+@Import({TestRestClientImpl.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserTest {
     final private static String ADMUSER = "admuser";
@@ -57,10 +63,22 @@ public class UserTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private TestRestClient restClient;
+    private TestRestClient testRestTemplate;
+
+    @Autowired
+    private StringEncryptor jasypte;
+
+    @Value("${admuser.username}")
+    private String admuser;
+
+    @Value("${admuser.hashed.password}")
+    private String admuserHashedPassword;
 
     @Autowired
     private ToolBoxService tb;
+
+    @Autowired
+    private UserAndGroupApiRepository userApi;
 
     private final String apiurl = "/api/v0/user";
 
@@ -71,11 +89,16 @@ public class UserTest {
         params.put("username", username);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         headers.add("Authorization", getEncode64("admuser", "secret"));
         HttpEntity entity = new HttpEntity(headers);
 
         return restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
+    }
+
+    @BeforeEach
+    public void setTestApiPort(){
+        userApi.setPort(port);
     }
 
     @Test
@@ -87,7 +110,7 @@ public class UserTest {
         AuthCredentials user = new AuthCredentials("admuser", "secret");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         HttpEntity<AuthCredentials> entity = new HttpEntity<>(user, headers);
 
         ResponseEntity<GroupList> response = restTemplate.exchange(AUTHENTICATE, HttpMethod.POST, entity, GroupList.class, params);
@@ -106,24 +129,26 @@ public class UserTest {
 
     @Test //Should return 404 not found error if invalid user, and return null on invalid password
     public void testAuthenticationWithIvalidUsername(){
-        String address = "http://localhost:{port}/api/v0/user/authenticate.html";
-        Map<String, String> params = new HashMap<>();
-        params.put("port", Integer.toString(port));
+        String address = String.format("http://localhost:%d/api/v0/user/authenticate.html", port);
 
-        AuthCredentials user = new AuthCredentials("admuser", "incorrectpassword");
+        HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
+            tb.getHttpClient().post()
+                    .uri(address).contentType(APPLICATION_JSON).body(Map.ofEntries(
+                            entry("username", admuser),
+                            entry("password", "incorrectpassword")
+                    )).retrieve().toEntity(GroupList.class);
+        });
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<AuthCredentials> entity = new HttpEntity<>(user, headers);
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 
-        ResponseEntity<GroupList> response = restTemplate.exchange(address, HttpMethod.POST, entity, GroupList.class, params);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNull(response.getBody());
+        exception = assertThrows(HttpClientErrorException.class, () -> {
+            tb.getHttpClient().post().uri(address).body(Map.ofEntries(
+                    entry("username", "invaliduser"),
+                    entry("password","anypassword")
+            )).retrieve().toEntity(GroupList.class);
+        });
 
-        user.setUsername("invaliduser");
-        entity = new HttpEntity<>(user, headers);
-        response = restTemplate.exchange(address,HttpMethod.POST, entity, GroupList.class, params);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test
@@ -134,7 +159,7 @@ public class UserTest {
         params.put("port", Integer.toString(port));
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         headers.add("Authorization", getEncode64("admuser", "secret"));
 
         HttpEntity entity = new HttpEntity<>(headers);
@@ -153,7 +178,7 @@ public class UserTest {
         params.put("port", Integer.toString(port));
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         headers.add("Authorization", getEncode64("myself", "password"));
 
         HttpEntity entity = new HttpEntity<>(headers);
@@ -171,7 +196,7 @@ public class UserTest {
         params.put("username", "admuser");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         headers.add("Authorization", getEncode64("admuser", "secret"));
 
         HttpEntity entity = new HttpEntity<>(headers);
@@ -184,22 +209,30 @@ public class UserTest {
 
     @Test
     public void testFindByUsernameRoleManager(){
-        String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
+//        headers.add("Authorization", getEncode64("admuser", "secret"));
+        Usuario user = new Usuario(
+                "testFindByUsernameRoleManager",
+                "test",
+                "find",
+                "By Role Manager",
+                "testFindByUsernameRoleManager@testmail.com",
+                "secretpassword",
+                "secretpassword");
 
-        Map<String, String> params = new HashMap<>();
-        params.put("port", Integer.toString(port));
-        params.put("username", "myself");
+        ResponseEntity<Usuario> resp1 = userApi.create(user);
+        assertEquals(HttpStatus.OK, resp1.getStatusCode());
+        assertNotNull(resp1.getBody());
+        assertNotNull(resp1.getBody().getEncToken());
+        assertFalse(resp1.getBody().getEncToken().isBlank());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", getEncode64("admuser", "secret"));
+        ResponseEntity<Usuario> resp2 = userApi.setCredentials(ADMUSER, ADMUSER_PASSWORD).findByUsername(user.getUsername());
+        assertEquals(HttpStatus.OK, resp2.getStatusCode());
+        assertNotNull(resp2.getBody());
+        assertNotNull(resp2.getBody().getEmail());
+        assertFalse(resp2.getBody().getEmail().isBlank());
+        assertEquals(user.getEmail(), resp2.getBody().getEmail());
 
-        HttpEntity entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Usuario> response = restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("myself", response.getBody().getUsername());
+        testApiDelete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
     @Test
@@ -211,7 +244,7 @@ public class UserTest {
         params.put("username", "admuser");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         headers.add("Authorization", getEncode64("myself", "password"));
 
         HttpEntity entity = new HttpEntity<>(headers);
@@ -229,7 +262,7 @@ public class UserTest {
         params.put("username", "invalidusername");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         headers.add("Authorization", getEncode64("admuser", "secret"));
 
         HttpEntity entity = new HttpEntity<>(headers);
@@ -243,19 +276,24 @@ public class UserTest {
         Usuario user = testUserCycleCreate("testuser");
         testUserCycleConfirmEmail(user);
         testUserCycleUpdate("testuser");
-        testUserCycleDelete("testuser");
+        testUserCycleResetPassword("testuser");
+        testUserCycleDelete("testuser", "newsecretpassword");
     }
 
-    private void testUserCycleDelete(String username) {
-        String address = "http://localhost:{port}/api/v0/user/delete.html?username={username}";
-        Map<String, String> params = new HashMap<>();
-        params.put("username", username);
+//   @Test
+    public void deleteTestUser(){
+        testUserCycleDelete("testuser", "secretpassword");
+    }
+
+    private void testUserCycleDelete(String username, String password) {
+        String address = String.format("http://localhost:%d/api/v0/user/delete.html?username=%s", port, username);
 
         ResponseEntity<Usuario> response = findByUsername(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response  .getBody());
 
-        ResponseEntity<String> response1 = restClient.send(address, port, HttpMethod.DELETE, null, String.class, params, "testuser", "secretpassword");
+        ResponseEntity<String> response1 = tb.getHttpClient(username, password).delete().uri(address).retrieve().toEntity(String.class);
+
         assertEquals(HttpStatus.OK, response1.getStatusCode());
         assertTrue(Boolean.valueOf(response1.getBody()));
 
@@ -276,11 +314,43 @@ public class UserTest {
         assertEquals("Test Surename", user.getFullName());
 
         user.setMiddlename("Middle");
-        response = restClient.send(address, port, HttpMethod.PUT, user, Usuario.class, null, username, "secretpassword");
+        response = testRestTemplate.send(address, port, HttpMethod.PUT, user, Usuario.class, null, username, "secretpassword");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(username, user.getUsername());
         assertEquals("Middle", response.getBody().getMiddlename());
         assertEquals("Test Middle Surename", response.getBody().getFullName());
+    }
+
+//    @Test
+    public void resetTestUserPassword(){
+        testUserCycleResetPassword("testuser");
+    }
+
+    private void testUserCycleResetPassword(String username){
+        String strPort = Integer.toString(port);
+        RestClient httpClient = tb.getHttpClient();
+        ResponseEntity<String> response = httpClient.post()
+                .uri("http://localhost:" + strPort + "/api/v0/user/requestpasswordrecovery.html")
+                .body(Map.ofEntries(entry("username", username)))
+                .retrieve().toEntity(String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String token = tb.encrypt(response.getBody(), System.getProperty("jasypt.encryptor.password"));
+
+        ResponseEntity<Usuario> response2 = httpClient.post()
+                .uri("http://localhost:" + strPort + "/api/v0/user/passwordrecovery.html?token=" + token)
+                .body(Map.ofEntries(
+                        entry("token",token),
+                        entry("username", username),
+                        entry("password", "newsecretpassword"),
+                        entry("password2", "newsecretpassword")
+                ))
+                .retrieve().toEntity(Usuario.class);
+
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(username, response2.getBody().getUsername());
+
     }
 
     private void testUserCycleConfirmEmail(Usuario user){
@@ -290,19 +360,19 @@ public class UserTest {
         params1.put("username", user.getUsername());
 
         //CHECK USER IS NOT IN VALID ROLE
-        ResponseEntity<String> response = restClient.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, "admuser", "secret");
+        ResponseEntity<String> response = testRestTemplate.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, "admuser", "secret");
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertFalse(Boolean.parseBoolean(response.getBody()));
 
         //CONFIRM EMAIL ADDRESS
         Map<String, String> params2 = new HashMap<>();
         params2.put("token", user.getEncToken());
-        response = restClient.send(urlTestApiUserEmailValidation, port, HttpMethod.GET, user, String.class, params2, user.getUsername(), getUser().getPassword());
+        response = testRestTemplate.send(urlTestApiUserEmailValidation, port, HttpMethod.GET, user, String.class, params2, user.getUsername(), getUser().getPassword());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Boolean.parseBoolean(response.getBody()));
 
         //CHECK USER IS IN VALID ROLE
-        response = restClient.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, user.getUsername(), getUser().getPassword());
+        response = testRestTemplate.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, user.getUsername(), getUser().getPassword());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Boolean.parseBoolean(response.getBody()));
     }
@@ -326,7 +396,7 @@ public class UserTest {
         params.put("port", Integer.toString(port));
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
 
         HttpEntity<Usuario> entity = new HttpEntity<>(user, headers);
 
@@ -341,7 +411,7 @@ public class UserTest {
         assertNotNull(response.getBody());
         assertEquals(username, response.getBody().getUsername());
 
-        ResponseEntity<GroupList> response2 = restClient.send(AUTHENTICATE, port, HttpMethod.POST, null, GroupList.class, null, user.getUsername(), user.getPassword());
+        ResponseEntity<GroupList> response2 = testRestTemplate.send(AUTHENTICATE, port, HttpMethod.POST, null, GroupList.class, null, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         return result;
@@ -363,7 +433,7 @@ public class UserTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
-        response = restClient.send(address, port, HttpMethod.POST, user, Usuario.class, null, null, null);
+        response = testRestTemplate.send(address, port, HttpMethod.POST, user, Usuario.class, null, null, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 
     }
@@ -375,7 +445,7 @@ public class UserTest {
         String email = user.getEmail();
         user = getUser();
         user.setEmail(email);
-        ResponseEntity<Usuario> response = restClient.send(address, port, HttpMethod.POST, user, Usuario.class, null, null, null);
+        ResponseEntity<Usuario> response = testRestTemplate.send(address, port, HttpMethod.POST, user, Usuario.class, null, null, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
@@ -384,7 +454,7 @@ public class UserTest {
         String address = "http://localhost:{port}/api/v0/user/create.html";
         Usuario user = getUser();
         user.setPassword2("differentpassword");
-        ResponseEntity<Usuario> response = restClient.send(address, port, HttpMethod.POST, user, Usuario.class, null, null, null);
+        ResponseEntity<Usuario> response = testRestTemplate.send(address, port, HttpMethod.POST, user, Usuario.class, null, null, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
@@ -394,68 +464,71 @@ public class UserTest {
         Map<String, String> params = new HashMap<>();
         params.put("username", "novalidusername");
 
-        ResponseEntity<String> response = restClient.send(address, port, HttpMethod.DELETE, null, String.class, params, "admuser", "secret");
+        ResponseEntity<String> response = testRestTemplate.send(address, port, HttpMethod.DELETE, null, String.class, params, "admuser", "secret");
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     public void testDeleteUnauthorized(){
-        String create = "http://localhost:{port}/api/v0/user/create.html";
-        String delete = "http://localhost:{port}/api/v0/user/delete.html?username={username}";
-        String authenticate = "http://localhost:{port}/api/v0/user/authenticate.html";
-
-        Usuario user = getUser();
-        Map<String, String> params = new HashMap<>();
-        params.put("username", user.getUsername());
-
         //Create first user
-        ResponseEntity<Usuario> resp1 = restClient.send(create, port, HttpMethod.POST, user, Usuario.class, null, null, null);
-        assertEquals(HttpStatus.OK, resp1.getStatusCode());
-        ResponseEntity<GroupList> resp2 = restClient.send(authenticate, port, HttpMethod.POST, user, GroupList.class, null, user.getUsername(), user.getPassword());
-        assertEquals(HttpStatus.OK, resp2.getStatusCode());
+        Usuario user1 = new Usuario(
+                "testDeleteFirstUser",
+                "First", "User", "Test Delete",
+                "testDeleteFirstUser@mail.com",
+                "secretpassword", "secretpassword"
+        );
+        testApiCreate(user1);
 
         //Create second user
-        resp1 = restClient.send(create, port, HttpMethod.POST, getSecondUser(), Usuario.class, null, null, null);
-        assertEquals(HttpStatus.OK, resp1.getStatusCode());
-        resp2 = restClient.send(authenticate, port, HttpMethod.POST, user, GroupList.class, null, getSecondUser().getUsername(), getSecondUser().getPassword());
-        assertEquals(HttpStatus.OK, resp2.getStatusCode());
+        Usuario user2 = new Usuario(
+                "testDeleteSecondUser",
+                "Second", "User", "Test Delete",
+                "testDeleteSecondUser@mail.com",
+                "secretpassword", "secretpassword"
+        );
+        testApiCreate(user2);
 
         //Try to delete unauthorized
-        ResponseEntity<String> resp3 = restClient.send(delete, port, HttpMethod.DELETE, null, String.class, params ,getSecondUser().getUsername(), getSecondUser().getPassword());
-        assertEquals(HttpStatus.UNAUTHORIZED, resp3.getStatusCode());
+        HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
+            userApi.setCredentials( user2.getUsername(), user2.getPassword()).delete(user1.getUsername());
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 
         //Delete first user
-        resp3 = restClient.send(delete, port, HttpMethod.DELETE, null, String.class, params ,user.getUsername(), user.getPassword());
-        assertEquals(HttpStatus.OK, resp3.getStatusCode());
-        assertTrue(Boolean.valueOf(resp3.getBody()));
+        testApiDelete(user1.getUsername(), user1.getUsername(), user1.getPassword());
 
         //Delete second user
-        params.put("username", getSecondUser().getUsername());
-        resp3 = restClient.send(delete, port, HttpMethod.DELETE, null, String.class, params ,getSecondUser().getUsername(), getSecondUser().getPassword());
-        assertEquals(HttpStatus.OK, resp3.getStatusCode());
-        assertTrue(Boolean.valueOf(resp3.getBody()));
+        testApiDelete(user2.getUsername(), user2.getUsername(), user2.getPassword());
     }
 
     @Test
-    public void testDeleteAdmin(){
-        String delete = "http://localhost:{port}/api/v0/user/delete.html?username={username}";
-
-        Usuario user = getUser();
-        Map<String, String> params = new HashMap<>();
-        params.put("username", "admuser");
-
-        ResponseEntity<String> response = restClient.send(delete, port, HttpMethod.DELETE, null, String.class, params, "admuser", "secret");
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    public void testDeleteAdmuser(){
+        HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
+            userApi.setCredentials( ADMUSER, ADMUSER_PASSWORD).delete(ADMUSER);
+        });
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
     }
 
     @Test
+    public void testFindApplicationProfiles(){
+
+        RestClient httpClient = tb.getHttpClient(admuser, jasypte.decrypt(admuserHashedPassword));
+        ResponseEntity<String> profiles = httpClient.get()
+                .uri("http://localhost:{port}/api/v0/user/findApplicationProfiles.html", Integer.toString(port))
+                .retrieve().toEntity(String.class);
+
+        assertEquals(HttpStatus.OK, profiles.getStatusCode());
+        assertNull(profiles.getBody());
+    }
+
+//    @Test
     public void testDeleteUser(){
         Map<String, String> params = new HashMap<>();
 
         //ADD USER
         Usuario user = getUser();
         params.put("username", user.getUsername());
-        ResponseEntity<Usuario> resp1 = restClient.send(CREATE, port, HttpMethod.POST, user, Usuario.class, null, null, null);
+        ResponseEntity<Usuario> resp1 = testRestTemplate.send(CREATE, port, HttpMethod.POST, user, Usuario.class, null, null, null);
         assertEquals(HttpStatus.OK, resp1.getStatusCode());
         assertNotNull(resp1.getBody());
 
@@ -463,17 +536,17 @@ public class UserTest {
         Group userGroup = new Group();
         userGroup.setName("testDeleteLastOwnerOfGroup");
         params.put("gname", userGroup.getName());
-        ResponseEntity<Group> resp2 = restClient.send(GROUP_CREATE, port, HttpMethod.POST, userGroup, Group.class, null, user.getUsername(), user.getPassword());
+        ResponseEntity<Group> resp2 = testRestTemplate.send(GROUP_CREATE, port, HttpMethod.POST, userGroup, Group.class, null, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
         assertNotNull(resp2.getBody());
         assertTrue(resp2.getBody().getOwners().containsKey(user.getUsername()));
 
         //DELETE USER
-        ResponseEntity<String> resp3 = restClient.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
+        ResponseEntity<String> resp3 = testRestTemplate.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.FORBIDDEN, resp3.getStatusCode());
 
         //DELETE GROUP
-        resp3 = restClient.send(GROUP_DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
+        resp3 = testRestTemplate.send(GROUP_DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, resp3.getStatusCode());
         assertTrue(Boolean.valueOf(resp3.getBody()));
 
@@ -481,39 +554,39 @@ public class UserTest {
         Group managerGroup = new Group();
         managerGroup.setName("testRemoveMemberGroup");
         params.put("gname", managerGroup.getName());
-        resp2 = restClient.send(GROUP_CREATE, port, HttpMethod.POST, managerGroup, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
+        resp2 = testRestTemplate.send(GROUP_CREATE, port, HttpMethod.POST, managerGroup, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
         assertNotNull(resp2.getBody());
 
         //ADD MEMBER TO GROUP
-        resp2 = restClient.send(GROUP_ADD_MEMBER, port, HttpMethod.PUT, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
+        resp2 = testRestTemplate.send(GROUP_ADD_MEMBER, port, HttpMethod.PUT, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
         assertNotNull(resp2.getBody());
         assertTrue(resp2.getBody().getMembers().containsKey(user.getUsername()));
 
         //TEST USER IS MEMBER OF THE GROUP
-        resp3 = restClient.send(GROUP_IS_MEMBER, port, HttpMethod.GET, null, String.class, params, user.getUsername(), user.getPassword());
+        resp3 = testRestTemplate.send(GROUP_IS_MEMBER, port, HttpMethod.GET, null, String.class, params, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, resp3.getStatusCode());
         assertTrue(Boolean.valueOf(resp3.getBody()));
 
         //DELETE USER
-        resp3 = restClient.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
+        resp3 = testRestTemplate.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, resp3.getStatusCode());
         assertTrue(Boolean.valueOf(resp3.getBody()));
         resp1 = findByUsername(user.getUsername());
         assertEquals(HttpStatus.NOT_FOUND, resp1.getStatusCode());
 
         //TEST USER SHOULD NOT BE MEMBER OF ANY GROUP
-        ResponseEntity<GroupList> resp4 = restClient.send(GROUP_FIND_ALL_BY_MEMBER, port, HttpMethod.GET, null, GroupList.class, params, ADMUSER, ADMUSER_PASSWORD);
+        ResponseEntity<GroupList> resp4 = testRestTemplate.send(GROUP_FIND_ALL_BY_MEMBER, port, HttpMethod.GET, null, GroupList.class, params, ADMUSER, ADMUSER_PASSWORD);
         assertEquals(HttpStatus.OK, resp4.getStatusCode());
         assertNotNull(resp4.getBody());
         assertFalse(resp4.getBody().getGroups().size() > 0);
 
         //REMOVE GROUP AS MANAGER
-        resp3 = restClient.send(GROUP_DELETE, port, HttpMethod.DELETE, null, String.class, params, ADMUSER, ADMUSER_PASSWORD);
+        resp3 = testRestTemplate.send(GROUP_DELETE, port, HttpMethod.DELETE, null, String.class, params, ADMUSER, ADMUSER_PASSWORD);
         assertEquals(HttpStatus.OK, resp3.getStatusCode());
         assertTrue(Boolean.valueOf(resp3.getBody()));
-        resp2 = restClient.send(GROUP_FIND_BY_NAME, port, HttpMethod.GET, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
+        resp2 = testRestTemplate.send(GROUP_FIND_BY_NAME, port, HttpMethod.GET, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
         assertEquals(HttpStatus.NOT_FOUND, resp2.getStatusCode());
     }
 
@@ -522,31 +595,6 @@ public class UserTest {
         String result = new String(Base64.encodeBase64String(creds.getBytes()));
         return "Basic " + result;
     }
-
-//    private <T> ResponseEntity<T> send(String apiurl, HttpMethod httpMethod, Object data, Class<T> clazz, Map<String, String> params, String username, String password) {
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        if(username != null && password != null) {
-//            headers.add("Authorization", getEncode64(username, password));
-//        }
-//
-//        HttpEntity<?> entity;
-//
-//        if(data == null){
-//            entity = new HttpEntity(headers);
-//        }else{
-//            entity = new HttpEntity<Object>(data, headers);
-//        }
-//
-//        if(params == null){
-//            params = new HashMap<>();
-//        }
-//        params.put("port", String.valueOf(port));
-//
-//        return restclient.exchange(apiurl, httpMethod, entity, clazz, params);
-//    }
 
     private Usuario getUser(){
         Usuario user = new Usuario();
@@ -568,5 +616,69 @@ public class UserTest {
         user.setPassword2("secretpassword");
         user.setPassword("secretpassword");
         return user;
+    }
+
+    @Test
+    public void testApi(){
+        Usuario user = new Usuario(
+                "testapicreate",
+                "Create",
+                "Usuario",
+                "Api Test",
+                "testapicreate@testmail.com",
+                "secretpassword",
+                "secretpassword");
+
+        testApiCreate(user);
+        testApiDelete("testapicreate", "testapicreate", "secretpassword");
+    }
+
+    public ResponseEntity<Usuario> testApiCreate(Usuario user){
+        ResponseEntity<Usuario> response = userApi.create(user);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getEncToken());
+        assertFalse(response.getBody().getEncToken().isBlank());
+
+        testUserExists(user.getUsername());
+        return response;
+    }
+
+    @Test
+    public void deleteApiUser(){
+//        testApiDelete("anothertestuser", "anothertestuser", "secretpassword");
+//        testApiDelete("testuser", ADMUSER, ADMUSER_PASSWORD);
+//        testApiDelete("testapicreate", ADMUSER, ADMUSER_PASSWORD);
+//        testApiDelete("testDeleteFirstUser", ADMUSER, ADMUSER_PASSWORD);
+//        testApiDelete("testDeleteSecondUser", ADMUSER, ADMUSER_PASSWORD);
+//        testApiDelete("testFindByUsernameRoleManager", ADMUSER, ADMUSER_PASSWORD);
+//        testApiDelete("testUserDeleteBySessionId", ADMUSER, ADMUSER_PASSWORD);
+    }
+
+    public void testApiDelete(String username, String loginUsername, String password){
+        testUserExists(username);
+
+        //Delete user
+        ResponseEntity<String> response = userApi.setCredentials(loginUsername,password).delete(username);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("true", response.getBody());
+
+        testUserDoesNotExists(username);
+    }
+
+    private void testUserExists(String username){
+        ResponseEntity<Usuario> response = userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)).findByUsername(username);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().getEmail().isBlank());
+    }
+
+    private void testUserDoesNotExists(String username){
+        HttpClientErrorException exception = assertThrows( HttpClientErrorException.class, () -> {
+            userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)).findByUsername(username);
+        });
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 }

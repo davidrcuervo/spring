@@ -271,7 +271,7 @@ public class GroupServiceImpl implements GroupService{
 
         try {
             //test if is owner OR self member
-            if(repository.isOwner(gname, username) || authUsername.equals(username)){
+            if(repository.isOwner(gname, authUsername) || authUsername.equals(username)){
                 //remove
                 Group group = repository.findByName(gname);
                 Usuario user = springUserRepository.findByUsername(username);

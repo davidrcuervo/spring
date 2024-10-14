@@ -76,7 +76,22 @@ final public class Usuario implements Persistable, Forma {
 
     }
 
-//    @JsonIgnore
+    public Usuario(String username, String password){
+        this.username = username;
+        this.password = password;
+    }
+
+    public Usuario(String username, String firstname, String middlename, String lastname, String email, String password, String password2) {
+        this.username = username;
+        this.firstname = firstname;
+        this.middlename = middlename;
+        this.lastname = lastname;
+        this.email = email;
+        this.password = password;
+        this.password2 = password2;
+    }
+
+    //    @JsonIgnore
 //    public Name getDn() {
 //        return id;
 //    }

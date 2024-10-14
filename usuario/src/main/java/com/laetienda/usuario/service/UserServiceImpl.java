@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -55,6 +56,9 @@ public class UserServiceImpl implements UserService {
     private LdapDn dn;
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     private RestClientService client;
 
     @Autowired
@@ -69,10 +73,13 @@ public class UserServiceImpl implements UserService {
     @Value("${api.frontend.user.passwordrecovery}")
     private String urlFrontendUserPasswordRecovery;
 
+    @Value("${admuser.username}")
+    private String admuser;
+
     @Override
     public UsuarioList findAll() throws NotValidCustomException {
 
-        if(isUserInRole("manager")){
+        if(isUserInRole("ROLE_MANAGER")){
             return repository.findAll();
         }else{
             throw new NotValidCustomException(
@@ -86,7 +93,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Usuario find(String username) throws NotValidCustomException {
         Usuario result = null;
-        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("manager")){
+        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
 //            Usuario result = repository.find(username);
             result = springRepository.findByUsername(username);
 
@@ -113,14 +120,15 @@ public class UserServiceImpl implements UserService {
 
     private boolean isUserInRole(String role_name) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String role = String.format("ROLE_%s", role_name.toUpperCase());
-        log.trace("Required role: {}", role);
+//        log.trace("$role_name: {}", role_name);
+//        String role = "ROLE_" + role_name.toUpperCase();
+        log.trace("Required role: {}", role_name);
 
 //        for(GrantedAuthority t : auth.getAuthorities()){
 //            log.trace("User has role. $role: {}", t.getAuthority());
 //        }
 
-        return auth.getAuthorities().contains(new SimpleGrantedAuthority(role));
+        return auth.getAuthorities().contains(new SimpleGrantedAuthority(role_name));
     }
 
     @Override
@@ -158,7 +166,12 @@ public class UserServiceImpl implements UserService {
 
         String token = getToken();
         user.setEncToken(tb.encrypt(token, System.getProperty("jasypt.encryptor.password")));
-//        sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation);
+
+        //SEND EMAIL, first check if profile is production
+        List<String> profiles = Arrays.asList(env.getActiveProfiles());
+        if(profiles.contains("production")){
+            sendEmail(user, "default/emailConfirmation.html", "Welcome, please confirm your contact information", urlFrontendEmailValidation);
+        }
 
         if(token != null){
             user.setToken(token);
@@ -228,6 +241,12 @@ public class UserServiceImpl implements UserService {
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "user");
         }
 
+        //Test if it is trying to remove admuser
+        if(username.toLowerCase().equals(admuser.toLowerCase())){
+            String message = String.format("Administrator user, %s, can't be removed.", username);
+            throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "user");
+        }
+
         //Test if it is self user or manager
         if(!(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER"))){
             String message = String.format("User, (%s), can't be removed from the system", user.getUsername());
@@ -236,9 +255,10 @@ public class UserServiceImpl implements UserService {
 
         //Test if user is not last owner of a group
         GroupList temp = gRepo.findAllByOwner(username);
-        for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()){
-            if(entry.getValue().getOwners().size() < 2) {
-                throw new NotValidCustomException("Can't remove last user of a group", HttpStatus.FORBIDDEN, "user");
+        for(Map.Entry<String, Group> group : temp.getGroups().entrySet()){
+            log.trace("User, {}, is owner of group, {}.", username, group.getKey());
+            if(group.getValue().getOwners().size() < 2) {
+                throw new NotValidCustomException("Can't remove last owner of a group", HttpStatus.FORBIDDEN, "user");
             }
         }
 
@@ -315,7 +335,11 @@ public class UserServiceImpl implements UserService {
         String token = getToken();
         user.setEncToken(tb.encrypt(token, System.getProperty("jasypt.encryptor.password")));
 
-        sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
+        List<String> profiles = Arrays.asList(env.getActiveProfiles());
+        if(profiles.contains("production")) {
+            sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
+        }
+
         user.setToken(token);
 
         springRepository.save(user);
@@ -345,6 +369,16 @@ public class UserServiceImpl implements UserService {
         }else{
             throw new NotValidCustomException("Not valid password", HttpStatus.BAD_REQUEST, "password");
         }
+    }
+
+    @Override
+    public String getApplicationProfile() {
+        String result = new String();
+
+        for(String profile : env.getActiveProfiles())
+            result += profile;
+
+        return result;
     }
 
     private Boolean isValidPassword(String password, String password2) throws NotValidCustomException{

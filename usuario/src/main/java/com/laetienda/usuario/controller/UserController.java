@@ -7,11 +7,9 @@ import com.laetienda.model.user.UsuarioList;
 import com.laetienda.usuario.model.Prueba;
 import com.laetienda.usuario.service.UserService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +36,7 @@ public class UserController {
     }
 
     @GetMapping("user.html")
-    public ResponseEntity<Usuario> getUser(@RequestParam String username) throws NotValidCustomException {
+    public ResponseEntity<Usuario> findByUsername(@RequestParam String username) throws NotValidCustomException {
        log.trace("Find user by username. $username: {}", username);
        return ResponseEntity.ok(service.find(username));
     }
@@ -96,11 +94,12 @@ public class UserController {
     public ResponseEntity<Usuario> passwordRecovery(@RequestParam(name="token") String encToken, @RequestBody Map<String, String> parameters) throws NotValidCustomException{
 //        throw new NotValidCustomException("Function not implemented", HttpStatus.INTERNAL_SERVER_ERROR, "user");
         log.trace("Running passwordRecovery user controller");
-
-        for(Map.Entry<String, String> entry : parameters.entrySet()){
-            log.trace("${}: {}", entry.getKey(), entry.getValue());
-        }
-
         return ResponseEntity.ok(service.passwordRecovery(encToken, parameters));
+    }
+
+    @GetMapping("findApplicationProfiles.html")
+    public ResponseEntity<String> applicationProfile(){
+        log.trace("Running applicationProfile user controller");
+        return ResponseEntity.ok(service.getApplicationProfile());
     }
 }

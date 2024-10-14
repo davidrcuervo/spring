@@ -6,7 +6,6 @@ import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,4 +22,5 @@ public interface UserService {
     GroupList authenticate(Usuario user) throws NotValidCustomException;
     String requestPasswordRecovery(String username) throws NotValidCustomException;
     Usuario passwordRecovery(String encToken, Map<String, String> params) throws NotValidCustomException;
+    String getApplicationProfile();
 }

@@ -159,6 +159,8 @@ public class GroupRepoImpl implements GroupRepository{
         String ownerdn = dn.getUserDn(username).toString();
 
         repository.findByOwnersdn(ownerdn).forEach(group -> {
+            group = findOwners(group);
+            group = findMembers(group);
             result.addGroup(group);
         });
 
@@ -245,6 +247,12 @@ public class GroupRepoImpl implements GroupRepository{
     public boolean isOwner(String gName, String username) {
         String ownerdn = dn.getUserDn(username).toString();
         List<Group> groups = repository.findByNameAndOwnersdn(gName, ownerdn);
+
+        log.trace("User, {}, is owner of {} groups.", username, groups.size());
+        for(Group g : groups){
+            log.trace("User, {}, is owner of {}.", username, g.getName());
+        }
+
         return groups.size() > 0 ? true : false;
 
 //        Name gdn = dn.getGroupDn(gName);

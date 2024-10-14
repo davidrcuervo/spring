@@ -11,9 +11,25 @@ olcDbIndex: objectClass eq
 olcDbIndex: cn,uid eq
 olcDbIndex: uidNumber,gidNumber eq
 olcDbIndex: member,memberUid eq
-olcDbMaxSize: 1073741824
-olcAccess: {0}to attrs=userPassword by self write by anonymous auth by * none
-# olcAccess: {1}to attrs=shadowLastChange by self write by * read
-# olcAccess: {2}to * by * read
+# olcDbMaxSize: 1073741824
 # olcLastMod: TRUE
 # olcDbCheckpoint: 512 30
+olcAccess: {0}to attrs=userPassword
+     by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" =w
+     by self =xw
+     by anonymous auth
+     by * none
+olcAccess: {1}to dn="dc=la-etienda,dc=com"
+     by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" read
+     by users none
+     by * none
+olcAccess: {2}to dn.subtree="ou=people,dc=la-etienda,dc=com"
+     by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" write
+     by self read
+     by users none
+     by * none
+olcAccess: {3}to dn.subtree="ou=wroups,dc=la-etienda,dc=com"
+     by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" write
+     by self read
+     by users none
+     by * none

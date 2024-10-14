@@ -51,6 +51,7 @@ RUN useradd -u $POSTGRES_UID -g postgres -c "PostgreSQL Administrator" --shell /
 
 #create app directory
 WORKDIR /opt/mypostgres
+
 RUN chown postgres:postgres /opt/mypostgres
 RUN sudo -u postgres mkdir -m 700 data
 RUN sudo -u postgres mkdir -m 755 logs
@@ -60,14 +61,15 @@ RUN apt install -y postgresql
 
 #copy files, scripts, etc
 COPY ../scripts/database/. scripts/.
+RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
 
 #Create databases
 #RUN scripts/createdb.sh
 
 #Run
-USER postgres
 #ENTRYPOINT ["/bin/bash"]
+USER postgres
 ENTRYPOINT ["scripts/postgres-entrypoint.sh"]
 
 ################################

@@ -174,6 +174,7 @@ public class UserRepoImpl implements UserRepository{
                     userdn.toString(),
                     String.format("uid=%s", user.getUsername()),
                     user.getPassword());
+            log.trace("Authentication result. $result: {}", result ? "true" : "false");
         }catch (Exception e){
             log.info("Failed to authenticate user: {}, message: {}", user.getUsername(), e.getMessage());
             log.debug(e.getMessage(), e);

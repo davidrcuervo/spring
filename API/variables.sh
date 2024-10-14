@@ -4,7 +4,7 @@
 # Create variables
 echo "Loading local variables"
 
-SERVER_ADDRESS="172.19.208.1"
+SERVER_ADDRESS="172.24.48.1"
 USERNAME="admuser"
 PASSWORD="secret"
 MAX_TIME=10

@@ -2,6 +2,8 @@
 
 DATABASE_WEB_PASSWORD=$(cat /run/secrets/db-web-password)
 DATABASE_SPRINGSESSION_PASSWORD=$(cat /run/secrets/db-springsession-password)
+DATABASE_SPRINGSESSION_CREATE_DB=/opt/mypostgres/scripts/createSpringsessionDb.sql
+DATABASE_SPRINGSESSION_CREATE_TABLES=/opt/mypostgres/scripts/createSpringsessionTables.sql
 LOG_PATH=/opt/mypostgres/logs/postgresql.$(date +%F.%Hh%Mm%Ss).log
 DATA_PATH=/opt/mypostgres/data
 HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
@@ -21,9 +23,8 @@ HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
 
 #set springsession database
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE USER springsession WITH PASSWORD '$DATABASE_SPRINGSESSION_PASSWORD';"
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE springsession TEMPLATE template0 ENCODING 'UNICODE';"
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "ALTER DATABASE springsession OWNER TO springsession;"
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE springsession TO springsession;"
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -f $DATABASE_SPRINGSESSION_CREATE_DB
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -d springsession -U springsession -f $DATABASE_SPRINGSESSION_CREATE_TABLES
 
 # stop internal postgres server
 trap "./scripts/postgres-exitpoint.sh $DATA_PATH" SIGINT SIGTERM
