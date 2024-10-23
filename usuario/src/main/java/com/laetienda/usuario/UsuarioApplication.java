@@ -6,7 +6,6 @@ import com.laetienda.usuario.lib.LdapDnImplB;
 import com.laetienda.usuario.repository.GroupRepoImpl;
 import com.laetienda.usuario.repository.GroupRepository;
 import com.laetienda.usuario.repository.UserRepoImpl;
-import com.laetienda.usuario.repository.UserRepository;
 import com.laetienda.usuario.service.GroupService;
 import com.laetienda.usuario.service.GroupServiceImpl;
 import com.laetienda.usuario.service.UserService;
@@ -15,14 +14,11 @@ import com.laetienda.utils.service.RestClientService;
 import com.laetienda.utils.service.RestClientServiceImpl;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.lib.service.ToolBoxServiceImpl;
-import com.laetienda.utils.service.UserAndGroupApiRepoImpl;
-import com.laetienda.utils.service.UserAndGroupApiRepository;
+import com.laetienda.utils.service.api.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
 import org.springframework.web.client.RestTemplate;
 
@@ -44,7 +40,7 @@ public class UsuarioApplication {
 	}
 
 	@Bean
-	public UserRepository getUserRepository(){
+	public com.laetienda.usuario.repository.UserRepository getUserRepository(){
 		return new UserRepoImpl();
 	}
 
@@ -78,8 +74,8 @@ public class UsuarioApplication {
 
 	@Bean
 //	@Scope(value="request", proxyMode= ScopedProxyMode.DEFAULT)
-	public UserAndGroupApiRepository getUserAndGroupApiRepository() throws IOException {
-		return new UserAndGroupApiRepoImpl();
+	public UserApi getUserAndGroupApiRepository() throws IOException {
+		return new UserApiImplementation();
 	}
 
 	public static void main(String[] args) {

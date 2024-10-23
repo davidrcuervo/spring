@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.support.LdapNameBuilder;
 import org.springframework.stereotype.Component;
 
+import javax.naming.InvalidNameException;
 import javax.naming.Name;
 
 public class LdapDnImpl implements LdapDn {
@@ -38,6 +39,18 @@ public class LdapDnImpl implements LdapDn {
     @Override
     public Name getGroupDn(String cn){
         return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
+    }
+
+    @Override
+    public Name getFullDn(Name dn) {
+        Name result = dn;
+        try {
+            result = LdapNameBuilder.newInstance(base).build().addAll(dn);
+        } catch (InvalidNameException e) {
+            log.error(e.getMessage());
+            log.debug(e.getMessage(), e);
+        }
+        return result;
     }
 
     @Override

@@ -31,7 +31,7 @@ public class CustomLdapAuthenticationProvider implements AuthenticationProvider 
         Usuario user = new Usuario();
         user.setUsername(authentication.getName());
         user.setPassword(authentication.getCredentials().toString());
-        log.trace("Authentication user. $username: {}", user.getUsername());
+        log.trace("AUTHENTICATION_PROVIDER::Authenticate. $username: {}", user.getUsername());
 
         try {
             List<GrantedAuthority> authorities = new ArrayList<>();

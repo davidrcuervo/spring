@@ -9,8 +9,8 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 
-import com.laetienda.utils.service.UserAndGroupApiRepository;
-import jakarta.servlet.http.HttpSession;
+import com.laetienda.usuario.UsuarioTestConfiguration;
+import com.laetienda.utils.service.api.UserApi;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.jasypt.encryption.StringEncryptor;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@Import({TestRestClientImpl.class})
+@Import({UsuarioTestConfiguration.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserTest {
     final private static String ADMUSER = "admuser";
@@ -78,7 +78,7 @@ public class UserTest {
     private ToolBoxService tb;
 
     @Autowired
-    private UserAndGroupApiRepository userApi;
+    private UserApi userApi;
 
     private final String apiurl = "/api/v0/user";
 
@@ -232,7 +232,7 @@ public class UserTest {
         assertFalse(resp2.getBody().getEmail().isBlank());
         assertEquals(user.getEmail(), resp2.getBody().getEmail());
 
-        testApiDelete(user.getUsername(), user.getUsername(), user.getPassword());
+        delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
     @Test
@@ -477,7 +477,7 @@ public class UserTest {
                 "testDeleteFirstUser@mail.com",
                 "secretpassword", "secretpassword"
         );
-        testApiCreate(user1);
+        create(user1);
 
         //Create second user
         Usuario user2 = new Usuario(
@@ -486,7 +486,7 @@ public class UserTest {
                 "testDeleteSecondUser@mail.com",
                 "secretpassword", "secretpassword"
         );
-        testApiCreate(user2);
+        create(user2);
 
         //Try to delete unauthorized
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
@@ -495,10 +495,10 @@ public class UserTest {
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 
         //Delete first user
-        testApiDelete(user1.getUsername(), user1.getUsername(), user1.getPassword());
+        delete(user1.getUsername(), user1.getUsername(), user1.getPassword());
 
         //Delete second user
-        testApiDelete(user2.getUsername(), user2.getUsername(), user2.getPassword());
+        delete(user2.getUsername(), user2.getUsername(), user2.getPassword());
     }
 
     @Test
@@ -533,8 +533,7 @@ public class UserTest {
         assertNotNull(resp1.getBody());
 
         //CREATE GROUP AS OWNER
-        Group userGroup = new Group();
-        userGroup.setName("testDeleteLastOwnerOfGroup");
+        Group userGroup = new Group("testDeleteLastOwnerOfGroup", null);
         params.put("gname", userGroup.getName());
         ResponseEntity<Group> resp2 = testRestTemplate.send(GROUP_CREATE, port, HttpMethod.POST, userGroup, Group.class, null, user.getUsername(), user.getPassword());
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
@@ -551,8 +550,7 @@ public class UserTest {
         assertTrue(Boolean.valueOf(resp3.getBody()));
 
         //CREATE GROUP AS MANAGER
-        Group managerGroup = new Group();
-        managerGroup.setName("testRemoveMemberGroup");
+        Group managerGroup = new Group("testRemoveMemberGroup", null);
         params.put("gname", managerGroup.getName());
         resp2 = testRestTemplate.send(GROUP_CREATE, port, HttpMethod.POST, managerGroup, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
@@ -629,11 +627,11 @@ public class UserTest {
                 "secretpassword",
                 "secretpassword");
 
-        testApiCreate(user);
-        testApiDelete("testapicreate", "testapicreate", "secretpassword");
+        create(user);
+        delete("testapicreate", "testapicreate", "secretpassword");
     }
 
-    public ResponseEntity<Usuario> testApiCreate(Usuario user){
+    public ResponseEntity<Usuario> create(Usuario user){
         ResponseEntity<Usuario> response = userApi.create(user);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -654,9 +652,16 @@ public class UserTest {
 //        testApiDelete("testDeleteSecondUser", ADMUSER, ADMUSER_PASSWORD);
 //        testApiDelete("testFindByUsernameRoleManager", ADMUSER, ADMUSER_PASSWORD);
 //        testApiDelete("testUserDeleteBySessionId", ADMUSER, ADMUSER_PASSWORD);
+//        delete("junittestuser", ADMUSER, ADMUSER_PASSWORD);
+//        delete("testGroupCycle", ADMUSER, ADMUSER_PASSWORD);
+//        delete("memberOfTestGroupCycle", ADMUSER, ADMUSER_PASSWORD);
     }
 
-    public void testApiDelete(String username, String loginUsername, String password){
+    public void delete(String username){
+        delete(username, admuser, jasypte.decrypt(admuserHashedPassword));
+    }
+
+    public void delete(String username, String loginUsername, String password){
         testUserExists(username);
 
         //Delete user
@@ -680,5 +685,20 @@ public class UserTest {
             userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)).findByUsername(username);
         });
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Test //Should send error in some way. If user is authenticated user can't be created
+    public void testCreateWithAuthenticatedUser(){
+        fail();
+    }
+
+    @Test
+    public void simpleTest(){
+//        Usuario user = new Usuario(
+//                "simpleTest",
+//                "Simple", "Test","User Test",
+//                "simpletest@mail.com",
+//                "secretpassword","secretpassword");
+//        userApi.create(user);
     }
 }

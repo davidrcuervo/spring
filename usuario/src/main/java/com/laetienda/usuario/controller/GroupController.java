@@ -21,54 +21,47 @@ public class GroupController {
     @Autowired
     private GroupService service;
 
-    @Value("${spring.ldap.username}")
-    private String ldapusername;
-
-//    @GetMapping("groups.html")
-//    public ResponseEntity<GroupList> findAll(){
-//        log.trace("Running findAll groups controller");
-//        return ResponseEntity.ok(service.findAll());
-//    }
-
-    @GetMapping("groups.html")
-    public ResponseEntity<GroupList> findAllByMember(@RequestParam("user") String username) throws NotValidCustomException {
-
-        if(username == null) {
-            log.trace("Running findAll groups controller");
-            return ResponseEntity.ok(service.findAll());
-        }else {
-            log.trace("Running findAllByMember group controller. $username: {}", username);
-            return ResponseEntity.ok(service.findAllByMember(username));
-        }
+    @GetMapping("findAll")
+    public ResponseEntity<GroupList> findAll() throws NotValidCustomException{
+        log.debug("GROUP_CONTROLLER::findAll.");
+        return ResponseEntity.ok(service.findAll());
     }
 
-    @GetMapping("group.html")
+    @GetMapping("${api.group.findAllByMember}")
+    public ResponseEntity<GroupList> findAllByMember(@PathVariable("username") String username) throws NotValidCustomException {
+        log.trace("GROUP_CONTROLLER::findAllByMember. $username: {}", username);
+        return ResponseEntity.ok(service.findAllByMember(username));
+    }
+
+    @GetMapping("findByName")
     public ResponseEntity<Group> findByName(@RequestParam String name) throws NotValidCustomException {
+        log.trace("GROUP::Controler -> finding group by name. $gname: {}", name);
         return ResponseEntity.ok(service.findByName(name));
     }
 
-    @PostMapping("create.html")
+    @PostMapping("create")
     public ResponseEntity<Group> create(@Valid @RequestBody Group group) throws NotValidCustomException {
-        log.trace("Running group create controller. $Group: {}", group != null ? group.getName() : "null");
+        log.trace("GROUP_CONTROLLER::Create. $Group: {}", group != null ? group.getName() : "null");
         return ResponseEntity.ok(service.create(group));
+//        return ResponseEntity.ok(new Group());
     }
 
-    @PutMapping("update.html")
+    @PutMapping("update")
     public ResponseEntity<Group> update(@RequestParam String name, @Valid @RequestBody Group group) throws NotValidCustomException{
-        log.trace("Running group update controller. $Group: {}", name);
+        log.trace("GROUP_CONTROLLER::Update. $Group: {}", name);
         return ResponseEntity.ok(service.update(group, name));
     }
 
-    @DeleteMapping("delete.html")
+    @DeleteMapping("delete")
     public ResponseEntity<Boolean> delete(@RequestParam String name) throws NotValidCustomException {
-        log.trace("Running group delete controller. $Group: {}", name);
+        log.trace("GROUP_CONTROLLER::Delete. $GroupName: {}", name);
         service.delete(name);
         return ResponseEntity.ok(true);
     }
 
-    @GetMapping("isMember.html")
+    @GetMapping("isMember")
     public ResponseEntity<Boolean> isMember(@RequestParam Map<String, String> params) throws NotValidCustomException {
-        log.trace("Running group isMember controller");
+        log.trace("GROUP_CONTROLLER::isMember");
         params.forEach((param, value) -> {
             log.trace("${}: {}", param, value);
         });
@@ -76,9 +69,19 @@ public class GroupController {
         return ResponseEntity.ok(service.isMember(params.get("group"), params.get("user")));
     }
 
-    @PutMapping("addMember.html")
+    @GetMapping("isOwner")
+    public ResponseEntity<Boolean> isOwner(@RequestParam Map<String, String> params) throws NotValidCustomException {
+        log.trace("GROUP_CONTROLLER::isOwner");
+        params.forEach((param, value) -> {
+            log.trace("${}: {}", param, value);
+        });
+
+        return ResponseEntity.ok(service.isOwner(params.get("group"), params.get("user")));
+    }
+
+    @PutMapping("addMember")
     public ResponseEntity<Group> addMember(@RequestParam Map<String, String> params) throws NotValidCustomException {
-        log.trace("Running group addMember controller");
+        log.trace("GROP_CONTROLLER::AddMember");
         params.forEach((param, value) -> {
             log.trace("${}: {}", param, value);
         });
@@ -88,7 +91,7 @@ public class GroupController {
 
     @DeleteMapping("removeMember.html")
     public ResponseEntity<Group> removeMember(@RequestParam("user") String username, @RequestParam("group") String gname) throws NotValidCustomException {
-        log.trace("Running group removeMember controller. $user: {}, $Group: {}", username, gname);
+        log.trace("GROUP_CONTROLLER::removeMember. $username: {}, $groupname: {}", username, gname);
         return ResponseEntity.ok(service.removeMember(gname, username));
     }
 
@@ -100,7 +103,7 @@ public class GroupController {
 
     @DeleteMapping("removeOwner.html")
     public ResponseEntity<Group> removeOwner(@RequestParam("user") String username, @RequestParam("group") String gname) throws NotValidCustomException {
-        log.trace("Running group remove Owner controller. $user: {}, $Group: {}", username, gname);
+        log.trace("GROUP_CONTROLLER::removeOwner. $username: {}, $roupname: {}", username, gname);
         return ResponseEntity.ok(service.removeOwner(gname, username));
     }
 

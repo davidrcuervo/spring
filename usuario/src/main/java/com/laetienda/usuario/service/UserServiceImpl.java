@@ -21,7 +21,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -178,14 +177,14 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setNew(true);
-        user.setId(dn.getUserDn(user.getUsername()));
+//        user.setDn(dn.getUserDn(user.getUsername()));
 
         return springRepository.save(user);
     }
 
     @Override
     public Usuario update(Usuario user) throws NotValidCustomException {
-        user.setId(dn.getUserDn(user.getUsername()));
+//        user.setDn(dn.getUserDn(user.getUsername()));
         Usuario tmpuser = springRepository.findByUsername(user.getUsername());
 
         if(!(request.getUserPrincipal().getName().equals(user.getUsername()) || isUserInRole("ROLE_MANAGER"))){
@@ -201,6 +200,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //Persist user in LDAP directory
+        user.setDn(tmpuser.getId());
         user.setNew(false);
         return springRepository.save(user);
     }
@@ -233,6 +233,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(String username) throws NotValidCustomException {
+        log.debug("USER_SERVICE::Delete. $username: {}", username);
+
         //find(username) test if logged user can remove the user
         Usuario user = find(username);
 

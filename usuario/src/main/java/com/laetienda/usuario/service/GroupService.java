@@ -21,7 +21,7 @@ public interface GroupService {
      * Find all groups if it is manager, or groups where user is member
      * @return GroupList, getGroups().size() is 0 when there is no groups. Value will not be null
      */
-    GroupList findAll();
+    GroupList findAll() throws NotValidCustomException;
 
     /**
      * Return list of Groups where member belongs to.
@@ -33,7 +33,7 @@ public interface GroupService {
 
     Group create(Group group) throws NotValidCustomException;
     Group update(Group group, String gname) throws NotValidCustomException;
-    Group delete(String gname) throws NotValidCustomException;
+    Boolean delete(String gname) throws NotValidCustomException;
     Boolean isMember(String gname, String username) throws NotValidCustomException;
     Group addMember(String gname, String username) throws NotValidCustomException;
     Group removeMember(String gname, String username) throws NotValidCustomException;
@@ -43,5 +43,7 @@ public interface GroupService {
     GroupList findAllByMember(Usuario user);
 
     GroupList testSpringLdapGroup(String gname);
+
+    Boolean isOwner(String groupname, String username) throws NotValidCustomException;
 //    Group addMemberToValidUserAccounts(String username) throws NotValidCustomException;
 }

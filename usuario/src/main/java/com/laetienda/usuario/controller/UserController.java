@@ -66,7 +66,7 @@ public class UserController {
 
     @DeleteMapping("delete.html")
     public ResponseEntity<Boolean> delete(@RequestParam String username) throws NotValidCustomException {
-        log.trace("delete user. $username: {}", username);
+        log.trace("USER_CONTROLLER::Delete. $username: {}", username);
         service.delete(username);
         return ResponseEntity.ok(true);
     }

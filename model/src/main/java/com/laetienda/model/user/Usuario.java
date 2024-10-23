@@ -5,21 +5,19 @@ import com.laetienda.lib.annotation.HtmlForm;
 import com.laetienda.lib.annotation.HtmlInput;
 import com.laetienda.lib.interfaces.Forma;
 import com.laetienda.lib.options.HtmlInputType;
-import org.springframework.data.domain.Persistable;
 import org.springframework.ldap.odm.annotations.*;
 
 import javax.naming.Name;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.springframework.ldap.support.LdapNameBuilder;
 
 @Entry(
         base = "ou=people",
         objectClasses = {"person", "inetOrgPerson", "top"}
 )
 @HtmlForm(name="usuario", url = "/user/signup.html")
-final public class Usuario implements Persistable, Forma {
+final public class Usuario implements Forma {
 
     @Id
     @JsonIgnore
@@ -27,20 +25,18 @@ final public class Usuario implements Persistable, Forma {
 
     @NotNull @Size(min=5, max=64)
     @HtmlInput(label = "Username", placeholder = "Place the username", style_size="col-md-12")
-    @Attribute(name = "cn")
+    @Attribute(name="uid")
+    @DnAttribute(value = "uid", index=1)
     private String username;
-
-//    @Attribute(name = "cn")
-//    private String fullName;
 
     @NotNull @Size(max=20)
     @HtmlInput(label = "First Name", placeholder = "Insert your first name", style_size="col-md-4")
-    @Attribute(name = "givenName")
+    @Attribute(name = "cn")
     private String firstname;
 
     @Size(max=20)
     @HtmlInput(label = "Middle Name", placeholder = "Insert your middle name", required = false, style_size="col-md-4")
-    @Attribute(name ="displayName")
+    @Attribute(name ="givenName")
     private String middlename;
 
     @NotNull @Size(max=20)
@@ -91,19 +87,6 @@ final public class Usuario implements Persistable, Forma {
         this.password2 = password2;
     }
 
-    //    @JsonIgnore
-//    public Name getDn() {
-//        return id;
-//    }
-
-    public void setId(Name id){
-        this.id = id;
-    }
-
-//    public void setDnTest(Name dn) {
-//        this.id = dn;
-//    }
-
     public String getUsername() {
         return username;
     }
@@ -117,10 +100,6 @@ final public class Usuario implements Persistable, Forma {
                 (getMiddlename() != null ? getMiddlename() + " " : "") +
                 getLastname();
     }
-
-//    public void setFullName(String fullName) {
-//        this.fullName = fullName;
-//    }
 
     public String getFirstname() {
         return firstname;
@@ -173,6 +152,10 @@ final public class Usuario implements Persistable, Forma {
     @JsonIgnore
     public Name getId() {
         return this.id;
+    }
+
+    public void setDn(Name dn) {
+        this.id = dn;
     }
 
     @JsonIgnore

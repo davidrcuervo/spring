@@ -8,15 +8,15 @@ import java.util.List;
 
 public interface SpringGroupRepository extends LdapRepository<Group> {
 
-    Group findByName(String gName);
+    Group findByName(String groupname);
 
-    List<Group> findByNameAndOwnersdn(String name, String ownerdn);
+    List<Group> findByNameAndOwnersdn(String name, Name ownerdn);
 
-    List<Group> findByNameAndMembersdn(String name, String memberdn);
+    List<Group> findByNameAndMembersdn(String name, Name memberdn);
 
-    List<Group> findByOwnersdn(String ownerdn);
+    List<Group> findByOwnersdn(Name ownerdn);
 
-    List<Group> findByMembersdn(String string);
+    List<Group> findByMembersdn(Name memberdn);
 
-    List<Group> findByMembersdnAndMembersdn(String userdn1, String userdn2);
+    List<Group> findByMembersdnAndMembersdn(Name userdn1, Name userdn2);
 }

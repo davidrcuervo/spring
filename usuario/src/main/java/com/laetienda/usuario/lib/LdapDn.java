@@ -11,6 +11,7 @@ public interface LdapDn {
     public Name getDomainDn();
 
     Name getGroupDn(String cn);
+    Name getFullDn(Name dn);
 
     Name getGroupDn();
     public Name getCompleteGroupDn();

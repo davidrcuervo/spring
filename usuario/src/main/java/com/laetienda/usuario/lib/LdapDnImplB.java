@@ -1,11 +1,15 @@
 package com.laetienda.usuario.lib;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.support.LdapNameBuilder;
 
+import javax.naming.InvalidNameException;
 import javax.naming.Name;
 
 public class LdapDnImplB implements LdapDn {
+    private final static Logger log = LoggerFactory.getLogger(LdapDnImplB.class);
 
     @Value("${ldap.dn.domain}")
     private String dndomain;
@@ -15,6 +19,10 @@ public class LdapDnImplB implements LdapDn {
 
     @Value("${ldap.dn.people}")
     private String peopledn;
+
+    @Value("${spring.ldap.base}")
+    private String base;
+
     @Override
     public Name getUserDn(String uid) {
         return LdapNameBuilder.newInstance(peopledn).add("uid", uid).build();
@@ -33,6 +41,18 @@ public class LdapDnImplB implements LdapDn {
     @Override
     public Name getGroupDn(String cn) {
         return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
+    }
+
+    @Override
+    public Name getFullDn(Name dn) {
+        Name result = dn;
+        try {
+            result = LdapNameBuilder.newInstance(base).build().addAll(dn);
+        } catch (InvalidNameException e) {
+            log.error(e.getMessage());
+            log.debug(e.getMessage(), e);
+        }
+        return result;
     }
 
     @Override

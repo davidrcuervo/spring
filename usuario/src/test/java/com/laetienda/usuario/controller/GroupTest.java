@@ -1,433 +1,480 @@
 package com.laetienda.usuario.controller;
 
-import com.laetienda.lib.service.TestRestClient;
-import com.laetienda.lib.service.TestRestClientImpl;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.usuario.UsuarioTestConfiguration;
+import com.laetienda.usuario.service.GroupTestService;
+import com.laetienda.usuario.service.UserTestService;
+import com.laetienda.utils.service.api.ApiClientService;
+import com.laetienda.utils.service.api.GroupApi;
+import org.jasypt.encryption.StringEncryptor;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 //import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@Import(TestRestClientImpl.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(UsuarioTestConfiguration.class)
 public class GroupTest {
     final private static Logger log = LoggerFactory.getLogger(GroupTest.class);
-    final private static String USER = "http://localhost:{port}/api/v0/user/user.html?username={username}";
-    final private static String USER_CREATE = "http://localhost:{port}/api/v0/user/create.html";
-    final private static String USER_DELETE = "http://localhost:{port}/api/v0/user/delete.html?username={username}";
-    final private static String GROUPS = "http://localhost:{port}/api/v0/group/groups.html";
-    final private static String GROUP = "http://localhost:{port}/api/v0/group/group.html?name={groupName}";
-    final private static String CREATE = "http://localhost:{port}/api/v0/group/create.html";
-    final private static String ADD_MEMBER = "http://localhost:{port}/api/v0/group/addMember.html?user={user}&group={group}";
-    final private static String IS_MEMBER = "http://localhost:{port}/api/v0/group/isMember.html?user={user}&group={group}";
-    final private static String UPDATE = "http://localhost:{port}/api/v0/group/update.html?name={groupName}";
-    final private static String REMOVE_MEMBER = "http://localhost:{port}/api/v0/group/removeMember.html?group={group}&user={user}";
-    final private static String ADD_OWNER = "http://localhost:{port}/api/v0/group/addOwner.html?group={group}&user={user}";
-    final private static String REMOVE_OWNER = "http://localhost:{port}/api/v0/group/removeOwner.html?group={group}&user={user}";
-    final private static String DELETE = "http://localhost:{port}/api/v0/group/delete.html?name={gname}";
-    final private static String ADMUSER = "admuser";
-    final private static String ADMUSER_PASSWORD = "secret";
-
 
     @LocalServerPort
     private int port;
-    private final String apiurl = "/api/v0/group";
+
+    @Value("${admuser.username}")
+    private String admuser;
+
+    @Value("${admuser.hashed.password}")
+    private String admuserHashedPassword;
+
+    @Value("${api.group.create}")
+    private String uriCreateGroup;
+
+    @Value("${api.group.addMember}")
+    private String uriAddMember;
+
+    private String admuserPassword;
 
     @Autowired
-    private TestRestClient restClient;
+    private ApiClientService client;
 
     @Autowired
-    private TestRestTemplate testRestTemplate;
+    private GroupApi groupApi;
+
+    @Autowired
+    private StringEncryptor jasypte;
+
+    @Autowired
+    private UserTestService userTest;
+
+    @Autowired
+    private GroupTestService groupTest;
 
     @BeforeEach
-    public void createTestUser(){
-        Usuario user = getTestUser();
-        Map<String, String> params =  new HashMap<>();
-        params.put("username", user.getUsername());
-
-        ResponseEntity<Usuario> response = restClient.send(USER, port, HttpMethod.GET, null, Usuario.class, params, ADMUSER, ADMUSER_PASSWORD);
-
-        if(response.getStatusCode() == HttpStatus.OK){
-            assertNotNull(response.getBody());
-
-        }else if(response.getStatusCode() == HttpStatus.NOT_FOUND){
-            response = restClient.send(USER_CREATE, port, HttpMethod.POST, user, Usuario.class, params, null, null);
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-        }else {
-            fail();
-        }
-    }
-
-    @AfterEach
-    public void removeTestUser(){
-        Usuario user = getTestUser();
-        Map<String, String> params =  new HashMap<>();
-        params.put("username", user.getUsername());
-
-        ResponseEntity<Usuario> resp1 = restClient.send(USER, port, HttpMethod.GET, null, Usuario.class, params, user.getUsername(), user.getPassword());
-        if(resp1.getStatusCode() == HttpStatus.NOT_FOUND){
-            log.trace("User has been removed and it does not need to be removed");
-
-        }else if(resp1.getStatusCode() == HttpStatus.OK && resp1.getBody() != null){
-            ResponseEntity<String> resp2 = restClient.send(USER_DELETE, port, HttpMethod.DELETE, null, String.class, params, user.getUsername(), user.getPassword());
-            assertEquals(HttpStatus.OK, resp2.getStatusCode());
-            assertTrue(Boolean.valueOf(resp2.getBody()));
-        }else{
-            fail();
-        }
-
+    public void setAdmPassword(){
+        admuserPassword = jasypte.decrypt(admuserHashedPassword);
+        groupApi.setPort(port);
+        groupTest.setPort(port);
+        groupTest.setAdmuserPassword(admuserPassword);
+        userTest.setPort(port);
+        userTest.setAdmuserPassword(admuserPassword);
     }
 
     @Test
-    public void testFindAllManagerGroups(){
-        ResponseEntity<GroupList> response = restClient.send(GROUPS, port, HttpMethod.GET, null, GroupList.class, null, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Group> groups = response.getBody().getGroups();
-        assertTrue(groups.size() > 0);
-        groups.forEach((name, group) -> {
-            assertTrue(group.getOwners().size() > 0);
-            assertTrue(group.getMembers().size() > 0);
-            log.trace("Group: {}", group.getName());
+    public void testGroupCycle(){
+        Usuario user = new Usuario(
+                "testGroupCycle",
+                "Cycle",null,"Test Group",
+                "testGroupCycle@mail.com",
+                "secretpassword","secretpassword");
+
+        Usuario member = new Usuario(
+                "memberOfTestGroupCycle",
+                "Member","Cycle","Test Group",
+                "memberOfTestGroupCycle@mail.com",
+                "secretpassword","secretpassword");
+
+        ResponseEntity<Usuario> response = userTest.create(user);
+        userTest.emailValidation(response.getBody().getEncToken(), user.getUsername(), user.getPassword());
+
+        ResponseEntity<Usuario> response2 = userTest.create(member);
+        userTest.emailValidation(response2.getBody().getEncToken(), member.getUsername(), member.getPassword());
+
+        Group group = new Group("testGroupCycle", null);
+
+        groupTest.create(group, user.getUsername(), user.getPassword());
+        addMember(group.getName(), response2.getBody(), user.getUsername(), user.getPassword());
+        addOwner(group.getName(), user.getUsername(), user.getPassword());
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            userTest.delete(user.getUsername());
         });
-        assertTrue(groups.containsKey("manager"));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+
+        HttpClientErrorException ex2 = assertThrows(HttpClientErrorException.class, () -> {
+            groupTest.removeOwner(group.getName(), user.getUsername(), user.getUsername(), user.getPassword());
+        });
+        assertEquals(HttpStatus.FORBIDDEN, ex2.getStatusCode(), "Can't remove last owner of the group");
+
+        updateDescription(group);
+        groupTest.delete(group.getName(), user.getUsername(), user.getPassword());
+
+        userTest.delete(user.getUsername());
+        userTest.delete(member.getUsername());
+    }
+
+    private void addMember(String gName, Usuario member, String loginUsername, String password){
+        log.trace("TEST::addMemeber. $groupname: {}, $username: {}, $loginUsername: {}", gName, member.getUsername(), password);
+
+        groupTest.isNotMember(gName, member.getUsername(), loginUsername, password);
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            groupTest.addMember(gName, member.getUsername(), member.getUsername(), password);
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        log.trace("TEST::addMember. $error: {}.", ex.getMessage());
+
+        groupTest.addMember(gName, member.getUsername(), loginUsername, password);
+        groupTest.isMember(gName, member.getUsername(), loginUsername, password);
+        groupTest.removeMember(gName, member.getUsername(), loginUsername, password);
+        groupTest.isNotMember(gName, member.getUsername(), loginUsername, password);
+    }
+
+    private void addOwner(String groupname, String loginUsername, String password) {
+        Usuario owner = new Usuario(
+                "ownerOfTestGroupCycle",
+                "Owner","Cycle","Test Group",
+                "OwnerOfTestGroupCycle@mail.com",
+                "secretpassword","secretpassword");
+
+        ResponseEntity<Usuario> response = userTest.create(owner);
+        userTest.emailValidation(response.getBody().getEncToken(), owner.getUsername(), owner.getPassword());
+
+        groupTest.isNotOwner(groupname, response.getBody().getUsername(), loginUsername, password);
+        groupTest.addOwner(groupname, response.getBody().getUsername(), loginUsername, password);
+        groupTest.isOwner(groupname, response.getBody().getUsername(), loginUsername, password);
+        assertTrue(groupTest.findByName(groupname, loginUsername, password).getBody().getOwners().containsKey(owner.getUsername()));
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            groupTest.removeMember(groupname, owner.getUsername(), loginUsername, password);
+        });
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+
+        groupTest.removeOwner(groupname, response.getBody().getUsername(), loginUsername, password);
+        groupTest.removeMember(groupname, owner.getUsername(), loginUsername, password);
+        userTest.delete(owner.getUsername());
+    }
+
+    @Test
+    void testChangeNameOfGroup(){
+        Group group = groupTest.create(new Group("testNameOfGroup", null)).getBody();
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+           groupTest.findByName("testChangeNameOfGroup");
+        });
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+
+        group.setName("testChangeNameOfGroup");
+        groupTest.update("testNameOfGroup", group);
+        groupTest.findByName("testChangeNameOfGroup");
+
+        ex = assertThrows(HttpClientErrorException.class, () -> {
+            groupTest.findByName("testNameOfGroup");
+        });
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+
+        groupTest.delete("testChangeNameOfGroup");
+    }
+
+    @Test
+    public void findAll(){
+        Usuario findall = new Usuario(
+                "testFindAllManagerGroups",
+                "Find","All","Group Test",
+                "testFindAllManagerGroups@email.com",
+                "secretpassword","secretpassword"
+        );
+
+        ResponseEntity<Usuario> response = userTest.create(findall);
+        userTest.emailValidation(response.getBody().getEncToken(), findall.getUsername(), findall.getPassword());
+
+        Group group = new Group("testFindAll", null);
+        groupTest.create(group, findall.getUsername(), findall.getPassword());
+
+        ResponseEntity<GroupList> response2 = groupTest.findAll();
+        assertEquals(3, response2.getBody().getGroups().size());
+        assertTrue(response2.getBody().getGroups().containsKey(group.getName()));
+
+        response2 = groupTest.findAll(findall.getUsername(), findall.getPassword());
+        assertEquals(2, response2.getBody().getGroups().size());
+        assertTrue(response2.getBody().getGroups().containsKey(group.getName()));
+
+        response2.getBody().getGroups().forEach((groupname, group2) -> {
+            assertTrue(group2.getMembers().containsKey(findall.getUsername()));
+            assertTrue(group2.getMembers().size() > 0);
+            assertTrue(group2.getOwners().size() > 0);
+        });
+
+        groupTest.delete(group.getName());
+        userTest.delete(findall.getUsername());
     }
 
     @Test
     public void testFindAllByManager(){
-        ResponseEntity<GroupList> response = restClient.send(GROUPS, port, HttpMethod.GET, null, GroupList.class, null, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Group> groups = response.getBody().getGroups();
-        assertTrue(groups.size() > 0);
-        assertTrue(groups.containsKey("manager"));
-    }
-
-    @Test
-    public void testFindAllByTestUser(){
-        ResponseEntity<GroupList> response = restClient.send(GROUPS, port, HttpMethod.GET, null, GroupList.class, null, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<String, Group> groups = response.getBody().getGroups();
-        assertTrue(groups.size() == 0);
-        assertFalse(groups.containsKey("manager"));
-    }
-
-    @Test
-    public void testFindByName(){
-        Map<String, String> params = new HashMap<>();
-        params.put("groupName", "manager");
-        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Group result = response.getBody();
-        assertEquals("manager", result.getName());
-        assertTrue(result.getMembers().size() > 0);
-        assertTrue(result.getOwners().size() > 0);
-        assertTrue(result.getOwners().containsKey(ADMUSER));
+        fail();
+//        ResponseEntity<GroupList> response = restClient.send(GROUPS, port, HttpMethod.GET, null, GroupList.class, null, ADMUSER, ADMUSER_PASSWORD);
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        Map<String, Group> groups = response.getBody().getGroups();
+//        assertTrue(groups.size() > 0);
+//        assertTrue(groups.containsKey("manager"));
     }
 
     @Test
     public void testFindByNameNotFound(){
-        Map<String, String> params = new HashMap<>();
-        params.put("groupName", "invalidgroupname");
-        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        fail();
+//        Map<String, String> params = new HashMap<>();
+//        params.put("groupName", "invalidgroupname");
+//        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, ADMUSER, ADMUSER_PASSWORD);
+//        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     public void testFindByNameUnauthorized(){
-        Map<String, String> params = new HashMap<>();
-        params.put("groupName", "manager");
-        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        fail();
+//        Map<String, String> params = new HashMap<>();
+//        params.put("groupName", "manager");
+//        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
+//        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
      @Test
     public void testCreateEmptyGroup(){
-         Group group = new Group();
-
-         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
-         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+         fail();
+//         Group group = new Group();
+//
+//         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
+//         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
      }
 
      @Test
      public void testCreateInavalidNameGroup(){
-         Group group = new Group();
-         group.setName("manager");
-
-         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
-         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+         fail();
+//         Group group = new Group();
+//         group.setName("manager");
+//
+//         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
+//         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
      }
 
      @Test
      public void testCreateGroupWithInvalidMember(){
-        //TODO
+         fail();
      }
 
-    @Test
-    public void testGroupCycle(){
-        create("testgroup");
-        addMember("testgroup", "lydac");
-        update("testgroup", "newtestgroup");
-        removeMember("newtestgroup", "lydac");
-        addOwner("newtestgroup", "lydac");
-        removeOwner("newtestgroup", "lydac");
-        delete("newtestgroup");
-    }
-
     private void delete(String gName){
-        Map<String, String> params = new HashMap<>();
-        params.put("gname", gName);
-
-        assertEquals(HttpStatus.OK, findGroup(gName).getStatusCode());
-
-        ResponseEntity<String> response = restClient.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(Boolean.valueOf(response.getBody()));
-        assertEquals(HttpStatus.NOT_FOUND, findGroup(gName).getStatusCode());
+        fail();
+//        Map<String, String> params = new HashMap<>();
+//        params.put("gname", gName);
+//
+//        assertEquals(HttpStatus.OK, findGroup(gName).getStatusCode());
+//
+//        ResponseEntity<String> response = restClient.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, getTestUser().getUsername(), getTestUser().getPassword());
+//
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertTrue(Boolean.valueOf(response.getBody()));
+//        assertEquals(HttpStatus.NOT_FOUND, findGroup(gName).getStatusCode());
     }
 
     private void removeOwner(String gName, String username) {
-        Map<String, String> params = new HashMap<>();
-        params.put("group", gName);
-        params.put("user", username);
+        fail();
 
-        ResponseEntity<Group> response = findGroup(gName);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().getOwners().containsKey(username));
-
-        response = restClient.send(REMOVE_OWNER, port, HttpMethod.DELETE, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertFalse(response.getBody().getOwners().containsKey(username));
-
-        response = findGroup(gName);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertFalse(response.getBody().getOwners().containsKey(username));
-    }
-
-    private void addOwner(String gName, String username) {
-        Map<String, String> params = new HashMap<>();
-        params.put("group", gName);
-        params.put("user", username);
-
-        ResponseEntity<Group> response = findGroup(gName);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertFalse(response.getBody().getOwners().containsKey(username));
-
-        response = restClient.send(ADD_OWNER, port, HttpMethod.PUT, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getOwners().containsKey(username));
-
-        response = findGroup(gName);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().getOwners().containsKey(username));
+//        Map<String, String> params = new HashMap<>();
+//        params.put("group", gName);
+//        params.put("user", username);
+//
+//        ResponseEntity<Group> response = findGroup(gName);
+//
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertTrue(response.getBody().getOwners().containsKey(username));
+//
+//        response = restClient.send(REMOVE_OWNER, port, HttpMethod.DELETE, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
+//
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        assertFalse(response.getBody().getOwners().containsKey(username));
+//
+//        response = findGroup(gName);
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertFalse(response.getBody().getOwners().containsKey(username));
     }
 
     private void removeMember(String gname, String username) {
-
-        Map<String, String> params = new HashMap<>();
-        params.put("group", gname);
-        params.put("user", username);
-
-        ResponseEntity<Group> response = findGroup(gname);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getMembers().containsKey(username));
-        assertTrue(Boolean.valueOf(isMember(gname, username).getBody()));
-
-        response = restClient.send(REMOVE_MEMBER, port, HttpMethod.DELETE, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertFalse(response.getBody().getMembers().containsKey(username));
-        assertFalse(Boolean.valueOf(isMember(gname, username).getBody()));
-    }
-
-    private void create(String gName){
-         Group group = new Group();
-         group.setName(gName);
-        assertEquals(HttpStatus.NOT_FOUND, findGroup(gName).getStatusCode());
-         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, getTestUser().getUsername(), getTestUser().getPassword());
-         assertEquals(HttpStatus.OK, response.getStatusCode());
-         Group result = response.getBody();
-         assertNotNull(result);
-         assertTrue(result.getOwners().size() > 0);
-         assertTrue(result.getMembers().size() > 0);
-         assertTrue(response.getBody().getOwners().containsKey(getTestUser().getUsername()));
-         assertTrue(response.getBody().getMembers().containsKey(getTestUser().getUsername()));
+        fail();
+//
+//        Map<String, String> params = new HashMap<>();
+//        params.put("group", gname);
+//        params.put("user", username);
+//
+//        ResponseEntity<Group> response = findGroup(gname);
+//
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        assertTrue(response.getBody().getMembers().containsKey(username));
+//        assertTrue(Boolean.valueOf(isMember(gname, username).getBody()));
+//
+//        response = restClient.send(REMOVE_MEMBER, port, HttpMethod.DELETE, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
+//
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        assertFalse(response.getBody().getMembers().containsKey(username));
+//        assertFalse(Boolean.valueOf(isMember(gname, username).getBody()));
     }
 
     private void update(String oldGName, String newGName){
-        Map<String, String> params = new HashMap<>();
-        params.put("groupName", newGName);
+        fail();
 
-        ResponseEntity<Group> resp1 = restClient.send(GROUP, port, HttpMethod.GET, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.NOT_FOUND, resp1.getStatusCode());
-
-        params.put("groupName", oldGName);
-        resp1 = restClient.send(GROUP, port, HttpMethod.GET, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.OK, resp1.getStatusCode());
-        Group group = resp1.getBody();
-        assertNotNull(group);
-        group.setName(newGName);
-
-        resp1 = restClient.send(UPDATE, port, HttpMethod.PUT, group, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.OK, resp1.getStatusCode());
-        assertNotNull(resp1.getBody());
-        assertEquals(newGName, resp1.getBody().getName());
-
-        resp1 = restClient.send(GROUP, port, HttpMethod.GET, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.NOT_FOUND, resp1.getStatusCode());
-        assertEquals(HttpStatus.OK, findGroup(newGName).getStatusCode());
-        assertNotNull(findGroup(newGName).getBody());
     }
 
-    private void addMember(String gName, String username){
-        Map<String, String> params = new HashMap<>();
-        params.put("user", username);
-        params.put("group", gName);
+    private void updateDescription(Group group){
+        Group temp = groupTest.findByName(group.getName()).getBody();
+        assertNull(temp.getDescription());
 
-        ResponseEntity<String> resp1 = restClient.send(IS_MEMBER, port, HttpMethod.GET, null, String.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.OK, resp1.getStatusCode());
-        assertFalse(Boolean.valueOf(resp1.getBody()));
-
-        ResponseEntity<Group> resp2 = restClient.send(ADD_MEMBER, port, HttpMethod.PUT, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.OK, resp2.getStatusCode());
-        assertNotNull(resp2.getBody());
-        assertTrue(resp2.getBody().getMembers().containsKey("lydac"));
-
-        resp1 = restClient.send(IS_MEMBER, port, HttpMethod.GET, null, String.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-        assertEquals(HttpStatus.OK, resp1.getStatusCode());
-        assertTrue(Boolean.valueOf(resp1.getBody()));
-    }
-
-    private ResponseEntity<Group> findGroup(String gName){
-        Map<String, String> params = new HashMap<>();
-        params.put("groupName", gName);
-        return restClient.send(GROUP, port, HttpMethod.GET, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-    }
-
-    @Test
-    public void testIsMember(){
-        ResponseEntity<String> response = isMember("manager", ADMUSER);
-//        ResponseEntity<String> response = isMember("newtestgroup", "lydac");
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(Boolean.valueOf(response.getBody()));
-
-        response = isMember("manager", getTestUser().getUsername());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertFalse(Boolean.valueOf(response.getBody()));
-
-        response = isMember("groupname", ADMUSER);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        temp.setDescription("This is a test group");
+        temp = groupTest.update(temp.getName(), temp).getBody();
+        assertNotNull(temp.getDescription());
     }
 
     @Test
     public void testRemoveInvalidGroup(){
-        String gname = "manager";
-        String address = "http://localhost:{port}/api/v0/group/delete.html?name={gname}";
-        Map<String, String> params = new HashMap<>();
-        params.put("port", Integer.toString(port));
-        params.put("gname", gname);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Group> entity = new HttpEntity<>(headers);
-
-        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
-        ResponseEntity<String> response = testRestTemplate.exchange(address, HttpMethod.DELETE, entity, String.class, params);
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertFalse(Boolean.valueOf(response.getBody()));
-        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
-
-        params.replace("gname", "validUserAccounts");
-        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
-        response = testRestTemplate.exchange(address, HttpMethod.DELETE, entity, String.class, params);
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertFalse(Boolean.valueOf(response.getBody()));
-        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
-    }
-
-    @Test
-    public void testRemoveInvalidOwner(){
-        String gName = "manager";
-        String username = ADMUSER;
-
-        Map<String, String> params = new HashMap<>();
-        params.put("group", gName);
-        params.put("user", username);
-
-        ResponseEntity<Group> response = findGroup(gName);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().getOwners().containsKey(username));
-
-        response = restClient.send(REMOVE_OWNER, port, HttpMethod.DELETE, null, Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        fail();
+//        String gname = "manager";
+//        String address = "http://localhost:{port}/api/v0/group/delete.html?name={gname}";
+//        Map<String, String> params = new HashMap<>();
+//        params.put("port", Integer.toString(port));
+//        params.put("gname", gname);
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        HttpEntity<Group> entity = new HttpEntity<>(headers);
+//
+//        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
+//        ResponseEntity<String> response = testRestTemplate.exchange(address, HttpMethod.DELETE, entity, String.class, params);
+//        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+//        assertFalse(Boolean.valueOf(response.getBody()));
+//        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
+//
+//        params.replace("gname", "validUserAccounts");
+//        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
+//        response = testRestTemplate.exchange(address, HttpMethod.DELETE, entity, String.class, params);
+//        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+//        assertFalse(Boolean.valueOf(response.getBody()));
+//        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
     }
 
     private ResponseEntity<String> isMember(String gName, String username) throws HttpClientErrorException {
-        Map<String, String> params = new HashMap<>();
-        params.put("group", gName);
-        params.put("user", username);
-
-        return restClient.send(IS_MEMBER, port, HttpMethod.GET, null, String.class, params, ADMUSER, ADMUSER_PASSWORD);
+        fail();
+//        Map<String, String> params = new HashMap<>();
+//        params.put("group", gName);
+//        params.put("user", username);
+//
+//        return restClient.send(IS_MEMBER, port, HttpMethod.GET, null, String.class, params, ADMUSER, ADMUSER_PASSWORD);
+        return null;
     }
 
     private Usuario getTestUser(){
-        Usuario result = null;
-        String username = "junittestuser";
-        String password = "secretpassword";
-        Map<String, String> params = new HashMap<>();
-        params.put("username", username);
+        fail();
+//        Usuario result = null;
+//        String username = "junittestuser";
+//        String password = "secretpassword";
+//        Map<String, String> params = new HashMap<>();
+//        params.put("username", username);
+//
+//        ResponseEntity<Usuario> response = restClient.send(USER, port, HttpMethod.GET, null, Usuario.class, params, ADMUSER, ADMUSER_PASSWORD);
+//
+//        if(response.getStatusCode() == HttpStatus.OK){
+//            result = response.getBody();
+//            result.setPassword2(password);
+//            result.setPassword(password);
+//        }else if(response.getStatusCode() == HttpStatus.NOT_FOUND){
+//            result = new Usuario();
+//            result.setUsername(username);
+//            result.setEmail("junittestuser@mail.com");
+//            result.setFirstname("Junit");
+//            result.setLastname("Test User");
+//            result.setPassword2(password);
+//            result.setPassword(password);
+//        }else{
+//            fail();
+//        }
 
-        ResponseEntity<Usuario> response = restClient.send(USER, port, HttpMethod.GET, null, Usuario.class, params, ADMUSER, ADMUSER_PASSWORD);
-
-        if(response.getStatusCode() == HttpStatus.OK){
-            result = response.getBody();
-            result.setPassword2(password);
-            result.setPassword(password);
-        }else if(response.getStatusCode() == HttpStatus.NOT_FOUND){
-            result = new Usuario();
-            result.setUsername(username);
-            result.setEmail("junittestuser@mail.com");
-            result.setFirstname("Junit");
-            result.setLastname("Test User");
-            result.setPassword2(password);
-            result.setPassword(password);
-        }else{
-            fail();
-        }
-
-        return result;
+//        return result;
+        return null;
     }
 
     @Test
+//    public void simpleTest(){
     public void testFindAllByMember() {
-        //TODO
+        Usuario user = new Usuario(
+                "testFindAllByMember",
+                "Test","FindAllByMember","Group Test",
+                "testFindAllByMember@mail.com",
+                "secretpassword", "secretpassword"
+        );
+
+        ResponseEntity<Usuario> resp1 = userTest.create(user);
+        userTest.emailValidation(resp1.getBody().getEncToken(), user.getUsername(), user.getPassword());
+
+        ResponseEntity<GroupList> resp2 = ((GroupApi)groupApi.setPort(port).setCredentials(admuser, admuserPassword))
+                .findAllByMember(user.getUsername());
+        assertEquals(HttpStatus.OK, resp2.getStatusCode());
+        assertNotNull(resp2.getBody());
+        assertTrue(resp2.getBody().getGroups().size() > 0);
+        assertTrue(resp2.getBody().getGroups().containsKey("validUserAccounts"));
+        userTest.delete("testFindAllByMember", user.getUsername(), user.getPassword());
+    }
+
+    @Test
+    public void createGroupWithMembersAndOwners(){
+        Usuario member = new Usuario(
+                "createGroupWithMembers",
+                "Create","WithMemebers","Group Test",
+                "createGroupWithMembers@mail.com",
+                "secretpassword","secretpassword");
+        userTest.create(member);
+
+        Group group = new Group("createGroupWithMembers", null);
+        group.addMember(member);
+        groupTest.create(group);
+
+        Group result = groupTest.findByName(group.getName()).getBody();
+        assertTrue(result.getMembers().containsKey(member.getUsername()));
+
+        groupTest.delete(group.getName());
+        userTest.delete(member.getUsername());
+    }
+
+    @Test
+    public void simpleTest(){
+
+        Usuario member = new Usuario(
+                "simpleTest",
+                "Simple","Test","Group Test",
+                "simpletest@mail.com",
+                "secretpassword","secretpassword");
+//        userTest.create(member);
+
+
+        Group gropu = new Group("simpleTest", null);
+
+
+//        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+//            groupTest.removeOwner("testGroupCycle","testGroupCycle", admuser, admuserPassword);
+//        });
+//
+//        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+    }
+
+    @Test
+    public void clean(){
+//        userTest.delete("testuser");
+
+        //TEST::testGroupCycle
+//        groupTest.delete("testGroupCycle");
+//        userTest.delete("memberOfTestGroupCycle");
+//        userTest.delete("ownerOfTestGroupCycle");
+//        userTest.delete("testGroupCycle");
+
+//        groupTest.delete("testNameOfGroup");
     }
 }
