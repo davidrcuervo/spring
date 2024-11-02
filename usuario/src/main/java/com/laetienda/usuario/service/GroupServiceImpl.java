@@ -105,7 +105,7 @@ public class GroupServiceImpl implements GroupService{
     @Override
     public Group create(Group group) throws NotValidCustomException {
 
-        if(repository.findByName(group.getName()) != null){
+        if(springGroupRepository.findByName(group.getName()) != null){
             log.trace("Can't create group. Group name already exists. $name: {}", group.getName());
             throw new NotValidCustomException("Group already exists", HttpStatus.BAD_REQUEST, "name");
         }else{
@@ -127,8 +127,8 @@ public class GroupServiceImpl implements GroupService{
         if(temp == null) {
             throw new NotValidCustomException("Group (" + gname + ") does not exist", HttpStatus.NOT_FOUND, "name");
 
-        }else if (group.getName().equalsIgnoreCase("manager") ||
-                group.getName().equalsIgnoreCase("validUserAccounts")){
+        }else if (gname.equalsIgnoreCase("manager") ||
+                gname.equalsIgnoreCase("validUserAccounts")){
 
                 String message = String.format("Group, (%s), can not be modified", gname);
                 log.warn(message);
@@ -172,17 +172,15 @@ public class GroupServiceImpl implements GroupService{
         } else if (gname.equalsIgnoreCase("manager") || gname.equalsIgnoreCase("validUserAccounts")){
             String message = String.format("Group, (%s), can not be removed", gname);
             log.warn(message);
-            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "group");
+            throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "group");
 
         }else if(canEditGroup(gname)){
             springGroupRepository.delete(group);
 
         } else {
-            throw new NotValidCustomException(
-                    String.format("Group, %s, can't be removed. Only owner can remote the group"),
-                    HttpStatus.UNAUTHORIZED,
-                    "group"
-            );
+            String message = String.format("Group, %s, can't be removed. Only owner can remote the group", gname);
+            log.warn(message);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "group");
         }
 
         return true;

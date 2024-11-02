@@ -144,6 +144,11 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
+        if(request.getUserPrincipal() != null){
+            String message = String.format("Not possible to create users while another user is logged in. $loginusername: %s", request.getUserPrincipal().getName());
+            ex.addError("usuario", message);
+        }
+
         List<Usuario> uEmails = springRepository.findByEmail(user.getEmail());
         log.trace("uMails.size = {}", uEmails.size());
 

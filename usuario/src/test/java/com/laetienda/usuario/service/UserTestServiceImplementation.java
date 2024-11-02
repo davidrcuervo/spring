@@ -44,9 +44,8 @@ public class UserTestServiceImplementation implements UserTestService{
 
     @Override
     public ResponseEntity<Usuario> findByUsername(String username, String loginUsername, String password) throws HttpClientErrorException {
-        ResponseEntity<Usuario> response = userApi
-                .setPort(port)
-                .setCredentials(loginUsername, password)
+        ResponseEntity<Usuario> response =
+                ((UserApi)userApi.setPort(port).setCredentials(loginUsername, password))
                 .findByUsername(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         return response;
@@ -68,7 +67,7 @@ public class UserTestServiceImplementation implements UserTestService{
     public ResponseEntity<Usuario> create(Usuario user) throws HttpClientErrorException {
         findUserNotExists(user.getUsername());
 
-        ResponseEntity<Usuario> response = userApi.setPort(port).create(user);
+        ResponseEntity<Usuario> response = ((UserApi)userApi.setPort(port)).create(user);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getEncToken());
@@ -82,9 +81,8 @@ public class UserTestServiceImplementation implements UserTestService{
     public ResponseEntity<String> delete(String username, String loginUsername, String password) throws HttpClientErrorException {
         findByUsername(username);
 
-        ResponseEntity<String> response = userApi
-                .setPort(port)
-                .setCredentials(loginUsername, password)
+        ResponseEntity<String> response =
+                ((UserApi)userApi.setPort(port).setCredentials(loginUsername, password))
                 .delete(username);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -102,9 +100,8 @@ public class UserTestServiceImplementation implements UserTestService{
 
     @Override
     public ResponseEntity<String> emailValidation(String token, String loginUsername, String password) throws HttpClientErrorException {
-        ResponseEntity<String> response = userApi
-                .setPort(port)
-                .setCredentials(loginUsername, password)
+        ResponseEntity<String> response =
+                ((UserApi)userApi.setPort(port).setCredentials(loginUsername, password))
                 .emailValidation(token);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());

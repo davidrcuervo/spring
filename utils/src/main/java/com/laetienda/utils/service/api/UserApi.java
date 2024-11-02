@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 @Service
-public interface UserApi {
+public interface UserApi extends ApiClientService{
 
     public ResponseEntity<UsuarioList> findAll() throws HttpClientErrorException;
     public ResponseEntity<Usuario> findByUsername(String username) throws HttpClientErrorException;
@@ -18,7 +18,7 @@ public interface UserApi {
     public ResponseEntity<GroupList> authenticateUser(Usuario user) throws HttpClientErrorException;
     public ResponseEntity<String> emailValidation(String token) throws HttpClientErrorException;
 
-    public UserApi setCredentials(String loginUsername, String password);
-    public UserApi setPort(Integer port);
-    public UserApi setPort(String port);
+//    public UserApi setCredentials(String loginUsername, String password);
+//    public UserApi setPort(Integer port);
+//    public UserApi setPort(String port);
 }

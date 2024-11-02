@@ -74,6 +74,8 @@ public class UserTest {
     @Value("${admuser.hashed.password}")
     private String admuserHashedPassword;
 
+    private String admuserpassword;
+
     @Autowired
     private ToolBoxService tb;
 
@@ -99,6 +101,7 @@ public class UserTest {
     @BeforeEach
     public void setTestApiPort(){
         userApi.setPort(port);
+        admuserpassword = jasypte.decrypt(admuserHashedPassword);
     }
 
     @Test
@@ -225,7 +228,7 @@ public class UserTest {
         assertNotNull(resp1.getBody().getEncToken());
         assertFalse(resp1.getBody().getEncToken().isBlank());
 
-        ResponseEntity<Usuario> resp2 = userApi.setCredentials(ADMUSER, ADMUSER_PASSWORD).findByUsername(user.getUsername());
+        ResponseEntity<Usuario> resp2 = ((UserApi)userApi.setCredentials(ADMUSER, ADMUSER_PASSWORD)).findByUsername(user.getUsername());
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
         assertNotNull(resp2.getBody());
         assertNotNull(resp2.getBody().getEmail());
@@ -490,7 +493,7 @@ public class UserTest {
 
         //Try to delete unauthorized
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
-            userApi.setCredentials( user2.getUsername(), user2.getPassword()).delete(user1.getUsername());
+            ((UserApi)userApi.setCredentials(user2.getUsername(), user2.getPassword())).delete(user1.getUsername());
         });
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 
@@ -504,7 +507,7 @@ public class UserTest {
     @Test
     public void testDeleteAdmuser(){
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
-            userApi.setCredentials( ADMUSER, ADMUSER_PASSWORD).delete(ADMUSER);
+            ((UserApi)userApi.setCredentials( ADMUSER, ADMUSER_PASSWORD)).delete(ADMUSER);
         });
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
     }
@@ -665,7 +668,7 @@ public class UserTest {
         testUserExists(username);
 
         //Delete user
-        ResponseEntity<String> response = userApi.setCredentials(loginUsername,password).delete(username);
+        ResponseEntity<String> response = ((UserApi)userApi.setCredentials(loginUsername,password)).delete(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("true", response.getBody());
@@ -674,7 +677,9 @@ public class UserTest {
     }
 
     private void testUserExists(String username){
-        ResponseEntity<Usuario> response = userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)).findByUsername(username);
+        ResponseEntity<Usuario> response =
+                ((UserApi)userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)))
+                        .findByUsername(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertFalse(response.getBody().getEmail().isBlank());
@@ -682,14 +687,32 @@ public class UserTest {
 
     private void testUserDoesNotExists(String username){
         HttpClientErrorException exception = assertThrows( HttpClientErrorException.class, () -> {
-            userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)).findByUsername(username);
+            ((UserApi)userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)))
+                    .findByUsername(username);
         });
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
     @Test //Should send error in some way. If user is authenticated user can't be created
     public void testCreateWithAuthenticatedUser(){
-        fail();
+        Usuario user = new Usuario(
+                "testCreateWithAuthenticatedUser",
+                "Create","Withauthenticateduser","User Test",
+                "testCreateWithAuthenticatedUser@mail.com",
+                "secretpassword","secretpassword"
+        );
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((UserApi)userApi.setPort(port).setCredentials(admuser, admuserpassword))
+                    .create(user);
+        });
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+
+        ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((UserApi)userApi.setCredentials(admuser, admuserpassword))
+                    .findByUsername(user.getUsername());
+        });
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 
     @Test

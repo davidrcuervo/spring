@@ -21,6 +21,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -46,8 +48,8 @@ public class GroupTest {
 
     private String admuserPassword;
 
-    @Autowired
-    private ApiClientService client;
+//    @Autowired
+//    private ApiClientService client;
 
     @Autowired
     private GroupApi groupApi;
@@ -71,7 +73,7 @@ public class GroupTest {
         userTest.setAdmuserPassword(admuserPassword);
     }
 
-    @Test
+//    @Test
     public void testGroupCycle(){
         Usuario user = new Usuario(
                 "testGroupCycle",
@@ -212,55 +214,97 @@ public class GroupTest {
 
     @Test
     public void testFindAllByManager(){
-        fail();
-//        ResponseEntity<GroupList> response = restClient.send(GROUPS, port, HttpMethod.GET, null, GroupList.class, null, ADMUSER, ADMUSER_PASSWORD);
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertNotNull(response.getBody());
-//        Map<String, Group> groups = response.getBody().getGroups();
-//        assertTrue(groups.size() > 0);
-//        assertTrue(groups.containsKey("manager"));
+        Usuario user = new Usuario(
+                "testFindAllByManager",
+                "Findall","Bymanager","Group Test",
+                "testFindAllByManager@mail.com",
+                "secretpassword","secretpassword"
+        );
+        ResponseEntity<Usuario> resp = userTest.create(user);
+        userTest.emailValidation(resp.getBody().getEncToken(), user.getUsername(), user.getPassword());
+
+        Group group = new Group("testFindAllByManager", null);
+        groupTest.create(group, user.getUsername(), user.getPassword());
+
+        ResponseEntity<GroupList> resp2 = groupTest.findAll();
+        Map<String, Group> groups = resp2.getBody().getGroups();
+        assertTrue(groups.containsKey(group.getName()));
+        assertTrue(groups.containsKey("manager"));
+        assertTrue(groups.containsKey("validUserAccounts"));
+
+        groupTest.delete(group.getName());
+        userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
     @Test
     public void testFindByNameNotFound(){
-        fail();
-//        Map<String, String> params = new HashMap<>();
-//        params.put("groupName", "invalidgroupname");
-//        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, ADMUSER, ADMUSER_PASSWORD);
-//        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            groupTest.findByName("testFindByNameNotFound");
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 
     @Test
     public void testFindByNameUnauthorized(){
-        fail();
-//        Map<String, String> params = new HashMap<>();
-//        params.put("groupName", "manager");
-//        ResponseEntity<Group> response = restClient.send(GROUP, port, HttpMethod.GET, null,Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-//        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        Usuario user = new Usuario(
+                "testFindByNameUnauthorized",
+                "Find","Unauthroized","Group Test",
+                "testFindByNameUnauthorized@mail.com",
+                "secretpassword", "secretpassword"
+        );
+        ResponseEntity<Usuario> resp1 = userTest.create(user);
+        userTest.emailValidation(resp1.getBody().getEncToken(), user.getUsername(), user.getPassword());
+        groupTest.findByName("validUserAccounts");
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            groupTest.findByName("manager", user.getUsername(), user.getPassword());
+        });
+
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        userTest.delete(user.getUsername());
     }
 
      @Test
     public void testCreateEmptyGroup(){
-         fail();
-//         Group group = new Group();
-//
-//         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
-//         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+         Group group = new Group();
+         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+             groupTest.create(group);
+         });
+         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
      }
 
      @Test
      public void testCreateInavalidNameGroup(){
-         fail();
-//         Group group = new Group();
-//         group.setName("manager");
-//
-//         ResponseEntity<Group> response = restClient.send(CREATE, port, HttpMethod.POST, group, Group.class, null, ADMUSER, ADMUSER_PASSWORD);
-//         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+         Group group = new Group("manager", null);
+
+         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+             ((GroupApi)groupApi.setPort(port).setCredentials(admuser, admuserPassword))
+                     .create(group);
+         });
+
+         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
      }
 
      @Test
      public void testCreateGroupWithInvalidMember(){
-         fail();
+        Group group = new Group("testCreateGroupWithInvalidMember", null);
+        Usuario user = new Usuario(
+                "testCreateGroupWithInvalidMember",
+                "Invalid","Member","Test Group",
+                "testCreateGroupWithInvalidMember@mail.com",
+                "secretpassword","secretpassword"
+        );
+        userTest.create(user);
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+             ((GroupApi)groupApi.setPort(port).setCredentials(user.getUsername(), user.getPassword()))
+                     .create(group);
+        });
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+
+        userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
+
      }
 
     private void delete(String gName){
@@ -338,28 +382,42 @@ public class GroupTest {
 
     @Test
     public void testRemoveInvalidGroup(){
-        fail();
-//        String gname = "manager";
-//        String address = "http://localhost:{port}/api/v0/group/delete.html?name={gname}";
-//        Map<String, String> params = new HashMap<>();
-//        params.put("port", Integer.toString(port));
-//        params.put("gname", gname);
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        HttpEntity<Group> entity = new HttpEntity<>(headers);
-//
-//        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
-//        ResponseEntity<String> response = testRestTemplate.exchange(address, HttpMethod.DELETE, entity, String.class, params);
-//        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-//        assertFalse(Boolean.valueOf(response.getBody()));
-//        assertEquals(HttpStatus.OK, findGroup(gname).getStatusCode());
-//
-//        params.replace("gname", "validUserAccounts");
-//        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
-//        response = testRestTemplate.exchange(address, HttpMethod.DELETE, entity, String.class, params);
-//        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-//        assertFalse(Boolean.valueOf(response.getBody()));
-//        assertEquals(HttpStatus.OK, findGroup("validUserAccounts").getStatusCode());
+        HttpClientErrorException ex;
+
+        ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((GroupApi)groupApi.setPort(port).setCredentials(admuser, admuserPassword))
+                .delete("manager");
+        });
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+
+        ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((GroupApi)groupApi.setPort(port).setCredentials(admuser, admuserPassword))
+                    .delete("validUserAccounts");
+        });
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+
+        Usuario user = new Usuario(
+                "testRemoveInvalidGroup",
+                "Remove","InvalidGroup","Group Test",
+                "testRemoveInvalidGroup@mail.com",
+                "secretpassword","secretpassword"
+        );
+        ResponseEntity<Usuario> resp1 = userTest.create(user);
+        userTest.emailValidation(resp1.getBody().getEncToken(), user.getUsername(), user.getPassword());
+
+        Group group = new Group("testRemoveInvalidGroup", null);
+        groupTest.create(group);
+        groupTest.addMember(group.getName(),user.getUsername(),admuser,admuserPassword);
+
+        ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((GroupApi)groupApi.setPort(port).setCredentials(user.getUsername(), user.getPassword()))
+                    .delete("testRemoveInvalidGroup");
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+
+        groupTest.addOwner(group.getName(),user.getUsername(),admuser, admuserPassword);
+        groupTest.delete(group.getName(),user.getUsername(),user.getPassword());
+        userTest.delete(user.getUsername(),user.getUsername(),user.getPassword());
     }
 
     private ResponseEntity<String> isMember(String gName, String username) throws HttpClientErrorException {

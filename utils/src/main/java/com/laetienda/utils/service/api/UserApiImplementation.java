@@ -12,7 +12,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-public class UserApiImplementation implements UserApi {
+public class UserApiImplementation extends ApiClientServiceImplementation implements UserApi {
     final private static Logger log = LoggerFactory.getLogger(UserApiImplementation.class);
 
     @Value("${api.usuario.port}")
@@ -48,79 +48,80 @@ public class UserApiImplementation implements UserApi {
     @Value("${api.usuario.passwordRecovery}")
     private String passwordRecovery;
 
-    @Autowired
-    private ApiClientService api;
+//    @Autowired
+//    private ApiClientService api;
 
-    private String port;
+//    private String port;
 
     public UserApiImplementation() {
-        this.port = apiPort;
+        log.trace("USERAPI::Constructor. $port: {}", apiPort);
+        setPort(apiPort);
     }
 
-    @Override
-    public UserApi setPort(String port){
-        this.port = port;
-        return this;
-    }
+//    @Override
+//    public UserApi setPort(String port){
+//        this.port = port;
+//        return this;
+//    }
 
-    @Override
-    public UserApi setPort(Integer port){
-        return setPort(Integer.toString(port));
-    }
+//    @Override
+//    public UserApi setPort(Integer port){
+//        return setPort(Integer.toString(port));
+//    }
 
-    @Override
-    public UserApi setCredentials(String loginUsername, String password){
-        api.setCredentials(loginUsername, password);
-        return this;
-    }
+//    @Override
+//    public UserApi setCredentials(String loginUsername, String password){
+//        api.setCredentials(loginUsername, password);
+//        return this;
+//    }
 
-    public UserApi setSessionId(String sessionId){
-        api.setSessionId(sessionId);
-        return this;
-    }
+//    public UserApi setSessionId(String sessionId){
+//        api.setSessionId(sessionId);
+//        return this;
+//    }
 
     @Override
     public ResponseEntity<Usuario> findByUsername(String username) throws HttpClientErrorException {
-        return api.getRestClient().get().uri(findByUsername, port, username)
+        return getRestClient().get().uri(findByUsername, getPort(), username)
                 .retrieve().toEntity(Usuario.class);
     }
 
     @Override
     public ResponseEntity<Usuario> update(Usuario user) throws HttpClientErrorException{
-        return api.getRestClient().put().uri(updateUsuario, port).body(user)
+        return getRestClient().put().uri(updateUsuario, getPort()).body(user)
                 .retrieve().toEntity(Usuario.class);
     }
 
     @Override
     public ResponseEntity<UsuarioList> findAll() throws HttpClientErrorException {
-        return api.getRestClient().get().uri(findAllUsuarios, port)
+        return getRestClient().get().uri(findAllUsuarios, getPort())
                 .retrieve().toEntity(UsuarioList.class);
     }
 
     @Override
     public ResponseEntity<GroupList> authenticateUser(Usuario user) throws HttpClientErrorException{
-        return api.getRestClient().post().uri(authUserAddress, port)
+        return getRestClient().post().uri(authUserAddress, getPort())
                 .retrieve().toEntity(GroupList.class);
     }
 
     @Override
     public ResponseEntity<String> emailValidation(String token) throws HttpClientErrorException {
         log.trace("USER_API::EmailValidation $token: {}", token);
-        return api.getRestClient().get().uri(usuarioEmailValidation, port, token)
+        return getRestClient().get().uri(usuarioEmailValidation, getPort(), token)
                 .retrieve().toEntity(String.class);
     }
 
     @Override
     public ResponseEntity<Usuario> create(Usuario usuario) throws HttpClientErrorException {
-        log.trace("USER_API::Create $uri: {}, $port: {}", createUsuario, port);
-        return api.getRestClient().post().uri(createUsuario, port)
+        log.trace("USER_API::Create $uri: {}, $port: {}", createUsuario, getPort());
+        return getRestClient().post().uri(createUsuario, getPort())
                 .contentType(APPLICATION_JSON)
                 .body(usuario).retrieve().toEntity(Usuario.class);
     }
 
     @Override
     public ResponseEntity<String> delete(String username) throws HttpClientErrorException {
-        return api.getRestClient().delete().uri(deleteUsuario, port, username)
+        return getRestClient().delete().uri(deleteUsuario, getPort(), username)
                 .retrieve().toEntity(String.class);
     }
 }

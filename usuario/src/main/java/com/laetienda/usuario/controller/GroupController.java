@@ -43,7 +43,6 @@ public class GroupController {
     public ResponseEntity<Group> create(@Valid @RequestBody Group group) throws NotValidCustomException {
         log.trace("GROUP_CONTROLLER::Create. $Group: {}", group != null ? group.getName() : "null");
         return ResponseEntity.ok(service.create(group));
-//        return ResponseEntity.ok(new Group());
     }
 
     @PutMapping("update")

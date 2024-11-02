@@ -21,9 +21,12 @@ public class MessengerSecurityConfiguration {
         http
             .authorizeRequests((requests) ->
                     requests.
-                            requestMatchers("/api/v0/email/preview/template.html").permitAll().
-                            requestMatchers("/api/v0/email/sendMessage.html").permitAll().
-                            anyRequest().authenticated()
+                            requestMatchers("/api/v0/email/holaMundo").permitAll().
+                            requestMatchers("/api/v0/email/preview/template").permitAll().
+                            requestMatchers("/api/v0/email/sendMessage").permitAll().
+                            requestMatchers("/api/v0/email/testSimplePost").permitAll().
+//                            anyRequest().authenticated()
+                            anyRequest().hasRole("VALIDUSERACCOUNTS")
             )
                 .httpBasic()
                 .and()
