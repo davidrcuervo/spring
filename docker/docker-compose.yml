@@ -51,7 +51,9 @@ services:
     ports:
       - "8082:8082"
     env_file:
-      - webbapp.env
+      - webapp.env
+#    volumes:
+#      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
     build:
 #      dockerfile: dockerfiles/myjava.21.Dockerfile
       target: messengerapp

@@ -206,7 +206,10 @@ FROM webapp AS messengerapp
 WORKDIR /opt/webapp
 ENV HOME=/opt/webapp
 
-ENTRYPOINT ["spring/messenger/start.sh"]
+#Set permissions to start script
+RUN chmod 744 spring/messenger/start.sh
+
+#ENTRYPOINT ["spring/messenger/start.sh"]
 #ENTRYPOINT ["/bin/bash", "-c"]
 #CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/messenger/pom.xml"]
 
