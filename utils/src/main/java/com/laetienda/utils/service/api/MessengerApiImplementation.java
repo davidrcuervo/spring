@@ -13,6 +13,9 @@ import org.springframework.web.client.HttpClientErrorException;
 public class MessengerApiImplementation extends ApiClientServiceImplementation implements MessengerApi{
     private static final Logger log = LoggerFactory.getLogger(MessengerApiImplementation.class);
 
+    @Value("${api.messenger.port}")
+    private String port;
+
     @Value("${api.messenger}/${api.messenger.helloworld}")
     private String helloWorld;
 
@@ -54,5 +57,14 @@ public class MessengerApiImplementation extends ApiClientServiceImplementation i
                 .uri(testSimplePost, getPort())
                 .body(user)
                 .retrieve().toEntity(String.class);
+    }
+
+    public String getPort(){
+        if(super.getPort() == null){
+            log.trace("MESSENGER_API::setPort. $port: {}", port);
+            super.setPort(port);
+        }
+
+        return super.getPort();
     }
 }

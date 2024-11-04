@@ -124,4 +124,12 @@ public class UserApiImplementation extends ApiClientServiceImplementation implem
         return getRestClient().delete().uri(deleteUsuario, getPort(), username)
                 .retrieve().toEntity(String.class);
     }
+
+    public String getPort(){
+        if(super.getPort() == null){
+            super.setPort(apiPort);
+        }
+
+        return super.getPort();
+    }
 }

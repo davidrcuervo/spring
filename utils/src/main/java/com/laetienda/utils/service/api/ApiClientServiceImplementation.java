@@ -47,6 +47,7 @@ public class ApiClientServiceImplementation implements ApiClientService {
         }else{
             result = RestClient.builder().build();
         }
+
         return  result;
     }
 

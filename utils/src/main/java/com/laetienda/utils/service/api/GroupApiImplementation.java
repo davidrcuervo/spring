@@ -136,4 +136,11 @@ public class GroupApiImplementation extends ApiClientServiceImplementation imple
                 .uri(findAllByMember, getPort(), username)
                 .retrieve().toEntity(GroupList.class);
     }
+
+    public String getPort(){
+        if(super.getPort() == null){
+            super.setPort(apiPort);
+        }
+        return super.getPort();
+    }
 }
