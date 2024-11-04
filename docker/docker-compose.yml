@@ -63,6 +63,7 @@ services:
   usuarioapp:
     image: usuarioapp:1.0
     user: webappuser
+#    entrypoint: /bin/bash
     secrets:
       - jasypt-password
     depends_on:
