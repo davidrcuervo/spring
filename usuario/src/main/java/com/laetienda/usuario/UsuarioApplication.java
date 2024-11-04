@@ -78,6 +78,11 @@ public class UsuarioApplication {
 		return new UserApiImplementation();
 	}
 
+	@Bean
+	public MessengerApi getMessengerApi(){
+		return new MessengerApiImplementation();
+	}
+
 	public static void main(String[] args) {
 		SpringApplication usuarioSpringApplication = new SpringApplication(UsuarioApplication.class);
 		usuarioSpringApplication.setAdditionalProfiles("production");

@@ -206,8 +206,9 @@ FROM webapp AS messengerapp
 WORKDIR /opt/webapp
 ENV HOME=/opt/webapp
 
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/messenger/pom.xml"]
+ENTRYPOINT ["spring/messenger/start.sh"]
+#ENTRYPOINT ["/bin/bash", "-c"]
+#CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/messenger/pom.xml"]
 
 ############################################
 ## MY usuarioapp IMAGE
@@ -218,5 +219,6 @@ FROM webapp AS usuarioapp
 WORKDIR /opt/webapp
 ENV HOME=/opt/webapp
 
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/usuario/pom.xml"]
+ENTRYPOINT ["spring/usuario/start.sh"]
+#ENTRYPOINT ["/bin/bash", "-c"]
+#CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/usuario/pom.xml"]

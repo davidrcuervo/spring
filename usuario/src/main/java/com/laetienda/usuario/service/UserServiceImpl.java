@@ -13,6 +13,7 @@ import com.laetienda.usuario.repository.SpringUserRepository;
 import com.laetienda.usuario.repository.UserRepository;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.lib.service.ToolBoxService;
+import com.laetienda.utils.service.api.MessengerApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +64,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ToolBoxService tb;
 
-    @Value("${api.mailer.send}")
-    private String urlSendMessage;
+    @Autowired
+    private MessengerApi messengerApi;
 
     @Value("${api.frontend.user.emailValidation}")
     private String urlFrontendEmailValidation;
@@ -429,7 +430,8 @@ public class UserServiceImpl implements UserService {
         message.setView(view);
         message.setSubject(subject);
         message.setTo(new HashSet<String>(Arrays.asList(user.getEmail())));
-        String resp = client.send(urlSendMessage, HttpMethod.POST, message, String.class, null);
+
+        String resp = messengerApi.sendMessage(message).getBody();
 
         if(Boolean.valueOf(resp)){
             log.trace("Token and email has been sent successfully");
