@@ -53,12 +53,12 @@ changetype: add
 objectClass: groupOfUniqueNames
 cn: manager
 description: Group of managers
-uniqueMember: uid=admuser,ou=people
-owner: uid=admuser,ou=people
+uniqueMember: uid=admuser,ou=people,dc=la-etienda,dc=com
+owner: uid=admuser,ou=people,dc=la-etienda,dc=com
 
 dn: cn=validUserAccounts,ou=wroups,dc=la-etienda,dc=com
 changetype: add
 objectClass: groupOfUniqueNames
 cn: validUserAccounts
-uniqueMember: uid=admuser,ou=people
-owner: uid=admuser,ou=people
+uniqueMember: uid=admuser,ou=people,dc=la-etienda,dc=com
+owner: uid=admuser,ou=people,dc=la-etienda,dc=com

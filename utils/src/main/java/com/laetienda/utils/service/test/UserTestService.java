@@ -1,4 +1,4 @@
-package com.laetienda.usuario.service;
+package com.laetienda.utils.service.test;
 
 import com.laetienda.model.user.Usuario;
 import org.springframework.http.ResponseEntity;
@@ -16,4 +16,6 @@ public interface UserTestService {
     public ResponseEntity<String> delete(String username, String loginUsername, String password) throws HttpClientErrorException;
     public ResponseEntity<String> delete(String username) throws HttpClientErrorException;
     public ResponseEntity<String> emailValidation(String token, String loginUsername, String password) throws HttpClientErrorException;
+    ResponseEntity<String> login(String username, String password) throws HttpClientErrorException;
+    ResponseEntity<String> login(String sessionId) throws HttpClientErrorException;
 }

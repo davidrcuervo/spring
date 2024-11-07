@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -14,6 +15,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 public class UserApiImplementation extends ApiClientServiceImplementation implements UserApi {
     final private static Logger log = LoggerFactory.getLogger(UserApiImplementation.class);
+
+    @Autowired
+    private Environment env;
 
     @Value("${api.usuario.port}")
     private String apiPort;
@@ -105,6 +109,15 @@ public class UserApiImplementation extends ApiClientServiceImplementation implem
     }
 
     @Override
+    public ResponseEntity<String> login() throws HttpClientErrorException {
+        String address = String.format("%s/%s", env.getProperty("api.usuario"), env.getProperty("api.usuario.login"));
+        log.trace("USER_API::login. $address: {}", address);
+        return getRestClient().post()
+                .uri(address, getPort())
+                .retrieve().toEntity(String.class);
+    }
+
+    @Override
     public ResponseEntity<String> emailValidation(String token) throws HttpClientErrorException {
         log.trace("USER_API::EmailValidation $token: {}", token);
         return getRestClient().get().uri(usuarioEmailValidation, getPort(), token)
@@ -126,6 +139,7 @@ public class UserApiImplementation extends ApiClientServiceImplementation implem
     }
 
     public String getPort(){
+        log.trace("USER_API::getPort. $port: {}", super.getPort());
         if(super.getPort() == null){
             super.setPort(apiPort);
         }

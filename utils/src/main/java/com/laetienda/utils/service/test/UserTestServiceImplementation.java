@@ -1,4 +1,4 @@
-package com.laetienda.usuario.service;
+package com.laetienda.utils.service.test;
 
 import com.laetienda.model.user.Usuario;
 import com.laetienda.utils.service.api.UserApi;
@@ -12,7 +12,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserTestServiceImplementation implements UserTestService{
+public class UserTestServiceImplementation implements UserTestService {
     private final static Logger log = LoggerFactory.getLogger(UserTestServiceImplementation.class);
 
     @Autowired
@@ -107,6 +107,26 @@ public class UserTestServiceImplementation implements UserTestService{
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(Boolean.parseBoolean(response.getBody()));
+        return response;
+    }
+
+    @Override
+    public ResponseEntity<String> login(String username, String password) throws HttpClientErrorException {
+        ResponseEntity<String> response =
+                ((UserApi)userApi.setPort(port).setCredentials(username, password))
+                        .login();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response;
+    }
+
+    @Override
+    public ResponseEntity<String> login(String sessionId) throws HttpClientErrorException {
+        ResponseEntity<String> response =
+                ((UserApi)userApi.setPort(port).setSessionId(sessionId))
+                        .login();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         return response;
     }
 }

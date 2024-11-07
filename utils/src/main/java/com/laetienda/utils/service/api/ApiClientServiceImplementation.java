@@ -41,7 +41,8 @@ public class ApiClientServiceImplementation implements ApiClientService {
 
         }else if(sessionId != null && !sessionId.isBlank()){
             result = RestClient.builder()
-                    .defaultHeader(HttpHeaders.COOKIE, Base64.getEncoder().encodeToString(sessionId.getBytes()))
+//                    .defaultHeader(HttpHeaders.COOKIE, Base64.getEncoder().encodeToString(sessionId.getBytes()))
+                    .defaultHeader(HttpHeaders.COOKIE, sessionId)
                     .build();
             sessionId = null;
         }else{

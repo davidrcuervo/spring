@@ -2,11 +2,10 @@ package com.laetienda.usuario;
 
 import com.laetienda.lib.service.TestRestClient;
 import com.laetienda.lib.service.TestRestClientImpl;
-import com.laetienda.usuario.controller.UserTest;
 import com.laetienda.usuario.service.GroupTestService;
 import com.laetienda.usuario.service.GroupTestServiceImplementation;
-import com.laetienda.usuario.service.UserTestService;
-import com.laetienda.usuario.service.UserTestServiceImplementation;
+import com.laetienda.utils.service.test.UserTestService;
+import com.laetienda.utils.service.test.UserTestServiceImplementation;
 import com.laetienda.utils.service.api.GroupApi;
 import com.laetienda.utils.service.api.GroupApiImplementation;
 import org.springframework.boot.test.context.TestConfiguration;

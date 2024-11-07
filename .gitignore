@@ -4,6 +4,7 @@
 /usuario/target
 /model/target
 /utils/target
+/schema/target
 /.idea
 /API/User/.api.output
 /API/Group/.api.output

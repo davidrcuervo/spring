@@ -16,5 +16,6 @@
         <module>messenger</module>
         <module>usuario</module>
         <module>frontend</module>
+        <module>schema</module>
     </modules>
 </project>

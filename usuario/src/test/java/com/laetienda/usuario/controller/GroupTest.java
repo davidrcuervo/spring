@@ -5,8 +5,7 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.usuario.UsuarioTestConfiguration;
 import com.laetienda.usuario.service.GroupTestService;
-import com.laetienda.usuario.service.UserTestService;
-import com.laetienda.utils.service.api.ApiClientService;
+import com.laetienda.utils.service.test.UserTestService;
 import com.laetienda.utils.service.api.GroupApi;
 import org.jasypt.encryption.StringEncryptor;
 import org.junit.jupiter.api.*;
@@ -181,35 +180,35 @@ public class GroupTest {
 
     @Test
     public void findAll(){
-        Usuario findall = new Usuario(
+        Usuario user = new Usuario(
                 "testFindAllManagerGroups",
                 "Find","All","Group Test",
                 "testFindAllManagerGroups@email.com",
                 "secretpassword","secretpassword"
         );
 
-        ResponseEntity<Usuario> response = userTest.create(findall);
-        userTest.emailValidation(response.getBody().getEncToken(), findall.getUsername(), findall.getPassword());
+        ResponseEntity<Usuario> response = userTest.create(user);
+        userTest.emailValidation(response.getBody().getEncToken(), user.getUsername(), user.getPassword());
 
         Group group = new Group("testFindAll", null);
-        groupTest.create(group, findall.getUsername(), findall.getPassword());
+        groupTest.create(group, user.getUsername(), user.getPassword());
 
         ResponseEntity<GroupList> response2 = groupTest.findAll();
         assertEquals(3, response2.getBody().getGroups().size());
         assertTrue(response2.getBody().getGroups().containsKey(group.getName()));
 
-        response2 = groupTest.findAll(findall.getUsername(), findall.getPassword());
+        response2 = groupTest.findAll(user.getUsername(), user.getPassword());
         assertEquals(2, response2.getBody().getGroups().size());
         assertTrue(response2.getBody().getGroups().containsKey(group.getName()));
 
         response2.getBody().getGroups().forEach((groupname, group2) -> {
-            assertTrue(group2.getMembers().containsKey(findall.getUsername()));
+            assertTrue(group2.getMembers().containsKey(user.getUsername()));
             assertTrue(group2.getMembers().size() > 0);
             assertTrue(group2.getOwners().size() > 0);
         });
 
         groupTest.delete(group.getName());
-        userTest.delete(findall.getUsername());
+        userTest.delete(user.getUsername());
     }
 
     @Test

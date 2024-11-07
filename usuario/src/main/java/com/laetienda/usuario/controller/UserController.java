@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 //import javax.validation.Valid;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -101,5 +102,17 @@ public class UserController {
     public ResponseEntity<String> applicationProfile(){
         log.trace("Running applicationProfile user controller");
         return ResponseEntity.ok(service.getApplicationProfile());
+    }
+
+    @PostMapping("${api.usuario.authenticate}")
+    public ResponseEntity<String> auth(Principal principal){
+        log.debug("USUARIO_CONTROLLER::auth. $username: {}", principal.getName());
+        return ResponseEntity.ok(principal.getName());
+    }
+
+    @PostMapping("${api.usuario.login}")
+    public ResponseEntity<String> login(Principal principal){
+        log.debug("USUARIO_CONTROLLER::login. $username: {}", principal.getName());
+        return ResponseEntity.ok("Successful login. $username: " + principal.getName());
     }
 }

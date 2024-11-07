@@ -10,7 +10,9 @@ import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 
 import com.laetienda.usuario.UsuarioTestConfiguration;
+import com.laetienda.usuario.service.GroupTestService;
 import com.laetienda.utils.service.api.UserApi;
+import com.laetienda.utils.service.test.UserTestService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.jasypt.encryption.StringEncryptor;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,37 +52,27 @@ public class UserTest {
     final private static String GROUP_FIND_ALL_BY_MEMBER = "http://localhost:{port}/api/v0/group/groups.html?user={username}";
     final private static String GROUP_FIND_BY_NAME = "http://localhost:{port}/api/v0/group/group.html?name={gname}";
 
+    private String admuserpassword;
+    @LocalServerPort private int port;
+    @Autowired private TestRestTemplate restTemplate;
+    @Autowired private TestRestClient testRestTemplate;
+    @Autowired private StringEncryptor jasypte;
+    @Autowired private ToolBoxService tb;
+    @Autowired private UserApi userApi;
+    @Autowired private UserTestService userTest;
+    @Autowired private GroupTestService groupTest;
+
     @Value("${test.api.user.emailvalidation}")
     private String urlTestApiUserEmailValidation;
 
     @Value("${test.api.group.ismember}")
     private String urlTestApiGroupIsMember;
 
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
-    private TestRestClient testRestTemplate;
-
-    @Autowired
-    private StringEncryptor jasypte;
-
     @Value("${admuser.username}")
     private String admuser;
 
     @Value("${admuser.hashed.password}")
     private String admuserHashedPassword;
-
-    private String admuserpassword;
-
-    @Autowired
-    private ToolBoxService tb;
-
-    @Autowired
-    private UserApi userApi;
 
     private final String apiurl = "/api/v0/user";
 
@@ -100,8 +92,12 @@ public class UserTest {
 
     @BeforeEach
     public void setTestApiPort(){
-        userApi.setPort(port);
         admuserpassword = jasypte.decrypt(admuserHashedPassword);
+        userApi.setPort(port);
+        userTest.setPort(port);
+        groupTest.setPort(port);
+        userTest.setAdmuserPassword(admuserpassword);
+        groupTest.setAdmuserPassword(admuserpassword);
     }
 
     @Test
@@ -258,20 +254,23 @@ public class UserTest {
 
     @Test
     public void testFindByUsernameNotFound(){
-        String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
+//        String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
+//
+//        Map<String, String> params = new HashMap<>();
+//        params.put("port", Integer.toString(port));
+//        params.put("username", "invalidusername");
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(APPLICATION_JSON);
+//        headers.add("Authorization", getEncode64("admuser", "secret"));
+//
+//        HttpEntity entity = new HttpEntity<>(headers);
 
-        Map<String, String> params = new HashMap<>();
-        params.put("port", Integer.toString(port));
-        params.put("username", "invalidusername");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON);
-        headers.add("Authorization", getEncode64("admuser", "secret"));
-
-        HttpEntity entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Usuario> response = restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            ResponseEntity<Usuario> resp1 = userTest.findByUsername("invalidUsername");
+        });
+//        ResponseEntity<Usuario> response = restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 
     @Test
@@ -358,26 +357,30 @@ public class UserTest {
 
     private void testUserCycleConfirmEmail(Usuario user){
 //        String encToken = tb.encrypt(user.getToken(), System.getProperty("jasypt.encryptor.password"));
-        Map<String, String> params1 = new HashMap<>();
-        params1.put("gName", "validUserAccounts");
-        params1.put("username", user.getUsername());
+//        Map<String, String> params1 = new HashMap<>();
+//        params1.put("gName", "validUserAccounts");
+//        params1.put("username", user.getUsername());
+
 
         //CHECK USER IS NOT IN VALID ROLE
-        ResponseEntity<String> response = testRestTemplate.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, "admuser", "secret");
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertFalse(Boolean.parseBoolean(response.getBody()));
+        groupTest.isNotMember("validUserAccounts", user.getUsername(), admuser, admuserpassword);
+//        ResponseEntity<String> response = testRestTemplate.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, "admuser", "secret");
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertFalse(Boolean.parseBoolean(response.getBody()));
 
         //CONFIRM EMAIL ADDRESS
-        Map<String, String> params2 = new HashMap<>();
-        params2.put("token", user.getEncToken());
-        response = testRestTemplate.send(urlTestApiUserEmailValidation, port, HttpMethod.GET, user, String.class, params2, user.getUsername(), getUser().getPassword());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(Boolean.parseBoolean(response.getBody()));
+        userTest.emailValidation(user.getEncToken(), user.getUsername(), user.getPassword());
+//        Map<String, String> params2 = new HashMap<>();
+//        params2.put("token", user.getEncToken());
+//        response = testRestTemplate.send(urlTestApiUserEmailValidation, port, HttpMethod.GET, user, String.class, params2, user.getUsername(), getUser().getPassword());
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertTrue(Boolean.parseBoolean(response.getBody()));
 
         //CHECK USER IS IN VALID ROLE
-        response = testRestTemplate.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, user.getUsername(), getUser().getPassword());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(Boolean.parseBoolean(response.getBody()));
+        groupTest.isMember("validUserAccounts", user.getUsername(), user.getUsername(), user.getPassword());
+//        response = testRestTemplate.send(urlTestApiGroupIsMember, port, HttpMethod.GET, null, String.class, params1, user.getUsername(), getUser().getPassword());
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertTrue(Boolean.parseBoolean(response.getBody()));
     }
 
 
@@ -716,12 +719,29 @@ public class UserTest {
     }
 
     @Test
-    public void simpleTest(){
-//        Usuario user = new Usuario(
-//                "simpleTest",
-//                "Simple", "Test","User Test",
-//                "simpletest@mail.com",
-//                "secretpassword","secretpassword");
-//        userApi.create(user);
+    public void login(){
+        Usuario user = new Usuario(
+                "testLogin",
+                "Login",null,"User Test",
+                "testLogin@email.com",
+                "secretpassword", "secretpassword"
+        );
+
+        ResponseEntity<Usuario> resp1 = userTest.create(user);
+        userTest.emailValidation(resp1.getBody().getEncToken(), user.getUsername(), user.getPassword());
+
+        ResponseEntity<String> response = userTest.login(user.getUsername(), user.getPassword());
+//        response.getHeaders().forEach((key, value) -> {
+//            log.trace("USER_TEST::login. $headerKey: {}", key);
+//        });
+//        log.trace("USER_TEST::login. $SET_COOKIE: {}", HttpHeaders.SET_COOKIE);
+        String cookie = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        log.trace("USER_TEST::login. $cookie: {}", cookie);
+        String sessionId = cookie.split(";")[0];
+        log.trace("USER_TEST::login. $sessionId: {}", sessionId);
+
+        response = userTest.login(sessionId);
+        userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
+
     }
 }

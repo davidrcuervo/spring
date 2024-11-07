@@ -111,6 +111,7 @@ public class GroupServiceImpl implements GroupService{
         }else{
             Usuario owner = springUserRepository.findByUsername(getLoggedUser());
             group = repository.setMembersdnAndOwnersdn(group);
+            owner.setDn(dn.getFullDn(owner.getId()));
             group.addOwner(owner);
             group.setNew(true);
             springGroupRepository.save(group);
@@ -209,6 +210,7 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public Group addMember(String gname, String username) throws NotValidCustomException {
+        log.debug("GROUP_SERVICE::addMember. $groupname: {}, $username: {}", gname, username);
         if(gname == null || username == null){
             throw new NotValidCustomException("Group name or username is missing.", HttpStatus.NOT_FOUND, "group");
         }
@@ -216,6 +218,7 @@ public class GroupServiceImpl implements GroupService{
         if(canEditGroup(gname)){
             Group group = springGroupRepository.findByName(gname);
             Usuario member = springUserRepository.findByUsername(username);
+            member.setDn(dn.getFullDn(member.getId()));
 
             group.addMember(member);
             springGroupRepository.save(group);
@@ -258,6 +261,7 @@ public class GroupServiceImpl implements GroupService{
                 //remove
                 Group group = repository.findByName(gname);
                 Usuario user = springUserRepository.findByUsername(username);
+                user.setDn(dn.getFullDn(user.getId()));
                 group.removeMember(user);
 
                 //persist
@@ -275,10 +279,33 @@ public class GroupServiceImpl implements GroupService{
 
     @Override
     public Group addOwner(String gname, String username) throws NotValidCustomException {
-        Group group = getGroupOwner(gname);
-        Usuario user = getUser(username);
-        group.addOwner(user);
-        return springGroupRepository.save(group);
+        log.debug("GROUP_SERVICE::addOwner. $groupname: {}, $username: {}", gname, username);
+
+        if(gname == null || username == null || gname.isBlank() || username.isBlank()){
+            throw new NotValidCustomException("Can't add user to group. user or group is missing", HttpStatus.NOT_FOUND, "user");
+        }
+
+        Group group = springGroupRepository.findByName(gname);
+        if(group == null){
+            String message = String.format("Group, %s, does not exist, and can't edited", gname);
+            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "group");
+        }
+
+        Usuario owner = springUserRepository.findByUsername(username);
+        if(owner == null){
+            String message = String.format("User, %s, does not exist, and can't be added as owner to group, %s", username, gname);
+            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "user");
+        }
+
+        if(canEditGroup(gname)){
+            owner.setDn(dn.getFullDn(owner.getId()));
+            group.addOwner(owner);
+            springGroupRepository.save(group);
+            return repository.findByName(gname);
+        }else{
+            String message = String.format("User, %s, does not have privileges to edit group, %s", username, gname);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "user");
+        }
     }
 
     @Override
@@ -296,6 +323,7 @@ public class GroupServiceImpl implements GroupService{
             }
 
             if (canEditGroup(gname)) {
+                user.setDn(dn.getFullDn(user.getId()));
                 group.removeOwner(user);
                 springGroupRepository.save(group);
             }else{

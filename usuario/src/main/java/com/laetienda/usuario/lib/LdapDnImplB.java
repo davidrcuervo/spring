@@ -11,7 +11,7 @@ import javax.naming.Name;
 public class LdapDnImplB implements LdapDn {
     private final static Logger log = LoggerFactory.getLogger(LdapDnImplB.class);
 
-    @Value("${ldap.dn.domain}")
+    @Value("${spring.ldap.base}")
     private String dndomain;
 
     @Value("${ldap.dn.group}")
@@ -39,6 +39,25 @@ public class LdapDnImplB implements LdapDn {
     }
 
     @Override
+    public String getUsername(Name dn) {
+        if(dn.size() < 0){
+            log.trace("USER_LIB_DN::getUserName -> Size of dn should not be empty");
+            return null;
+        }else if(dn.get(dn.size() -1) == null || dn.get(dn.size() -1).isBlank()) {
+            log.trace("USER_LIB_DN::getUserName -> Size of dn should not be empty");
+            return null;
+        }else if(!("ou=people".equals(dn.get(dn.size()-2)))){
+            log.trace("USER_LIB_DN::getUserName -> name dn is not for user");
+            return null;
+        }else if(!("uid".equals(dn.get(dn.size()-1).split("=")[0]))){
+            log.trace("USER_LIB_DN::getUserName -> name dn is not for user");
+            return null;
+        }else {
+            return dn.get(dn.size() - 1).split("=")[1];
+        }
+    }
+
+    @Override
     public Name getGroupDn(String cn) {
         return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
     }
@@ -53,6 +72,25 @@ public class LdapDnImplB implements LdapDn {
             log.debug(e.getMessage(), e);
         }
         return result;
+    }
+
+    @Override
+    public Name removeBase(Name dn) {
+        try {
+            Name baseDn = LdapNameBuilder.newInstance(base).build();
+
+            for(int c=0; c < baseDn.size(); c++){
+                dn.remove(0);
+            }
+
+            for(int c=0; c < dn.size(); c++){
+                log.trace("DN::removeBase. $dn.get({}): {}", c, dn.get(c));
+            }
+        } catch (InvalidNameException e) {
+            log.error(e.getMessage());
+            log.debug(e.getMessage(), e);
+        }
+        return dn;
     }
 
     @Override

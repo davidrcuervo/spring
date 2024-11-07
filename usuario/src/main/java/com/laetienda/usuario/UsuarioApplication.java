@@ -15,11 +15,17 @@ import com.laetienda.utils.service.RestClientServiceImpl;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.lib.service.ToolBoxServiceImpl;
 import com.laetienda.utils.service.api.*;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
+import org.springframework.boot.autoconfigure.ldap.LdapProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.data.ldap.repository.config.EnableLdapRepositories;
+import org.springframework.ldap.core.support.DirContextAuthenticationStrategy;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -82,6 +88,13 @@ public class UsuarioApplication {
 	public MessengerApi getMessengerApi(){
 		return new MessengerApiImplementation();
 	}
+
+//	@Bean
+//	public LdapContextSource createLdapConfig(LdapProperties properties, Environment environment,
+//											  ObjectProvider<DirContextAuthenticationStrategy> dirContextAuthenticationStrategy) {
+//		LdapAutoConfiguration config = new LdapAutoConfiguration();
+//		return config.ldapContextSource(properties, environment, dirContextAuthenticationStrategy);
+//	}
 
 	public static void main(String[] args) {
 		SpringApplication usuarioSpringApplication = new SpringApplication(UsuarioApplication.class);

@@ -21,12 +21,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.ldap.core.ContextSource;
+import org.springframework.ldap.support.LdapNameBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import javax.naming.InvalidNameException;
 import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.util.*;
@@ -38,34 +41,16 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository repository;
 
-    @Autowired
-    private SpringUserRepository springRepository;
-
-    @Autowired
-    private SpringGroupRepository springGroupRepository;
-
-    @Autowired
-    private HttpServletRequest request;
-    @Autowired
-    private GroupService gService;
-
-    @Autowired
-    private GroupRepository gRepo;
-
-    @Autowired
-    private LdapDn dn;
-
-    @Autowired
-    private Environment env;
-
-    @Autowired
-    private RestClientService client;
-
-    @Autowired
-    private ToolBoxService tb;
-
-    @Autowired
-    private MessengerApi messengerApi;
+    @Autowired private SpringUserRepository springRepository;
+    @Autowired private SpringGroupRepository springGroupRepository;
+    @Autowired private HttpServletRequest request;
+    @Autowired private GroupService gService;
+    @Autowired private GroupRepository gRepo;
+    @Autowired private LdapDn dn;
+    @Autowired private Environment env;
+    @Autowired private RestClientService client;
+    @Autowired private ToolBoxService tb;
+    @Autowired private MessengerApi messengerApi;
 
     @Value("${api.frontend.user.emailValidation}")
     private String urlFrontendEmailValidation;
@@ -95,7 +80,8 @@ public class UserServiceImpl implements UserService {
         Usuario result = null;
         if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
 //            Usuario result = repository.find(username);
-            result = springRepository.findByUsername(username);
+//            result = springRepository.findByUsername(username);
+            result = repository.findbyUsername(username);
 
             if(result == null){
                 throw new NotValidCustomException(
@@ -115,6 +101,7 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        log.trace("USER_SERVICE::find. $userDn: {}", dn.getFullDn(result.getId()));
         return result;
     }
 
@@ -184,7 +171,6 @@ public class UserServiceImpl implements UserService {
 
         user.setNew(true);
 //        user.setDn(dn.getUserDn(user.getUsername()));
-
         return springRepository.save(user);
     }
 
@@ -280,7 +266,7 @@ public class UserServiceImpl implements UserService {
         //Remove user from groups where is member
         temp = gRepo.findAllByMember(username);
         for(Map.Entry<String, Group> entry : temp.getGroups().entrySet()){
-            log.trace("removing user from group: {}", entry.getKey());
+            log.trace("USER_SERVICE::removing user from group: {}", entry.getKey());
             gService.removeMember(entry.getKey(), username);
 //                gRepo.removeMember(entry.getValue(), user);
 //                entry.getValue().removeMember(user);
@@ -293,7 +279,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Usuario emailValidation(String encToken) throws NotValidCustomException {
         String token = tb.decrypt(encToken, System.getProperty("jasypt.encryptor.password"));
-        log.trace("validating user email. $token: {}", token);
+        log.trace("USER_SERVICE::emailValidation. $token: {}", token);
         Usuario user = springRepository.findByToken(token);
         String username = request.getUserPrincipal().getName();
 
@@ -305,9 +291,12 @@ public class UserServiceImpl implements UserService {
 
         }else {
             Group group = springGroupRepository.findByName("validUserAccounts");
+            user.setDn(dn.getFullDn(user.getId()));
             group.addMember(user);
+            log.trace("USER_SERVICE::emailValidation. $userDn: {}", springRepository.findByUsername(user.getUsername()));
             springGroupRepository.save(group);
 
+            user = springRepository.findByUsername(user.getUsername());
             user.setToken(null);
             return springRepository.save(user);
         }

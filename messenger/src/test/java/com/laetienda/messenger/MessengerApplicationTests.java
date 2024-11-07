@@ -59,7 +59,7 @@ class MessengerApplicationTests {
 		assertEquals(HttpStatus.BAD_REQUEST, ex1.getStatusCode());
 
 		//It should fail because message is missing information
-		message.addToAddress("davidrcuervo@gmail.com");
+		message.addToAddress("davidrcuervo@outlook.com");
 		HttpClientErrorException ex2 = assertThrows(HttpClientErrorException.class, () -> {
 			ResponseEntity<String> resp = messengerApi.sendMessage(message);
 		});
