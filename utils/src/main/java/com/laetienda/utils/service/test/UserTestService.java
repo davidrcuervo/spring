@@ -13,9 +13,10 @@ public interface UserTestService {
     public ResponseEntity<Usuario> findByUsername(String username, String loginUsername, String password) throws HttpClientErrorException;
     public ResponseEntity<Usuario> findByUsername(String username) throws HttpClientErrorException;
     public ResponseEntity<Usuario> create(Usuario user) throws HttpClientErrorException;
-    public ResponseEntity<String> delete(String username, String loginUsername, String password) throws HttpClientErrorException;
+    ResponseEntity<String> delete(String username, String loginUsername, String password) throws HttpClientErrorException;
     public ResponseEntity<String> delete(String username) throws HttpClientErrorException;
     public ResponseEntity<String> emailValidation(String token, String loginUsername, String password) throws HttpClientErrorException;
     ResponseEntity<String> login(String username, String password) throws HttpClientErrorException;
     ResponseEntity<String> login(String sessionId) throws HttpClientErrorException;
+    ResponseEntity<String> logout(String sessionId) throws HttpClientErrorException;
 }

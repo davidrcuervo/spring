@@ -731,17 +731,14 @@ public class UserTest {
         userTest.emailValidation(resp1.getBody().getEncToken(), user.getUsername(), user.getPassword());
 
         ResponseEntity<String> response = userTest.login(user.getUsername(), user.getPassword());
-//        response.getHeaders().forEach((key, value) -> {
-//            log.trace("USER_TEST::login. $headerKey: {}", key);
-//        });
-//        log.trace("USER_TEST::login. $SET_COOKIE: {}", HttpHeaders.SET_COOKIE);
+
         String cookie = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
         log.trace("USER_TEST::login. $cookie: {}", cookie);
         String sessionId = cookie.split(";")[0];
         log.trace("USER_TEST::login. $sessionId: {}", sessionId);
 
         response = userTest.login(sessionId);
+        response = userTest.logout(sessionId);
         userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
-
     }
 }

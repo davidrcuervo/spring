@@ -17,6 +17,7 @@ public interface UserApi extends ApiClientService{
     ResponseEntity<String> delete(String username) throws HttpClientErrorException;
     ResponseEntity<GroupList> authenticateUser(Usuario user) throws HttpClientErrorException;
     ResponseEntity<String> login() throws HttpClientErrorException;
+    ResponseEntity<String> logout() throws HttpClientErrorException;
     ResponseEntity<String> emailValidation(String token) throws HttpClientErrorException;
 
 //    public UserApi setCredentials(String loginUsername, String password);

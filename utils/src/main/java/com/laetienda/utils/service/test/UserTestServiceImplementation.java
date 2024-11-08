@@ -80,7 +80,7 @@ public class UserTestServiceImplementation implements UserTestService {
     @Override
     public ResponseEntity<String> delete(String username, String loginUsername, String password) throws HttpClientErrorException {
         findByUsername(username);
-
+        log.debug("USER_TEST::delete $username: {}, $loginusername: {}", username, loginUsername);
         ResponseEntity<String> response =
                 ((UserApi)userApi.setPort(port).setCredentials(loginUsername, password))
                 .delete(username);
@@ -122,11 +122,33 @@ public class UserTestServiceImplementation implements UserTestService {
 
     @Override
     public ResponseEntity<String> login(String sessionId) throws HttpClientErrorException {
+        log.debug("USER_TEST::login. $sessionId: {}", sessionId);
         ResponseEntity<String> response =
                 ((UserApi)userApi.setPort(port).setSessionId(sessionId))
                         .login();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
+        return response;
+    }
+
+    @Override
+    public ResponseEntity<String> logout(String sessionId) throws HttpClientErrorException {
+        login(sessionId); //First. test if it is possible to login and sessionId is still valid
+        log.debug("USER_TEST::logout. $sessionId: {}", sessionId);
+        ResponseEntity<String> response =
+                ((UserApi)userApi.setPort(port).setSessionId(sessionId)).logout();
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+//        assertNotNull(response.getBody());
+
+        response.getHeaders().forEach((key, value) -> {
+            log.trace("USER_TEST::logout. $headers.key: {}, $header.value: {}", key, value.getFirst());
+        });
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((UserApi)userApi.setPort(port).setSessionId(sessionId)).login();
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+
         return response;
     }
 }

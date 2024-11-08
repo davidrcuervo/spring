@@ -118,6 +118,15 @@ public class UserApiImplementation extends ApiClientServiceImplementation implem
     }
 
     @Override
+    public ResponseEntity<String> logout() throws HttpClientErrorException {
+        String address = String.format("%s/logout", env.getProperty("api.usuario.url"));
+        log.trace("USER_API::logout. $address: {}", address);
+        return getRestClient().post()
+                .uri(address, getPort())
+                .retrieve().toEntity(String.class);
+    }
+
+    @Override
     public ResponseEntity<String> emailValidation(String token) throws HttpClientErrorException {
         log.trace("USER_API::EmailValidation $token: {}", token);
         return getRestClient().get().uri(usuarioEmailValidation, getPort(), token)
