@@ -148,11 +148,12 @@ public class UserApiImplementation extends ApiClientServiceImplementation implem
     }
 
     public String getPort(){
-        log.trace("USER_API::getPort. $port: {}", super.getPort());
+
         if(super.getPort() == null){
             super.setPort(apiPort);
         }
 
+        log.trace("USER_API::getPort. $port: {}", super.getPort());
         return super.getPort();
     }
 }

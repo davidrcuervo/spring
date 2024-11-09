@@ -12,30 +12,30 @@ import javax.naming.Name;
 public class LdapDnImpl implements LdapDn {
     final static private Logger log = LoggerFactory.getLogger(LdapDnImpl.class);
 
-    @Value("${ldap.dn.people}")
-    private String peopledn;
+//    @Value("${ldap.dn.people}")
+//    private String peopledn;
 
-    @Value("${ldap.dn.group}")
-    private String groupdn;
+//    @Value("${ldap.dn.group}")
+//    private String groupdn;
 
     @Value("${spring.ldap.base}")
     private String base;
 
-    @Override
-    public Name getUserDn(String uid){
-        return LdapNameBuilder.newInstance(peopledn).add("uid", uid).build();
-    }
-
-    @Override
-    public Name getUserDn() {
-        return null;
-    }
-
-    @Override
-    public Name getDomainDn() {
-        return null;
-    }
-
+//    @Override
+//    public Name getUserDn(String uid){
+//        return LdapNameBuilder.newInstance(peopledn).add("uid", uid).build();
+//    }
+//
+//    @Override
+//    public Name getUserDn() {
+//        return null;
+//    }
+//
+//    @Override
+//    public Name getDomainDn() {
+//        return null;
+//    }
+//
     @Override
     public String getUsername(Name dn) {
 
@@ -56,10 +56,10 @@ public class LdapDnImpl implements LdapDn {
         }
     }
 
-    @Override
-    public Name getGroupDn(String cn){
-        return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
-    }
+//    @Override
+//    public Name getGroupDn(String cn){
+//        return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
+//    }
 
     @Override
     public Name getFullDn(Name dn) {
@@ -73,44 +73,44 @@ public class LdapDnImpl implements LdapDn {
         return result;
     }
 
-    @Override
-    public Name removeBase(Name dn) {
-        try {
-            Name baseDn = LdapNameBuilder.newInstance(base).build();
+//    @Override
+//    public Name removeBase(Name dn) {
+//        try {
+//            Name baseDn = LdapNameBuilder.newInstance(base).build();
+//
+//            for(int c=0; c < baseDn.size(); c++){
+//                dn.remove(0);
+//            }
+//
+//            for(int c=0; c < dn.size(); c++){
+//                log.trace("DN::removeBase. $dn.get({}): {}", c, dn.get(c));
+//            }
+//        } catch (InvalidNameException e) {
+//            log.error(e.getMessage());
+//            log.debug(e.getMessage(), e);
+//        }
+//        return dn;
+//    }
 
-            for(int c=0; c < baseDn.size(); c++){
-                dn.remove(0);
-            }
+//    @Override
+//    public Name getGroupDn(){
+//        return LdapNameBuilder.newInstance(groupdn).build();
+//    }
 
-            for(int c=0; c < dn.size(); c++){
-                log.trace("DN::removeBase. $dn.get({}): {}", c, dn.get(c));
-            }
-        } catch (InvalidNameException e) {
-            log.error(e.getMessage());
-            log.debug(e.getMessage(), e);
-        }
-        return dn;
-    }
+//    @Override
+//    public Name getCompleteGroupDn() {
+//        return LdapNameBuilder.newInstance(base).add(groupdn).build();
+//    }
 
-    @Override
-    public Name getGroupDn(){
-        return LdapNameBuilder.newInstance(groupdn).build();
-    }
+//    @Override
+//    public Name getCompleteGoupDn(String groupname){
+//        return LdapNameBuilder.newInstance(base).add(groupdn).add("cn", groupname).build();
+//    }
 
-    @Override
-    public Name getCompleteGroupDn() {
-        return LdapNameBuilder.newInstance(base).add(groupdn).build();
-    }
-
-    @Override
-    public Name getCompleteGoupDn(String groupname){
-        return LdapNameBuilder.newInstance(base).add(groupdn).add("cn", groupname).build();
-    }
-
-    @Override
-    public Name getCompleteUserDn(String username) {
-        return LdapNameBuilder.newInstance(base).add(peopledn).add("uid", username).build();
-    }
+//    @Override
+//    public Name getCompleteUserDn(String username) {
+//        return LdapNameBuilder.newInstance(base).add(peopledn).add("uid", username).build();
+//    }
 
     public static void main (String[] args){
         Name dn = LdapNameBuilder.newInstance("ou=people,dc=la-etienda,dc=com").add("uid", "admuser").build();

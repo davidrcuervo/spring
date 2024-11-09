@@ -14,29 +14,29 @@ public class LdapDnImplB implements LdapDn {
     @Value("${spring.ldap.base}")
     private String dndomain;
 
-    @Value("${ldap.dn.group}")
-    private String groupdn;
+//    @Value("${ldap.dn.group}")
+//    private String groupdn;
 
-    @Value("${ldap.dn.people}")
-    private String peopledn;
+//    @Value("${ldap.dn.people}")
+//    private String peopledn;
 
     @Value("${spring.ldap.base}")
     private String base;
 
-    @Override
-    public Name getUserDn(String uid) {
-        return LdapNameBuilder.newInstance(peopledn).add("uid", uid).build();
-    }
+//    @Override
+//    public Name getUserDn(String uid) {
+//        return LdapNameBuilder.newInstance(peopledn).add("uid", uid).build();
+//    }
 
-    @Override
-    public Name getUserDn() {
-        return LdapNameBuilder.newInstance(peopledn).build();
-    }
+//    @Override
+//    public Name getUserDn() {
+//        return LdapNameBuilder.newInstance(peopledn).build();
+//    }
 
-    @Override
-    public Name getDomainDn() {
-        return LdapNameBuilder.newInstance(dndomain).build();
-    }
+//    @Override
+//    public Name getDomainDn() {
+//        return LdapNameBuilder.newInstance(dndomain).build();
+//    }
 
     @Override
     public String getUsername(Name dn) {
@@ -57,10 +57,10 @@ public class LdapDnImplB implements LdapDn {
         }
     }
 
-    @Override
-    public Name getGroupDn(String cn) {
-        return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
-    }
+//    @Override
+//    public Name getGroupDn(String cn) {
+//        return LdapNameBuilder.newInstance(groupdn).add("cn", cn).build();
+//    }
 
     @Override
     public Name getFullDn(Name dn) {
@@ -74,42 +74,42 @@ public class LdapDnImplB implements LdapDn {
         return result;
     }
 
-    @Override
-    public Name removeBase(Name dn) {
-        try {
-            Name baseDn = LdapNameBuilder.newInstance(base).build();
+//    @Override
+//    public Name removeBase(Name dn) {
+//        try {
+//            Name baseDn = LdapNameBuilder.newInstance(base).build();
+//
+//            for(int c=0; c < baseDn.size(); c++){
+//                dn.remove(0);
+//            }
+//
+//            for(int c=0; c < dn.size(); c++){
+//                log.trace("DN::removeBase. $dn.get({}): {}", c, dn.get(c));
+//            }
+//        } catch (InvalidNameException e) {
+//            log.error(e.getMessage());
+//            log.debug(e.getMessage(), e);
+//        }
+//        return dn;
+//    }
 
-            for(int c=0; c < baseDn.size(); c++){
-                dn.remove(0);
-            }
+//    @Override
+//    public Name getGroupDn() {
+//        return LdapNameBuilder.newInstance(groupdn).build();
+//    }
 
-            for(int c=0; c < dn.size(); c++){
-                log.trace("DN::removeBase. $dn.get({}): {}", c, dn.get(c));
-            }
-        } catch (InvalidNameException e) {
-            log.error(e.getMessage());
-            log.debug(e.getMessage(), e);
-        }
-        return dn;
-    }
+//    @Override
+//    public Name getCompleteGroupDn() {
+//        return getGroupDn();
+//    }
 
-    @Override
-    public Name getGroupDn() {
-        return LdapNameBuilder.newInstance(groupdn).build();
-    }
+//    @Override
+//    public Name getCompleteGoupDn(String groupname) {
+//        return getGroupDn(groupname);
+//    }
 
-    @Override
-    public Name getCompleteGroupDn() {
-        return getGroupDn();
-    }
-
-    @Override
-    public Name getCompleteGoupDn(String groupname) {
-        return getGroupDn(groupname);
-    }
-
-    @Override
-    public Name getCompleteUserDn(String username) {
-        return getUserDn(username);
-    }
+//    @Override
+//    public Name getCompleteUserDn(String username) {
+//        return getUserDn(username);
+//    }
 }
