@@ -1,5 +1,6 @@
 package com.laetienda.schema;
 
+import com.laetienda.model.schema.DbItem;
 import com.laetienda.utils.service.test.SchemaTest;
 import com.laetienda.utils.service.test.UserTestService;
 import org.jasypt.encryption.StringEncryptor;
@@ -13,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(SchemaTestConfiguration.class)
@@ -54,5 +54,11 @@ class SchemaApplicationTests {
 	@Test
 	void helloValidateUser(){
 		schemaTest.helloValidateUser(admuser, admuserPassword);
+	}
+
+	@Test
+	void create() {
+		DbItem item = new DbItem(admuser, "manager");
+		schemaTest.create(item);
 	}
 }

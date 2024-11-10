@@ -16,10 +16,10 @@ HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
 /usr/lib/postgresql/16/bin/pg_ctl -D $DATA_PATH -l $LOG_PATH -o "-c listen_addresses='*'" -o "-c hba_file='$HBA_CONF_PATH'" -w start
 
 # create a user or role
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE USER web WITH PASSWORD '$DATABASE_WEB_PASSWORD';"
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE web TEMPLATE template0 ENCODING 'UNICODE';"
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "ALTER DATABASE web OWNER TO web;"
-/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE web TO web;"
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE USER webapp WITH PASSWORD '$DATABASE_WEB_PASSWORD';"
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE webapp TEMPLATE template0 ENCODING 'UNICODE';"
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "ALTER DATABASE webapp OWNER TO webapp;"
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE webapp TO webapp;"
 
 #set springsession database
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE USER springsession WITH PASSWORD '$DATABASE_SPRINGSESSION_PASSWORD';"

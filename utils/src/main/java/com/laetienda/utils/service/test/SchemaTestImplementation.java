@@ -1,5 +1,6 @@
 package com.laetienda.utils.service.test;
 
+import com.laetienda.model.schema.DbItem;
 import com.laetienda.utils.service.api.SchemaApi;
 import com.laetienda.utils.service.api.UserApi;
 import org.slf4j.Logger;
@@ -45,13 +46,7 @@ public class SchemaTestImplementation implements SchemaTest {
         });
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
 
-        response = ((UserApi)userApi.setCredentials(username, password)).login();
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-
-        String session = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
-        log.trace("SCHEMA_TEST::helloUser $session: {}", session);
-
+        String session = loginSession(admuser, admuserPassword);
         response = ((SchemaApi)schemaApi.setSessionId(session)).helloUser();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -91,6 +86,20 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
+    public ResponseEntity<DbItem> create(DbItem item) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::create");
+        String session = loginSession(admuser, admuserPassword);
+
+        ResponseEntity<DbItem> response = ((SchemaApi)schemaApi.setSessionId(session))
+                .create(item);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().getId() > 0);
+
+        return response;
+    }
+
+    @Override
     public SchemaTest setPort(Integer port) {
         schemaApi.setPort(port);
         return this;
@@ -106,5 +115,15 @@ public class SchemaTestImplementation implements SchemaTest {
     public SchemaTest setAdmuserPassword(String password) {
         this.admuserPassword = password;
         return this;
+    }
+
+    private String loginSession (String username, String password){
+        ResponseEntity<String> response = ((UserApi)userApi.setCredentials(username, password)).login();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String session = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+        log.trace("SCHEMA_TEST::helloUser $session: {}", session);
+        return session;
     }
 }

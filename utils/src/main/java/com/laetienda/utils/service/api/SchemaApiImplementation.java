@@ -1,5 +1,6 @@
 package com.laetienda.utils.service.api;
 
+import com.laetienda.model.schema.DbItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,16 @@ public class SchemaApiImplementation extends ApiClientServiceImplementation impl
         String address = String.format("%s/%s",schemaUri, env.getProperty("api.schema.helloValidatedUser"));
         log.trace("SCHEMA_API::helloValidateUser. $address: {}", address);
         return getRestClient().post().uri(address, getPort()).retrieve().toEntity(String.class);
+    }
+
+    @Override
+    public ResponseEntity<DbItem> create(DbItem item) throws HttpClientErrorException {
+        String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.create"));
+        log.trace("SCHEMA_API::create $item.owner: {}, $item.group: {}, $address: {}", item.getOwner(), item.getGrupo(), address);
+        return getRestClient().post()
+                .uri(address, getPort())
+                .body(item)
+                .retrieve().toEntity(DbItem.class);
     }
 
     @Override
