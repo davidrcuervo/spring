@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 
 import javax.naming.Name;
 
-@Component
 public interface LdapDn {
 //    Name getUserDn(String uid);
 //    public Name getUserDn();

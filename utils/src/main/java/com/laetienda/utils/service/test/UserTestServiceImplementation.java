@@ -151,4 +151,33 @@ public class UserTestServiceImplementation implements UserTestService {
 
         return response;
     }
+
+    @Override
+    public void session() throws HttpClientErrorException {
+        log.debug("USER_TEST::session");
+        Usuario user = new Usuario(
+                "sessionTestUser",
+                "Session",null,"Test User",
+                "sessionTestUser@mail.com",
+                "secretpassword", "secretpassword"
+        );
+
+        ResponseEntity<Usuario> respUser = create(user);
+        emailValidation(respUser.getBody().getEncToken(), user.getUsername(), user.getPassword());
+
+        assertNull(userApi.getSession());
+        ((UserApi)userApi.setCredentials(user.getUsername(), user.getPassword())).startSession();
+        assertNotNull(userApi.getSession());
+        assertNull(userApi.getUsername());
+
+        ResponseEntity<String> respLogin = userApi.login();
+        assertEquals(HttpStatus.OK, respLogin.getStatusCode());
+        assertNotNull(respLogin.getBody());
+
+        ResponseEntity<String> respLogout = userApi.endSession();
+        assertEquals(HttpStatus.NO_CONTENT, respLogout.getStatusCode());
+        assertNull(userApi.getSession());
+
+        delete(user.getUsername(), user.getUsername(), user.getPassword());
+    }
 }

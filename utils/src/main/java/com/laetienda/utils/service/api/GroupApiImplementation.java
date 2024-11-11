@@ -4,13 +4,13 @@ import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-public class GroupApiImplementation extends ApiClientServiceImplementation implements GroupApi {
+public class GroupApiImplementation extends ApiClientImplementation implements GroupApi {
     private static final Logger log = LoggerFactory.getLogger(GroupApiImplementation.class);
 
     @Value("${api.usuario.port}")

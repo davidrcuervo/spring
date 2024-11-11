@@ -6,8 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-@Service
-public interface MessengerApi extends ApiClientService {
+public interface MessengerApi extends ApiClient {
     ResponseEntity<String> helloWord() throws HttpClientErrorException;
     ResponseEntity<String> testMailer() throws HttpClientErrorException;
     ResponseEntity<String> sendMessage(EmailMessage message) throws HttpClientErrorException;

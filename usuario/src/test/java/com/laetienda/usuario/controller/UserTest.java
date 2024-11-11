@@ -2,7 +2,6 @@ package com.laetienda.usuario.controller;
 
 import com.laetienda.lib.model.AuthCredentials;
 import com.laetienda.lib.service.TestRestClient;
-import com.laetienda.lib.service.TestRestClientImpl;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
@@ -740,5 +739,10 @@ public class UserTest {
         response = userTest.login(sessionId);
         response = userTest.logout(sessionId);
         userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
+    }
+
+    @Test
+    public void session(){
+        userTest.session();
     }
 }

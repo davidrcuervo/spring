@@ -9,4 +9,5 @@ public interface SchemaTest extends WebappTest {
     ResponseEntity<String> helloUser(String username, String password) throws HttpClientErrorException;
     ResponseEntity<String> helloValidateUser(String username, String password) throws HttpClientErrorException;
     ResponseEntity<DbItem> create (DbItem item) throws HttpClientErrorException;
+    ResponseEntity<DbItem> createBadEditor(DbItem item) throws HttpClientErrorException;
 }

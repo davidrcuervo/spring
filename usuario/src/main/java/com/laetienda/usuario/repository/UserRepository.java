@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.naming.Name;
 
-@Repository
 public interface UserRepository  {
 
     Usuario findbyUsername(String username);

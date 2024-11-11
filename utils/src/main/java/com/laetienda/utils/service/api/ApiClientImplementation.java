@@ -5,9 +5,7 @@ import com.laetienda.lib.service.ToolBoxServiceImpl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClient;
 
-import java.util.Base64;
-
-public class ApiClientServiceImplementation implements ApiClientService {
+public class ApiClientImplementation implements ApiClient {
 
     private String loginUsername;
     private String password;
@@ -15,7 +13,7 @@ public class ApiClientServiceImplementation implements ApiClientService {
     private ToolBoxService tb;
     private String port;
 
-    public ApiClientServiceImplementation(){
+    public ApiClientImplementation(){
         this.tb = new ToolBoxServiceImpl();
         loginUsername = password = sessionId = null;
     }
@@ -44,7 +42,7 @@ public class ApiClientServiceImplementation implements ApiClientService {
 //                    .defaultHeader(HttpHeaders.COOKIE, Base64.getEncoder().encodeToString(sessionId.getBytes()))
                     .defaultHeader(HttpHeaders.COOKIE, sessionId)
                     .build();
-            sessionId = null;
+//            sessionId = null;
         }else{
             result = RestClient.builder().build();
         }
@@ -53,26 +51,26 @@ public class ApiClientServiceImplementation implements ApiClientService {
     }
 
     @Override
-    public ApiClientService setSessionId(String sessionId) {
+    public ApiClient setSessionId(String sessionId) {
         this.sessionId = sessionId;
         return this;
     }
 
     @Override
-    public ApiClientService setCredentials(String loginUsername, String password) {
+    public ApiClient setCredentials(String loginUsername, String password) {
         this.loginUsername = loginUsername;
         this.password = password;
         return this;
     }
 
     @Override
-    public ApiClientService setPort(String port) {
+    public ApiClient setPort(String port) {
         this.port = port;
         return this;
     }
 
     @Override
-    public ApiClientService setPort(Integer port) {
+    public ApiClient setPort(Integer port) {
         setPort(Integer.toString(port));
         return this;
     }
@@ -80,5 +78,15 @@ public class ApiClientServiceImplementation implements ApiClientService {
     @Override
     public String getPort() {
         return port;
+    }
+
+    @Override
+    public String getUsername() {
+        return loginUsername;
+    }
+
+    @Override
+    public String getSession() {
+        return this.sessionId;
     }
 }

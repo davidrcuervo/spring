@@ -11,16 +11,6 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class SchemaApplication {
 
-	@Bean
-	public UserApi getUserApiService(){
-		return new UserApiImplementation();
-	}
-
-	@Bean
-	public SchemaApi getSchemaApiService(){
-		return new SchemaApiImplementation();
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(SchemaApplication.class, args);
 	}

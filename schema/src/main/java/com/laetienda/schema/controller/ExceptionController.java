@@ -1,4 +1,4 @@
-package com.laetienda.messenger.controller;
+package com.laetienda.schema.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.model.Mistake;

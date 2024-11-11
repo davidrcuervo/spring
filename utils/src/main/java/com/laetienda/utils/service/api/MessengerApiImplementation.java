@@ -9,8 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-@Service
-public class MessengerApiImplementation extends ApiClientServiceImplementation implements MessengerApi{
+public class MessengerApiImplementation extends ApiClientImplementation implements MessengerApi{
     private static final Logger log = LoggerFactory.getLogger(MessengerApiImplementation.class);
 
     @Value("${api.messenger.port}")

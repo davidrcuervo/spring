@@ -2,13 +2,12 @@ package com.laetienda.utils.service.api;
 
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
-import com.laetienda.model.user.Usuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 @Service
-public interface GroupApi extends ApiClientService{
+public interface GroupApi extends ApiClient {
     ResponseEntity<Group> findByName(String gname) throws HttpClientErrorException;
     ResponseEntity<Group> create(Group group) throws HttpClientErrorException;
     public ResponseEntity<String> delete(String gname) throws HttpClientErrorException;

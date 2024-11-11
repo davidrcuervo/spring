@@ -58,7 +58,14 @@ class SchemaApplicationTests {
 
 	@Test
 	void create() {
-		DbItem item = new DbItem(admuser, "manager");
+		DbItem item = new DbItem();
 		schemaTest.create(item);
+	}
+
+	@Test
+	void createBadEditor(){
+		DbItem item = new DbItem();
+		item.addEditor("NonExistentEditor");
+		schemaTest.createBadEditor(item);
 	}
 }

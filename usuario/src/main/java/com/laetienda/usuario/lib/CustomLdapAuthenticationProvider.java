@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 
-@Component
 public class CustomLdapAuthenticationProvider implements AuthenticationProvider {
     final private static Logger log = LoggerFactory.getLogger(CustomLdapAuthenticationProvider.class);
 

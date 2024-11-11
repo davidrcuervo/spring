@@ -8,7 +8,6 @@ import javax.naming.Name;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface SpringUserRepository extends LdapRepository<Usuario> {
 
     Optional<Usuario> findById(Name dn);

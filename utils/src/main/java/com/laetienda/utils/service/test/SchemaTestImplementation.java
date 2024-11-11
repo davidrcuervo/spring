@@ -100,6 +100,20 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
+    public ResponseEntity<DbItem> createBadEditor(DbItem item) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::createBadEditor");
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            ResponseEntity<DbItem> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+                .create(item);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+
+        return null;
+    }
+
+    @Override
     public SchemaTest setPort(Integer port) {
         schemaApi.setPort(port);
         return this;

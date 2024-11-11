@@ -8,12 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-public class UserApiImplementation extends ApiClientServiceImplementation implements UserApi {
+public class UserApiImplementation extends ApiClientImplementation implements UserApi {
     final private static Logger log = LoggerFactory.getLogger(UserApiImplementation.class);
 
     @Autowired
@@ -131,6 +133,26 @@ public class UserApiImplementation extends ApiClientServiceImplementation implem
         log.trace("USER_API::EmailValidation $token: {}", token);
         return getRestClient().get().uri(usuarioEmailValidation, getPort(), token)
                 .retrieve().toEntity(String.class);
+    }
+
+    @Override
+    public ResponseEntity<String> startSession() throws HttpClientErrorException {
+        log.trace("USER_API::startSession $userame: {}", getUsername());
+        ResponseEntity<String> resp = login();
+        String session = resp.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+        log.trace("USER_API::startSession $session: {}", session);
+        super.setSessionId(session);
+
+        return resp;
+    }
+
+    @Override
+    public ResponseEntity<String> endSession() throws HttpClientErrorException {
+        log.trace("USER_API::endSession $session: {}", getSession());
+        ResponseEntity<String> resp = logout();
+        setSessionId(null);
+
+        return resp;
     }
 
     @Override

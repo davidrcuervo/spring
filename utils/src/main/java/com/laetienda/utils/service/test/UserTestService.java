@@ -19,4 +19,5 @@ public interface UserTestService {
     ResponseEntity<String> login(String username, String password) throws HttpClientErrorException;
     ResponseEntity<String> login(String sessionId) throws HttpClientErrorException;
     ResponseEntity<String> logout(String sessionId) throws HttpClientErrorException;
+    void session() throws HttpClientErrorException;
 }

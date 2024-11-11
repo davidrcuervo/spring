@@ -4,7 +4,6 @@ import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import org.springframework.stereotype.Repository;
 
-@Repository
 public interface GroupRepository {
 
     Group findByName(String name);

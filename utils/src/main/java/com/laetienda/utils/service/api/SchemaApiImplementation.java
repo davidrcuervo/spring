@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-public class SchemaApiImplementation extends ApiClientServiceImplementation implements SchemaApi {
+public class SchemaApiImplementation extends ApiClientImplementation implements SchemaApi {
     private static final Logger log = LoggerFactory.getLogger(SchemaApiImplementation.class);
 
     @Autowired private Environment env;
@@ -41,7 +42,7 @@ public class SchemaApiImplementation extends ApiClientServiceImplementation impl
     @Override
     public ResponseEntity<DbItem> create(DbItem item) throws HttpClientErrorException {
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.create"));
-        log.trace("SCHEMA_API::create $item.owner: {}, $item.group: {}, $address: {}", item.getOwner(), item.getGrupo(), address);
+        log.trace("SCHEMA_API::create $item.owner: {}, $address: {}", item.getOwner(), address);
         return getRestClient().post()
                 .uri(address, getPort())
                 .body(item)
