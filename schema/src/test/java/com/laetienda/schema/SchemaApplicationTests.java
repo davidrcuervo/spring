@@ -1,6 +1,8 @@
 package com.laetienda.schema;
 
-import com.laetienda.model.schema.DbItem;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.utils.service.test.SchemaTest;
 import com.laetienda.utils.service.test.UserTestService;
 import org.jasypt.encryption.StringEncryptor;
@@ -14,6 +16,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(SchemaTestConfiguration.class)
@@ -24,6 +29,7 @@ class SchemaApplicationTests {
 	@Autowired private UserTestService userTest;
 	@Autowired private Environment env;
 	@Autowired private StringEncryptor jasypte;
+	@Autowired private ObjectMapper jsonMapper;
 
 	@LocalServerPort
 	private int port;
@@ -57,15 +63,22 @@ class SchemaApplicationTests {
 	}
 
 	@Test
-	void create() {
-		DbItem item = new DbItem();
-		schemaTest.create(item);
+	void create() throws JsonProcessingException {
+		ItemTypeA item = new ItemTypeA();
+		item.setAddress("1453 Villeary");
+		item.setAge(43);
+		item.setUsername("myself");
+		ResponseEntity<String> resp = schemaTest.create(item.getClass().getName(), item);
+		ItemTypeA itemResp = jsonMapper.readValue(resp.getBody(), ItemTypeA.class);
+		assertEquals(item.getAge(), itemResp.getAge());
+		assertEquals(item.getUsername(), itemResp.getUsername());
+		assertEquals(item.getAddress(), itemResp.getAddress());
 	}
 
 	@Test
 	void createBadEditor(){
-		DbItem item = new DbItem();
+		ItemTypeA item = new ItemTypeA();
 		item.addEditor("NonExistentEditor");
-		schemaTest.createBadEditor(item);
+		schemaTest.createBadEditor(ItemTypeA.class.getName(), item);
 	}
 }

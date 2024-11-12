@@ -11,9 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @EntityListeners({AuditingEntityListener.class})
 @Table(name="ITEM")
-public class DbItem {
+public abstract class DbItem {
 
     @Id
     @GeneratedValue

@@ -5,5 +5,5 @@ import com.laetienda.model.schema.DbItem;
 
  public interface ItemService {
 
-    DbItem create(DbItem item) throws NotValidCustomException;
+    String create(String clazzName, String data) throws NotValidCustomException;
 }

@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 public class SchemaApiImplementation extends ApiClientImplementation implements SchemaApi {
     private static final Logger log = LoggerFactory.getLogger(SchemaApiImplementation.class);
 
@@ -40,13 +43,14 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
     }
 
     @Override
-    public ResponseEntity<DbItem> create(DbItem item) throws HttpClientErrorException {
+    public ResponseEntity<String> create(String clazzName, DbItem item) throws HttpClientErrorException {
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.create"));
-        log.trace("SCHEMA_API::create $item.owner: {}, $address: {}", item.getOwner(), address);
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazzName.getBytes(StandardCharsets.UTF_8));
+        log.trace("SCHEMA_API::create $item.owner: {}, $address: {}, $ecodedClazz: {}", item.getOwner(), address, encodedClazzName);
         return getRestClient().post()
-                .uri(address, getPort())
+                .uri(address, getPort(), encodedClazzName)
                 .body(item)
-                .retrieve().toEntity(DbItem.class);
+                .retrieve().toEntity(String.class);
     }
 
     @Override

@@ -8,5 +8,5 @@ public interface SchemaApi extends ApiClient {
     ResponseEntity<String> helloAll() throws HttpClientErrorException;
     ResponseEntity<String> helloUser() throws HttpClientErrorException;
     ResponseEntity<String> helloValidatedUser() throws HttpClientErrorException;
-    ResponseEntity<DbItem> create(DbItem item) throws HttpClientErrorException;
+    ResponseEntity<String> create(String clazzName, DbItem item) throws HttpClientErrorException;
 }

@@ -8,6 +8,6 @@ public interface SchemaTest extends WebappTest {
     ResponseEntity<String> helloAll() throws HttpClientErrorException;
     ResponseEntity<String> helloUser(String username, String password) throws HttpClientErrorException;
     ResponseEntity<String> helloValidateUser(String username, String password) throws HttpClientErrorException;
-    ResponseEntity<DbItem> create (DbItem item) throws HttpClientErrorException;
-    ResponseEntity<DbItem> createBadEditor(DbItem item) throws HttpClientErrorException;
+    ResponseEntity<String> create (String clazzName, DbItem item) throws HttpClientErrorException;
+    ResponseEntity<DbItem> createBadEditor(String clazzName, DbItem item) throws HttpClientErrorException;
 }

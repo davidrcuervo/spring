@@ -1,5 +1,7 @@
 package com.laetienda.utils.service.test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.utils.service.api.SchemaApi;
 import com.laetienda.utils.service.api.UserApi;
@@ -19,6 +21,7 @@ public class SchemaTestImplementation implements SchemaTest {
 
     @Autowired private SchemaApi schemaApi;
     @Autowired private UserApi userApi;
+    @Autowired private ObjectMapper jsonMapper;
 
     @Value("${admuser.username}")
     private String admuser;
@@ -86,26 +89,36 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
-    public ResponseEntity<DbItem> create(DbItem item) throws HttpClientErrorException {
-        log.debug("SCHEMA_TEST::create");
+    public ResponseEntity<String> create(String clazzName, DbItem item) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::create $clazzName: {}", clazzName);
         String session = loginSession(admuser, admuserPassword);
 
-        ResponseEntity<DbItem> response = ((SchemaApi)schemaApi.setSessionId(session))
-                .create(item);
+        ResponseEntity<String> response = ((SchemaApi)schemaApi.setSessionId(session))
+                .create(clazzName, item);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().getId() > 0);
+
+        //convert from json string to clazz item
+        try {
+            DbItem itemResp = (DbItem) jsonMapper.readValue(response.getBody(), Class.forName(clazzName));
+            assertTrue(itemResp.getId() > 0);
+            assertEquals(admuser, itemResp.getOwner());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         return response;
     }
 
     @Override
-    public ResponseEntity<DbItem> createBadEditor(DbItem item) throws HttpClientErrorException {
+    public ResponseEntity<DbItem> createBadEditor(String clazzName, DbItem item) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::createBadEditor");
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-            ResponseEntity<DbItem> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
-                .create(item);
+            ResponseEntity<String> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+                .create(clazzName, item);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
@@ -139,5 +152,9 @@ public class SchemaTestImplementation implements SchemaTest {
         String session = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
         log.trace("SCHEMA_TEST::helloUser $session: {}", session);
         return session;
+    }
+
+    private void endSession(String session){
+        userApi.endSession();userApi.startSession();
     }
 }
