@@ -3,7 +3,11 @@ package com.laetienda.schema.service;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
 
- public interface ItemService {
+import java.util.Map;
 
-    String create(String clazzName, String data) throws NotValidCustomException;
+public interface ItemService {
+
+    <T> T create(Class<T> clazz, String data) throws NotValidCustomException;
+    <T> T find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
+    <T> void delete(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
 }

@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SchemaTestImplementation implements SchemaTest {
@@ -89,40 +91,71 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
-    public ResponseEntity<String> create(String clazzName, DbItem item) throws HttpClientErrorException {
-        log.debug("SCHEMA_TEST::create $clazzName: {}", clazzName);
+    public <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::create $clazzName: {}", clazz.getName());
         String session = loginSession(admuser, admuserPassword);
 
-        ResponseEntity<String> response = ((SchemaApi)schemaApi.setSessionId(session))
-                .create(clazzName, item);
+        ResponseEntity<T> response = ((SchemaApi)schemaApi.setSessionId(session))
+                .create(clazz, item);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
         //convert from json string to clazz item
-        try {
-            DbItem itemResp = (DbItem) jsonMapper.readValue(response.getBody(), Class.forName(clazzName));
-            assertTrue(itemResp.getId() > 0);
-            assertEquals(admuser, itemResp.getOwner());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        DbItem itemResp = (DbItem) response.getBody();
+        assertTrue(itemResp.getId() > 0);
+        assertEquals(admuser, itemResp.getOwner());
 
         return response;
     }
 
     @Override
-    public ResponseEntity<DbItem> createBadEditor(String clazzName, DbItem item) throws HttpClientErrorException {
+    public <T> ResponseEntity<T> createBadEditor(Class<T> clazz, DbItem item) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::createBadEditor");
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-            ResponseEntity<String> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
-                .create(clazzName, item);
+            ResponseEntity<T> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+                .create(clazz, item);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
 
+        return null;
+    }
+
+    @Override
+    public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::find. $class: {}, $key: {}, $value: {}", clazz.getName());
+
+        ResponseEntity<T> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+                .find(clazz, body);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response;
+    }
+
+    @Override
+    public <T> HttpClientErrorException notFound(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::notFound. $class: {}, $key: {}, $value: {}", clazz.getName());
+
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+                    .find(clazz, body);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+
+        return ex;
+    }
+
+    @Override
+    public <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::delete. $class: {}, $key: {}, $value: {}", clazz.getName());
+
+        ResponseEntity<String> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+                .delete(clazz, body);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(Boolean.parseBoolean(response.getBody()));
         return null;
     }
 

@@ -18,7 +18,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(SchemaTestConfiguration.class)
@@ -63,22 +66,77 @@ class SchemaApplicationTests {
 	}
 
 	@Test
-	void create() throws JsonProcessingException {
+	void cycle(){
 		ItemTypeA item = new ItemTypeA();
 		item.setAddress("1453 Villeary");
 		item.setAge(43);
 		item.setUsername("myself");
-		ResponseEntity<String> resp = schemaTest.create(item.getClass().getName(), item);
-		ItemTypeA itemResp = jsonMapper.readValue(resp.getBody(), ItemTypeA.class);
+
+		item = create(item);
+		find(item);
+		delete(item);
+	}
+
+	ItemTypeA create(ItemTypeA item){
+
+		ResponseEntity<ItemTypeA> resp = schemaTest.create(ItemTypeA.class, item);
+		ItemTypeA itemResp = resp.getBody();
+		assertTrue(itemResp.getId() > 0);
 		assertEquals(item.getAge(), itemResp.getAge());
 		assertEquals(item.getUsername(), itemResp.getUsername());
 		assertEquals(item.getAddress(), itemResp.getAddress());
+
+		return itemResp;
+	}
+
+	void find(ItemTypeA item) {
+		Map<String, String> body = new HashMap<String, String>();
+		body.put("username", item.getUsername());
+		ResponseEntity<ItemTypeA> resp = schemaTest.find(ItemTypeA.class, body);
+		assertEquals(item.getId(), resp.getBody().getId());
+	}
+
+	void delete(ItemTypeA item){
+		Map<String, String> body = new HashMap<String, String>();
+		body.put("username", item.getUsername());
+		schemaTest.delete(ItemTypeA.class, body);
+		schemaTest.notFound(ItemTypeA.class, body);
 	}
 
 	@Test
 	void createBadEditor(){
 		ItemTypeA item = new ItemTypeA();
 		item.addEditor("NonExistentEditor");
-		schemaTest.createBadEditor(ItemTypeA.class.getName(), item);
+		schemaTest.createBadEditor(ItemTypeA.class, item);
+	}
+
+	@Test
+	void update(){
+		fail();
+	}
+
+	@Test
+	void addReader(){
+		fail();
+	}
+
+	@Test
+	void addEditor(){
+		fail();
+	}
+
+	@Test
+	void removeReader(){
+		fail();
+	}
+
+	@Test
+	void removeEditor(){
+		fail();
+	}
+
+	@Test
+	void deleteUser(){
+		fail();
 	}
 }

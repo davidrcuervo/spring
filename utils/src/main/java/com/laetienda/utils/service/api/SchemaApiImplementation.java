@@ -10,8 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SchemaApiImplementation extends ApiClientImplementation implements SchemaApi {
     private static final Logger log = LoggerFactory.getLogger(SchemaApiImplementation.class);
@@ -43,13 +46,37 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
     }
 
     @Override
-    public ResponseEntity<String> create(String clazzName, DbItem item) throws HttpClientErrorException {
+    public <T> ResponseEntity<T> create(Class<T> clazz , DbItem item) throws HttpClientErrorException {
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.create"));
-        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazzName.getBytes(StandardCharsets.UTF_8));
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
         log.trace("SCHEMA_API::create $item.owner: {}, $address: {}, $ecodedClazz: {}", item.getOwner(), address, encodedClazzName);
         return getRestClient().post()
                 .uri(address, getPort(), encodedClazzName)
                 .body(item)
+                .retrieve().toEntity(clazz);
+    }
+
+    @Override
+    public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
+        String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.find"));
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+        log.trace("SCHEMA_API::find $address: {}, $ecodedClazz: {}", address, encodedClazzName);
+
+        return getRestClient().post()
+                .uri(address, getPort(), encodedClazzName)
+                .body(body)
+                .retrieve().toEntity(clazz);
+    }
+
+    @Override
+    public <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
+        String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.delete"));
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+        log.trace("SCHEMA_API::delete $address: {}, $ecodedClazz: {}", address, encodedClazzName);
+
+        return getRestClient().post()
+                .uri(address, getPort(), encodedClazzName)
+                .body(body)
                 .retrieve().toEntity(String.class);
     }
 

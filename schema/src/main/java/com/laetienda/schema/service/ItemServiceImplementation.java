@@ -22,6 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.Map;
 
 @Service
 public class ItemServiceImplementation implements ItemService{
@@ -40,13 +41,12 @@ public class ItemServiceImplementation implements ItemService{
     private String admUserPassword;
 
     @Override
-    public String create(String clazzName, String data) throws NotValidCustomException {
+    public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
-            log.debug("ITEM_SERVICE::create $clazzName: {}", clazzName);
+            log.debug("ITEM_SERVICE::create $clazzName: {}", clazz.getName());
             String username = request.getUserPrincipal().getName();
 
             //Build object
-            Class<?> clazz = Class.forName(clazzName);
             DbItem item = (DbItem) jsonMapper.readValue(data, clazz);
 
             //Check if object is valid
@@ -58,7 +58,7 @@ public class ItemServiceImplementation implements ItemService{
             log.trace("SCHEMA_REPO::create $item.id: {}", item.getId());
 
             //convert to json string
-            return jsonMapper.writeValueAsString(clazz.cast(item));
+            return ((T) item);
 
         }catch (JsonProcessingException ex1){
             log.error("SCHEMA_REPO::create $error: {}", ex1.getMessage());
@@ -68,6 +68,46 @@ public class ItemServiceImplementation implements ItemService{
             log.error("SCHEMA_REPO::create $error: {}", ex.getMessage());
             log.trace(ex.getMessage(), ex);
             throw new NotValidCustomException(ex.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @Override
+    public <T> T find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        log.debug("ITEM_SERVICE::find $clazzName: {}", clazz.getName());
+        String username = request.getUserPrincipal().getName();
+
+        if(body.size() == 1) {
+            T item = schemaRepo.find(clazz, body);
+
+            if (item == null) {
+                String message = String.format("Item does not exist.");
+                throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
+            } else if (canRead((DbItem) item)) {
+                return item;
+            } else {
+                String message = String.format("User, %s, doesn't have privileges to read the item.");
+                throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+            }
+        }else{
+            String message = String.format("Request body has more paramenters than expected");
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @Override
+    public <T> void delete(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        T item = find(clazz, body);
+        Long id = ((DbItem)item).getId();
+
+        log.debug("ITEM_SERVICE::delete $clazzName: {}", clazz.getName());
+        String username = request.getUserPrincipal().getName();
+
+        if(canEdit((DbItem)item)){
+            schemaRepo.delete(clazz, item);
+            log.trace("ITEM_SERVICE::delete. $item.id: {}", id);
+        }else{
+            String message = String.format("User, %s, doesn't have privileges to remove the item. $item.id: %d, $username: %s", ((DbItem) item).getId(), username);
+            throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
         }
     }
 
@@ -99,11 +139,11 @@ public class ItemServiceImplementation implements ItemService{
 
     private Boolean canEdit(DbItem item){
         String username = request.getUserPrincipal().getName();
-        return item.getEditors().contains(username);
+        return username.equals(item.getOwner()) || item.getEditors().contains(username);
     }
 
     private Boolean canRead(DbItem item){
         String username = request.getUserPrincipal().getName();
-        return item.getReaders().contains(username);
+        return username.equals(item.getOwner()) || canEdit(item) || item.getReaders().contains(username);
     }
 }

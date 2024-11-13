@@ -1,6 +1,8 @@
 package com.laetienda.utils.service.api;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 @Service
@@ -14,4 +16,6 @@ public interface ApiClient {
     String getPort();
     String getUsername();
     String getSession();
+//    ApiClient startSession() throws HttpClientErrorException;
+//    ApiClient endSession() throws HttpClientErrorException;
 }
