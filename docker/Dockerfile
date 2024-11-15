@@ -228,3 +228,12 @@ RUN chmod 744 spring/usuario/start.sh
 ENTRYPOINT ["spring/usuario/start.sh"]
 #ENTRYPOINT ["/bin/bash", "-c"]
 #CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/usuario/pom.xml"]
+
+############################################
+## MY usuarioapp IMAGE
+############################################
+FROM webapp AS testcontainer
+
+#Set application folder
+WORKDIR /opt/webapp
+ENV HOME=/opt/webapp

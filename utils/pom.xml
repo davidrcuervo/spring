@@ -40,13 +40,13 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>com.github.ulisesbocchio</groupId>
-				<artifactId>jasypt-maven-plugin</artifactId>
-				<version>3.0.5</version>
-			</plugin>
+<!--	<build>-->
+<!--		<plugins>-->
+<!--			<plugin>-->
+<!--				<groupId>com.github.ulisesbocchio</groupId>-->
+<!--				<artifactId>jasypt-maven-plugin</artifactId>-->
+<!--				<version>3.0.5</version>-->
+<!--			</plugin>-->
 <!--			<plugin>-->
 <!--				<groupId>org.springframework.boot</groupId>-->
 <!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
@@ -59,7 +59,7 @@
 <!--					<target>8</target>-->
 <!--				</configuration>-->
 <!--			</plugin>-->
-		</plugins>
-	</build>
+<!--		</plugins>-->
+<!--	</build>-->
 
 </project>

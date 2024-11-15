@@ -82,6 +82,26 @@ services:
       args:
         - DOCKER_GID=999
 
+  testcontainer:
+    image: testcontainer:1.0
+    user: webappuser
+    entrypoint: /bin/bash
+    secrets:
+      - jasypt-password
+    depends_on:
+      - mypostgres
+      - myldap
+    networks:
+      - backend
+    env_file:
+      - webapp.env
+    volumes:
+      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+    build:
+      target: testcontainer
+      args:
+        - DOCKER_GID=999
+
 networks:
   backend:
 
