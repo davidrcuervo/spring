@@ -1,8 +1,6 @@
 package com.laetienda.schema.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
-import com.laetienda.lib.service.ToolBoxService;
-import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.service.ItemService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 
@@ -36,10 +33,10 @@ public class SchemaController {
         return ResponseEntity.ok("Hello " + principal.getName());
     }
 
-    @PostMapping("${api.schema.helloValidatedUser}")
-    public ResponseEntity<String> helloValidatedUser(Principal principal){
-        log.debug("SCHEMA_CONTROLLER::helloValidateUser: {}", principal.getName());
-        return ResponseEntity.ok("Hello " + principal.getName());
+    @PostMapping("${api.schema.login}")
+    public ResponseEntity<String> login(Principal principal){
+        log.debug("SCHEMA_CONTROLLER::login: {}", principal.getName());
+        return ResponseEntity.ok("Succesfull log in by " + principal.getName());
     }
 
     @PostMapping("${api.schema.createPath}")

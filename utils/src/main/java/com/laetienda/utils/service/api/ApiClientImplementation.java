@@ -2,10 +2,16 @@ package com.laetienda.utils.service.api;
 
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.lib.service.ToolBoxServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 public class ApiClientImplementation implements ApiClient {
+    private final static Logger log = LoggerFactory.getLogger(ApiClientImplementation.class);
 
     private String loginUsername;
     private String password;
@@ -88,5 +94,39 @@ public class ApiClientImplementation implements ApiClient {
     @Override
     public String getSession() {
         return this.sessionId;
+    }
+
+    @Override
+    public ResponseEntity<String> startSession(String loginAddress, String logoutAddress) throws HttpClientErrorException {
+        log.trace("API::StartSession $loginAddress: {}", loginAddress);
+
+        if(sessionId != null){
+            endSession(logoutAddress);
+        }
+
+        ResponseEntity<String> loginResp = getRestClient().post()
+                .uri(loginAddress, getPort())
+                .retrieve().toEntity(String.class);
+        String session = loginResp.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+        log.trace("API::startSession $session: {}", session);
+        setSessionId(session);
+
+        return loginResp;
+    }
+
+    @Override
+    public ResponseEntity<String> endSession(String logoutAddress) throws HttpClientErrorException {
+        log.trace("API::endSession $logoutAddress: {}", logoutAddress);
+
+        ResponseEntity<String> resp = getRestClient().post()
+                .uri(logoutAddress, getPort())
+                .retrieve().toEntity(String.class);
+
+        if(sessionId == null){
+            log.trace("API::endSession. sessionId is null. session has not been set");
+        }else{
+            setSessionId(null);
+        }
+        return resp;
     }
 }

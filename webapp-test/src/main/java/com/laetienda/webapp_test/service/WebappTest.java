@@ -1,4 +1,4 @@
-package com.laetienda.utils.service.test;
+package com.laetienda.webapp_test.service;
 
 public interface WebappTest {
     WebappTest setPort(Integer port);

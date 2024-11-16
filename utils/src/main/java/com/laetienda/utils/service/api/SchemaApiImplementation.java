@@ -39,10 +39,25 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
     }
 
     @Override
-    public ResponseEntity<String> helloValidatedUser() throws HttpClientErrorException {
-        String address = String.format("%s/%s",schemaUri, env.getProperty("api.schema.helloValidatedUser"));
-        log.trace("SCHEMA_API::helloValidateUser. $address: {}", address);
+    public ResponseEntity<String> login() throws HttpClientErrorException {
+        String address = String.format("%s/%s",schemaUri, env.getProperty("api.schema.login"));
+        log.trace("SCHEMA_API::login. $address: {}", address);
         return getRestClient().post().uri(address, getPort()).retrieve().toEntity(String.class);
+    }
+
+    @Override
+    public ResponseEntity<String> startSession() throws HttpClientErrorException {
+        String loginAddress = String.format("%s/%s", schemaUri, env.getProperty("api.schema.login"));
+        String logoutAddress = String.format("%s/logout", env.getProperty("api.schema.create"));
+        log.trace("SCHEMA_API::statSession. $address: {}", loginAddress);
+        return super.startSession(loginAddress, logoutAddress);
+    }
+
+    @Override
+    public ResponseEntity<String> endSession() throws HttpClientErrorException {
+        String logoutAddress = String.format("%s/logout", env.getProperty("api.schema.url"));
+        log.trace("SCHEMA_API::endSession. $address: {}", logoutAddress);
+        return super.endSession(logoutAddress);
     }
 
     @Override

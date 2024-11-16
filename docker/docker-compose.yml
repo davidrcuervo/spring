@@ -95,8 +95,8 @@ services:
       - backend
     env_file:
       - webapp.env
-    volumes:
-      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+#    volumes:
+#      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
     build:
       target: testcontainer
       args:

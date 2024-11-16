@@ -1,9 +1,11 @@
 package com.laetienda.schema;
 
-import com.laetienda.utils.service.test.SchemaTest;
-import com.laetienda.utils.service.test.SchemaTestImplementation;
-import com.laetienda.utils.service.test.UserTestService;
-import com.laetienda.utils.service.test.UserTestServiceImplementation;
+import com.laetienda.webapp_test.service.UserTestService;
+import com.laetienda.webapp_test.service.UserTestServiceImplementation;
+import com.laetienda.webapp_test.module.SchemaModule;
+import com.laetienda.webapp_test.module.SchemaModuleImplementation;
+import com.laetienda.webapp_test.service.SchemaTest;
+import com.laetienda.webapp_test.service.SchemaTestImplementation;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -13,6 +15,11 @@ public class SchemaTestConfiguration {
     @Bean
     public SchemaTest getSchemaTestService(){
         return new SchemaTestImplementation();
+    }
+
+    @Bean
+    public SchemaModule getScemaTestModule(){
+        return new SchemaModuleImplementation();
     }
 
     @Bean

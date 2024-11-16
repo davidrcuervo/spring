@@ -28,14 +28,15 @@ public class SchemaSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain schemaSecurityFilterChain(HttpSecurity http) throws Exception{
+        String rootPath = env.getProperty("api.schema.root");
         http
-//                .sessionManagement((httpSecuritySessionManagementConfigurer) -> {
-//                    httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
-//                })
+                .sessionManagement((httpSecuritySessionManagementConfigurer) -> {
+                    httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
+                })
                 .authorizeHttpRequests((requests) -> {
                     requests
-                            .requestMatchers(env.getProperty("api.schema.root") + "/" + env.getProperty("api.schema.helloAll")).permitAll()
-                            .requestMatchers(env.getProperty("api.schema.root") + "/" + env.getProperty("api.schema.helloUser")).authenticated()
+                            .requestMatchers(rootPath + "/" + env.getProperty("api.schema.helloAll")).permitAll()
+                            .requestMatchers(rootPath + "/" + env.getProperty("api.schema.helloUser")).authenticated()
                             .anyRequest().hasRole("VALIDUSERACCOUNTS");
                 })
                 .httpBasic(withDefaults())

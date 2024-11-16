@@ -5,6 +5,7 @@
 /model/target
 /utils/target
 /schema/target
+/webapp-test/target
 /.idea
 /API/User/.api.output
 /API/Group/.api.output

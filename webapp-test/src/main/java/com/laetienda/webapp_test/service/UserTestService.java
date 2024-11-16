@@ -1,4 +1,4 @@
-package com.laetienda.utils.service.test;
+package com.laetienda.webapp_test.service;
 
 import com.laetienda.model.user.Usuario;
 import org.springframework.http.ResponseEntity;

@@ -16,6 +16,8 @@ public interface ApiClient {
     String getPort();
     String getUsername();
     String getSession();
+    ResponseEntity<String> startSession(String loginAddres, String logoutAddress) throws HttpClientErrorException;
+    ResponseEntity<String> endSession(String logoutAddress) throws HttpClientErrorException;
 //    ApiClient startSession() throws HttpClientErrorException;
 //    ApiClient endSession() throws HttpClientErrorException;
 }
