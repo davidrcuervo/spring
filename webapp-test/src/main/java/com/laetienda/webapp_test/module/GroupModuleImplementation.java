@@ -21,17 +21,13 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class GroupModuleImplementation {
+public class GroupModuleImplementation implements GroupModule {
     final private static Logger log = LoggerFactory.getLogger(GroupModuleImplementation.class);
 
-    @LocalServerPort
     private int port;
 
     @Value("${admuser.username}")
     private String admuser;
-
-    @Value("${admuser.hashed.password}")
-    private String admuserHashedPassword;
 
     @Value("${api.group.create}")
     private String uriCreateGroup;
@@ -57,14 +53,16 @@ public class GroupModuleImplementation {
     @Autowired
     private GroupTestService groupTest;
 
-    @BeforeEach
-    public void setAdmPassword(){
+@Override
+public void setPort(int port){
+        this.port = port;
         groupApi.setPort(port);
         groupTest.setPort(port);
         userTest.setPort(port);
     }
 
 //    @Test
+    @Override
     public void testGroupCycle(){
         Usuario user = new Usuario(
                 "testGroupCycle",
@@ -149,8 +147,9 @@ public class GroupModuleImplementation {
         userTest.delete(owner.getUsername());
     }
 
-    @Test
-    void testChangeNameOfGroup(){
+//    @Test
+    @Override
+    public void testChangeNameOfGroup(){
         Group group = groupTest.create(new Group("testNameOfGroup", null)).getBody();
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
@@ -170,7 +169,8 @@ public class GroupModuleImplementation {
         groupTest.delete("testChangeNameOfGroup");
     }
 
-    @Test
+//    @Test
+    @Override
     public void findAll(){
         Usuario user = new Usuario(
                 "testFindAllManagerGroups",
@@ -203,7 +203,8 @@ public class GroupModuleImplementation {
         userTest.delete(user.getUsername());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindAllByManager(){
         Usuario user = new Usuario(
                 "testFindAllByManager",
@@ -227,7 +228,8 @@ public class GroupModuleImplementation {
         userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindByNameNotFound(){
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
             groupTest.findByName("testFindByNameNotFound");
@@ -236,7 +238,8 @@ public class GroupModuleImplementation {
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindByNameUnauthorized(){
         Usuario user = new Usuario(
                 "testFindByNameUnauthorized",
@@ -256,8 +259,9 @@ public class GroupModuleImplementation {
         userTest.delete(user.getUsername());
     }
 
-     @Test
-    public void testCreateEmptyGroup(){
+//     @Test
+     @Override
+     public void testCreateEmptyGroup(){
          Group group = new Group();
          HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
              groupTest.create(group);
@@ -265,7 +269,8 @@ public class GroupModuleImplementation {
          assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
      }
 
-     @Test
+//     @Test
+     @Override
      public void testCreateInavalidNameGroup(){
          Group group = new Group("manager", null);
 
@@ -277,7 +282,8 @@ public class GroupModuleImplementation {
          assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
      }
 
-     @Test
+//     @Test
+     @Override
      public void testCreateGroupWithInvalidMember(){
         Group group = new Group("testCreateGroupWithInvalidMember", null);
         Usuario user = new Usuario(
@@ -298,70 +304,6 @@ public class GroupModuleImplementation {
 
      }
 
-    private void delete(String gName){
-        fail();
-//        Map<String, String> params = new HashMap<>();
-//        params.put("gname", gName);
-//
-//        assertEquals(HttpStatus.OK, findGroup(gName).getStatusCode());
-//
-//        ResponseEntity<String> response = restClient.send(DELETE, port, HttpMethod.DELETE, null, String.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-//
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertTrue(Boolean.valueOf(response.getBody()));
-//        assertEquals(HttpStatus.NOT_FOUND, findGroup(gName).getStatusCode());
-    }
-
-    private void removeOwner(String gName, String username) {
-        fail();
-
-//        Map<String, String> params = new HashMap<>();
-//        params.put("group", gName);
-//        params.put("user", username);
-//
-//        ResponseEntity<Group> response = findGroup(gName);
-//
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertTrue(response.getBody().getOwners().containsKey(username));
-//
-//        response = restClient.send(REMOVE_OWNER, port, HttpMethod.DELETE, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-//
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertNotNull(response.getBody());
-//        assertFalse(response.getBody().getOwners().containsKey(username));
-//
-//        response = findGroup(gName);
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertFalse(response.getBody().getOwners().containsKey(username));
-    }
-
-    private void removeMember(String gname, String username) {
-        fail();
-//
-//        Map<String, String> params = new HashMap<>();
-//        params.put("group", gname);
-//        params.put("user", username);
-//
-//        ResponseEntity<Group> response = findGroup(gname);
-//
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertNotNull(response.getBody());
-//        assertTrue(response.getBody().getMembers().containsKey(username));
-//        assertTrue(Boolean.valueOf(isMember(gname, username).getBody()));
-//
-//        response = restClient.send(REMOVE_MEMBER, port, HttpMethod.DELETE, null, Group.class, params, getTestUser().getUsername(), getTestUser().getPassword());
-//
-//        assertEquals(HttpStatus.OK, response.getStatusCode());
-//        assertNotNull(response.getBody());
-//        assertFalse(response.getBody().getMembers().containsKey(username));
-//        assertFalse(Boolean.valueOf(isMember(gname, username).getBody()));
-    }
-
-    private void update(String oldGName, String newGName){
-        fail();
-
-    }
-
     private void updateDescription(Group group){
         Group temp = groupTest.findByName(group.getName()).getBody();
         assertNull(temp.getDescription());
@@ -371,7 +313,8 @@ public class GroupModuleImplementation {
         assertNotNull(temp.getDescription());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testRemoveInvalidGroup(){
         HttpClientErrorException ex;
 
@@ -411,48 +354,8 @@ public class GroupModuleImplementation {
         userTest.delete(user.getUsername(),user.getUsername(),user.getPassword());
     }
 
-    private ResponseEntity<String> isMember(String gName, String username) throws HttpClientErrorException {
-        fail();
-//        Map<String, String> params = new HashMap<>();
-//        params.put("group", gName);
-//        params.put("user", username);
-//
-//        return restClient.send(IS_MEMBER, port, HttpMethod.GET, null, String.class, params, ADMUSER, ADMUSER_PASSWORD);
-        return null;
-    }
-
-    private Usuario getTestUser(){
-        fail();
-//        Usuario result = null;
-//        String username = "junittestuser";
-//        String password = "secretpassword";
-//        Map<String, String> params = new HashMap<>();
-//        params.put("username", username);
-//
-//        ResponseEntity<Usuario> response = restClient.send(USER, port, HttpMethod.GET, null, Usuario.class, params, ADMUSER, ADMUSER_PASSWORD);
-//
-//        if(response.getStatusCode() == HttpStatus.OK){
-//            result = response.getBody();
-//            result.setPassword2(password);
-//            result.setPassword(password);
-//        }else if(response.getStatusCode() == HttpStatus.NOT_FOUND){
-//            result = new Usuario();
-//            result.setUsername(username);
-//            result.setEmail("junittestuser@mail.com");
-//            result.setFirstname("Junit");
-//            result.setLastname("Test User");
-//            result.setPassword2(password);
-//            result.setPassword(password);
-//        }else{
-//            fail();
-//        }
-
-//        return result;
-        return null;
-    }
-
-    @Test
-//    public void simpleTest(){
+//    @Test
+    @Override
     public void testFindAllByMember() {
         Usuario user = new Usuario(
                 "testFindAllByMember",
@@ -473,7 +376,8 @@ public class GroupModuleImplementation {
         userTest.delete("testFindAllByMember", user.getUsername(), user.getPassword());
     }
 
-    @Test
+//    @Test
+    @Override
     public void createGroupWithMembersAndOwners(){
         Usuario member = new Usuario(
                 "createGroupWithMembers",
@@ -491,39 +395,5 @@ public class GroupModuleImplementation {
 
         groupTest.delete(group.getName());
         userTest.delete(member.getUsername());
-    }
-
-    @Test
-    public void simpleTest(){
-
-        Usuario member = new Usuario(
-                "simpleTest",
-                "Simple","Test","Group Test",
-                "simpletest@mail.com",
-                "secretpassword","secretpassword");
-//        userTest.create(member);
-
-
-        Group gropu = new Group("simpleTest", null);
-
-
-//        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-//            groupTest.removeOwner("testGroupCycle","testGroupCycle", admuser, admuserPassword);
-//        });
-//
-//        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
-    }
-
-    @Test
-    public void clean(){
-//        userTest.delete("testuser");
-
-        //TEST::testGroupCycle
-//        groupTest.delete("testGroupCycle");
-//        userTest.delete("memberOfTestGroupCycle");
-//        userTest.delete("ownerOfTestGroupCycle");
-//        userTest.delete("testGroupCycle");
-
-//        groupTest.delete("testNameOfGroup");
     }
 }

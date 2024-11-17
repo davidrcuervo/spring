@@ -2,6 +2,8 @@ package com.laetienda.usuario;
 
 import com.laetienda.lib.service.TestRestClient;
 import com.laetienda.lib.service.TestRestClientImpl;
+import com.laetienda.webapp_test.module.GroupModule;
+import com.laetienda.webapp_test.module.GroupModuleImplementation;
 import com.laetienda.webapp_test.module.UserModule;
 import com.laetienda.webapp_test.module.UserModuleImplementation;
 import com.laetienda.webapp_test.service.GroupTestService;
@@ -19,6 +21,11 @@ public class UsuarioTestConfiguration {
 	@Bean
 	public UserModule getUserTestModule(){
 		return new UserModuleImplementation();
+	}
+
+	@Bean
+	public GroupModule getGroupTestModule(){
+		return new GroupModuleImplementation();
 	}
 
     @Bean
