@@ -1,11 +1,10 @@
-package com.laetienda.usuario.controller;
+package com.laetienda.webapp_test.module;
 
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
-import com.laetienda.usuario.UsuarioTestConfiguration;
-import com.laetienda.usuario.service.GroupTestService;
-import com.laetienda.utils.service.test.UserTestService;
+import com.laetienda.webapp_test.service.GroupTestService;
+import com.laetienda.webapp_test.service.UserTestService;
 import com.laetienda.utils.service.api.GroupApi;
 import org.jasypt.encryption.StringEncryptor;
 import org.junit.jupiter.api.*;
@@ -13,10 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -25,10 +21,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(UsuarioTestConfiguration.class)
-public class GroupTest {
-    final private static Logger log = LoggerFactory.getLogger(GroupTest.class);
+public class GroupModuleImplementation {
+    final private static Logger log = LoggerFactory.getLogger(GroupModuleImplementation.class);
 
     @LocalServerPort
     private int port;
@@ -45,6 +39,7 @@ public class GroupTest {
     @Value("${api.group.addMember}")
     private String uriAddMember;
 
+    @Value("${admuser.password}")
     private String admuserPassword;
 
 //    @Autowired
@@ -64,12 +59,9 @@ public class GroupTest {
 
     @BeforeEach
     public void setAdmPassword(){
-        admuserPassword = jasypte.decrypt(admuserHashedPassword);
         groupApi.setPort(port);
         groupTest.setPort(port);
-        groupTest.setAdmuserPassword(admuserPassword);
         userTest.setPort(port);
-        userTest.setAdmuserPassword(admuserPassword);
     }
 
 //    @Test
@@ -145,7 +137,7 @@ public class GroupTest {
         groupTest.isNotOwner(groupname, response.getBody().getUsername(), loginUsername, password);
         groupTest.addOwner(groupname, response.getBody().getUsername(), loginUsername, password);
         groupTest.isOwner(groupname, response.getBody().getUsername(), loginUsername, password);
-        assertTrue(groupTest.findByName(groupname, loginUsername, password).getBody().getOwners().containsKey(owner.getUsername()));
+        Assertions.assertTrue(groupTest.findByName(groupname, loginUsername, password).getBody().getOwners().containsKey(owner.getUsername()));
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
             groupTest.removeMember(groupname, owner.getUsername(), loginUsername, password);

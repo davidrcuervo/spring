@@ -9,7 +9,6 @@ import org.springframework.web.client.HttpClientErrorException;
 public interface UserTestService {
     public UserTestService setPort(String port);
     public UserTestService setPort(Integer port);
-    public UserTestService setAdmuserPassword(String password);
     public ResponseEntity<Usuario> findByUsername(String username, String loginUsername, String password) throws HttpClientErrorException;
     public ResponseEntity<Usuario> findByUsername(String username) throws HttpClientErrorException;
     public ResponseEntity<Usuario> create(Usuario user) throws HttpClientErrorException;

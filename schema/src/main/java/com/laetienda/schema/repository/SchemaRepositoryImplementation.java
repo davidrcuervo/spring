@@ -66,4 +66,21 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
         log.debug("SCHEMA_REPO::delete $clazzName: {}", clazz.getName());
         em.remove(item);
     }
+
+    @Override
+    public <T> T findById(Long id, Class<T> clazz) throws NotValidCustomException {
+        log.debug("SCHEMA_REPO::findById $clazz: {}", clazz.getName());
+        String query = String.format("SELECT t FROM %s t WHERE t.id = :id", clazz.getName());
+        log.debug("SCHEMA_REPO::findById. $query: {}", query);
+
+        TypedQuery<T> jpaQuery = em.createQuery(query, clazz);
+        jpaQuery.setParameter("id", id);
+
+        try {
+            return jpaQuery.getSingleResult();
+        }catch(NoResultException ex){
+            log.debug("SCHEMA_REPO::findById. $error: {}", ex.getMessage());
+            return null;
+        }
+    }
 }

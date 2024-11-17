@@ -15,4 +15,5 @@ public interface SchemaApi extends ApiClient {
     <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws HttpClientErrorException;
     <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException;
     <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException;
+    <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException;
 }

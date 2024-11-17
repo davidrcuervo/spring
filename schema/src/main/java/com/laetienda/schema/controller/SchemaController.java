@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -61,6 +62,21 @@ public class SchemaController {
             Class<T> clazz = (Class<T>) Class.forName(clazzName);
             return ResponseEntity.ok(itemService.find(clazz, body));
         } catch (ClassNotFoundException e) {
+            log.error(e.getMessage());
+            log.trace(e.getMessage(), e);
+            throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @PutMapping("${api.schema.updatePath}")
+    public <T> ResponseEntity<T> update(@RequestParam String clase, @RequestBody String data) throws NotValidCustomException {
+        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
+        log.debug("SCHEMA_CONTROLER::update $clazzName: {}", clazzName);
+
+        try{
+            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            return ResponseEntity.ok(itemService.update(clazz, data));
+        }catch (ClassNotFoundException e){
             log.error(e.getMessage());
             log.trace(e.getMessage(), e);
             throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");

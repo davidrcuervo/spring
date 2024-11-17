@@ -193,6 +193,19 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
+    public <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::create $clazzName: {}", clazz.getName());
+
+        ResponseEntity<T> response = schemaApi.update(clazz, item);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        DbItem itemResp = (DbItem) response.getBody();
+        assertEquals(item.getId(), itemResp.getId());
+        return response;
+    }
+
+    @Override
     public SchemaTest setPort(Integer port) {
         schemaApi.setPort(port);
         return this;

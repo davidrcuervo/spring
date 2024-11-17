@@ -36,19 +36,20 @@ public class ApiClientImplementation implements ApiClient {
     public RestClient getRestClient(){
 
         RestClient result = null;
-        if(password != null && loginUsername != null){
-            result = RestClient.builder()
-                    .defaultHeader(HttpHeaders.AUTHORIZATION, tb.getEncode64(loginUsername, password))
-                    .build();
-            password = null;
-            loginUsername = null;
 
-        }else if(sessionId != null && !sessionId.isBlank()){
+        if(sessionId != null && !sessionId.isBlank()) {
             result = RestClient.builder()
 //                    .defaultHeader(HttpHeaders.COOKIE, Base64.getEncoder().encodeToString(sessionId.getBytes()))
                     .defaultHeader(HttpHeaders.COOKIE, sessionId)
                     .build();
 //            sessionId = null;
+
+        }else if(password != null && loginUsername != null){
+            result = RestClient.builder()
+                    .defaultHeader(HttpHeaders.AUTHORIZATION, tb.getEncode64(loginUsername, password))
+                    .build();
+            password = null;
+            loginUsername = null;
         }else{
             result = RestClient.builder().build();
         }

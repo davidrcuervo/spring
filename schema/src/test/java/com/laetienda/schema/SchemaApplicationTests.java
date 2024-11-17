@@ -82,4 +82,9 @@ class SchemaApplicationTests {
 	void deleteUser(){
 		fail();
 	}
+
+	@Test
+	void updateOwnerBadUnauthorized(){
+		fail();
+	}
 }

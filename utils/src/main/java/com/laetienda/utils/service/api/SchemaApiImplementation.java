@@ -96,6 +96,18 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
     }
 
     @Override
+    public <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException {
+        String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.update"));
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+        log.trace("SCHEMA_API::update $address: {}, $ecodedClazz: {}", address, encodedClazzName);
+
+        return getRestClient().put()
+                .uri(address, getPort(), encodedClazzName)
+                .body(clazz.cast(item))
+                .retrieve().toEntity(clazz);
+    }
+
+    @Override
     public String getPort(){
         log.trace("SCHEMA_API::getPort $super.port: {}", super.getPort());
         if(super.getPort() == null){

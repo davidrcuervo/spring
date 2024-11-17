@@ -22,6 +22,8 @@ public class UserTestServiceImplementation implements UserTestService {
     private String admuser;
 
     private String port;
+
+    @Value("${admuser.password}")
     private String admuserPassword;
 
     @Override
@@ -33,12 +35,6 @@ public class UserTestServiceImplementation implements UserTestService {
     @Override
     public UserTestService setPort(Integer port) {
         setPort(Integer.toString(port));
-        return this;
-    }
-
-    @Override
-    public UserTestService setAdmuserPassword(String password) {
-        this.admuserPassword = password;
         return this;
     }
 
@@ -135,10 +131,11 @@ public class UserTestServiceImplementation implements UserTestService {
     public ResponseEntity<String> logout(String sessionId) throws HttpClientErrorException {
         login(sessionId); //First. test if it is possible to login and sessionId is still valid
         log.debug("USER_TEST::logout. $sessionId: {}", sessionId);
-        ResponseEntity<String> response =
-                ((UserApi)userApi.setPort(port).setSessionId(sessionId)).logout();
+
+        userApi.setPort(port);
+        ResponseEntity<String> response = userApi.logout();
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-//        assertNotNull(response.getBody());
+        assertNull(userApi.getSession());
 
         response.getHeaders().forEach((key, value) -> {
             log.trace("USER_TEST::logout. $headers.key: {}, $header.value: {}", key, value.getFirst());
@@ -148,6 +145,7 @@ public class UserTestServiceImplementation implements UserTestService {
             ((UserApi)userApi.setPort(port).setSessionId(sessionId)).login();
         });
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        userApi.setSessionId(null);
 
         return response;
     }
@@ -165,8 +163,9 @@ public class UserTestServiceImplementation implements UserTestService {
         ResponseEntity<Usuario> respUser = create(user);
         emailValidation(respUser.getBody().getEncToken(), user.getUsername(), user.getPassword());
 
-        assertNull(userApi.getSession());
-        ((UserApi)userApi.setCredentials(user.getUsername(), user.getPassword())).startSession();
+//        assertNull(userApi.getSession());
+        userApi.setCredentials(user.getUsername(), user.getPassword());
+        userApi.startSession();
         assertNotNull(userApi.getSession());
         assertNull(userApi.getUsername());
 

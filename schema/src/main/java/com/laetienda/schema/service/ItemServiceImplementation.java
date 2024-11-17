@@ -111,6 +111,42 @@ public class ItemServiceImplementation implements ItemService{
         }
     }
 
+    @Override
+    public <T> T update(Class<T> clazz, String data) throws NotValidCustomException {
+        log.debug("ITEM_SERVICE::update $clazz: {}", clazz.getName());
+
+        try {
+//            T item = jsonMapper.readValue(data, clazz);
+            DbItem newItem = (DbItem)jsonMapper.readValue(data, clazz);
+            DbItem oldItem = (DbItem)schemaRepo.findById(newItem.getId(), clazz);
+
+            if(oldItem == null){
+                String message = String.format("Item with id, %d, does not exist.", newItem.getId());
+                throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+            }
+
+            if(canEdit(oldItem)){
+                readersAndEditorsExists(newItem);
+
+                //test if owner is modified, if so, check that principal is old owner
+                if(!newItem.getOwner().equals(oldItem.getOwner()) && !oldItem.getOwner().equals(request.getUserPrincipal().getName())){
+                    String message = String.format("%s can't modify the owner of item with id %d", request.getUserPrincipal().getName(), oldItem.getId());
+                    throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+                }
+
+                schemaRepo.create(clazz, newItem);
+                return clazz.cast(newItem);
+            }else{
+                String message = String.format("%s can't edit the item with id. $id: %d", request.getUserPrincipal().getName(), newItem.getId());
+                throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+            }
+        } catch (JsonProcessingException ex1) {
+            log.error("SCHEMA_REPO::create $error: {}", ex1.getMessage());
+            log.trace(ex1.getMessage(), ex1);
+            throw new NotValidCustomException(ex1.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
         try {

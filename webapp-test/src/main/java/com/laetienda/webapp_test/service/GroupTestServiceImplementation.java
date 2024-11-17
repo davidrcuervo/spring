@@ -1,8 +1,7 @@
-package com.laetienda.usuario.service;
+package com.laetienda.webapp_test.service;
 
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
-import com.laetienda.model.user.Usuario;
 import com.laetienda.utils.service.api.GroupApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,8 @@ public class GroupTestServiceImplementation implements GroupTestService{
     private GroupApi groupApi;
 
     private String port;
+
+    @Value("${admuser.password}")
     private String admuserPassword;
 
     @Override
@@ -35,12 +36,6 @@ public class GroupTestServiceImplementation implements GroupTestService{
     @Override
     public GroupTestService setPort(Integer port) {
         setPort(Integer.toString(port));
-        return this;
-    }
-
-    @Override
-    public GroupTestService setAdmuserPassword(String password) {
-        this.admuserPassword = password;
         return this;
     }
 

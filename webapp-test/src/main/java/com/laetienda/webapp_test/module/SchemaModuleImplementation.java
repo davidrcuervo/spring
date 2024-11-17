@@ -46,6 +46,7 @@ public class SchemaModuleImplementation implements SchemaModule {
         schemaTest.startSession(admuser, admuserPassword);
         item = create(item);
         find(item);
+        update(item);
         delete(item);
         schemaTest.endSession();
     }
@@ -73,6 +74,22 @@ public class SchemaModuleImplementation implements SchemaModule {
 		ResponseEntity<ItemTypeA> resp = schemaTest.find(ItemTypeA.class, body);
 		assertEquals(item.getId(), resp.getBody().getId());
 	}
+
+    private void update(ItemTypeA item){
+        assertNotNull(item.getId());
+        assertTrue(item.getId() > 0);
+        item.setAddress("5 Place Ville Marie");
+        item.setAge(44);
+
+        ResponseEntity<ItemTypeA> resp = schemaTest.update(ItemTypeA.class, item);
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("username", item.getUsername());
+        ItemTypeA itemResp = schemaTest.find(ItemTypeA.class, params).getBody();
+
+        assertEquals("5 Place Ville Marie", itemResp.getAddress());
+        assertEquals(44, itemResp.getAge());
+    }
 
 	private void delete(ItemTypeA item){
 		Map<String, String> body = new HashMap<String, String>();

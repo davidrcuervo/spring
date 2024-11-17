@@ -1,8 +1,7 @@
-package com.laetienda.usuario.service;
+package com.laetienda.webapp_test.service;
 
 import com.laetienda.model.user.Group;
 import com.laetienda.model.user.GroupList;
-import com.laetienda.model.user.Usuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -11,7 +10,6 @@ import org.springframework.web.client.HttpClientErrorException;
 public interface GroupTestService {
     public GroupTestService setPort(String port);
     public GroupTestService setPort(Integer port);
-    public GroupTestService setAdmuserPassword(String password);
     public ResponseEntity<Group> create(Group group) throws HttpClientErrorException;
     public ResponseEntity<Group> create(Group group, String loginUsername, String password) throws HttpClientErrorException;
     public ResponseEntity<Group> findByName(String gname) throws HttpClientErrorException;

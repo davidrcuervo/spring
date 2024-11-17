@@ -123,9 +123,11 @@ public class UserApiImplementation extends ApiClientImplementation implements Us
     public ResponseEntity<String> logout() throws HttpClientErrorException {
         String address = String.format("%s/logout", env.getProperty("api.usuario.url"));
         log.trace("USER_API::logout. $address: {}", address);
-        return getRestClient().post()
+        ResponseEntity<String> resp = getRestClient().post()
                 .uri(address, getPort())
                 .retrieve().toEntity(String.class);
+        setSessionId(null);
+        return resp;
     }
 
     @Override
@@ -138,21 +140,25 @@ public class UserApiImplementation extends ApiClientImplementation implements Us
     @Override
     public ResponseEntity<String> startSession() throws HttpClientErrorException {
         log.trace("USER_API::startSession $userame: {}", getUsername());
-        ResponseEntity<String> resp = login();
-        String session = resp.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
-        log.trace("USER_API::startSession $session: {}", session);
-        super.setSessionId(session);
+        String loginAddress = String.format("%s/%s", env.getProperty("api.usuario"), env.getProperty("api.usuario.login"));
+        String logoutAddress = env.getProperty("api.usuario.logout");
+//        ResponseEntity<String> resp = login();
+//        String session = resp.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+//        log.trace("USER_API::startSession $session: {}", session);
+//        super.setSessionId(session);
 
-        return resp;
+        return super.startSession(loginAddress, logoutAddress);
     }
 
     @Override
     public ResponseEntity<String> endSession() throws HttpClientErrorException {
         log.trace("USER_API::endSession $session: {}", getSession());
-        ResponseEntity<String> resp = logout();
-        setSessionId(null);
+//        ResponseEntity<String> resp = logout();
+//        setSessionId(null);
 
-        return resp;
+        String logoutAddress = env.getProperty("api.usuario.logout");
+
+        return super.endSession(logoutAddress);
     }
 
     @Override

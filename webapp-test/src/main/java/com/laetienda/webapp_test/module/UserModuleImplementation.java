@@ -1,4 +1,4 @@
-package com.laetienda.usuario.controller;
+package com.laetienda.webapp_test.module;
 
 import com.laetienda.lib.model.AuthCredentials;
 import com.laetienda.lib.service.TestRestClient;
@@ -8,10 +8,9 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 
-import com.laetienda.usuario.UsuarioTestConfiguration;
-import com.laetienda.usuario.service.GroupTestService;
+import com.laetienda.webapp_test.service.GroupTestService;
 import com.laetienda.utils.service.api.UserApi;
-import com.laetienda.utils.service.test.UserTestService;
+import com.laetienda.webapp_test.service.UserTestService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.jasypt.encryption.StringEncryptor;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,10 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
@@ -35,12 +31,10 @@ import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@Import({UsuarioTestConfiguration.class})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserTest {
+public class UserModuleImplementation implements UserModule {
     final private static String ADMUSER = "admuser";
     final private static String ADMUSER_PASSWORD = "secret";
-    final private static Logger log = LoggerFactory.getLogger(UserTest.class);
+    final private static Logger log = LoggerFactory.getLogger(UserModuleImplementation.class);
     final private static String AUTHENTICATE = "http://localhost:{port}/api/v0/user/authenticate.html";
     final private static String CREATE = "http://localhost:{port}/api/v0/user/create.html";
     final private static String DELETE = "http://localhost:{port}/api/v0/user/delete.html?username={username}";
@@ -51,8 +45,6 @@ public class UserTest {
     final private static String GROUP_FIND_ALL_BY_MEMBER = "http://localhost:{port}/api/v0/group/groups.html?user={username}";
     final private static String GROUP_FIND_BY_NAME = "http://localhost:{port}/api/v0/group/group.html?name={gname}";
 
-    private String admuserpassword;
-    @LocalServerPort private int port;
     @Autowired private TestRestTemplate restTemplate;
     @Autowired private TestRestClient testRestTemplate;
     @Autowired private StringEncryptor jasypte;
@@ -60,6 +52,8 @@ public class UserTest {
     @Autowired private UserApi userApi;
     @Autowired private UserTestService userTest;
     @Autowired private GroupTestService groupTest;
+
+    private int port;
 
     @Value("${test.api.user.emailvalidation}")
     private String urlTestApiUserEmailValidation;
@@ -72,6 +66,9 @@ public class UserTest {
 
     @Value("${admuser.hashed.password}")
     private String admuserHashedPassword;
+
+    @Value("${admuser.password}")
+    private String admuserpassword;
 
     private final String apiurl = "/api/v0/user";
 
@@ -89,17 +86,17 @@ public class UserTest {
         return restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
     }
 
-    @BeforeEach
-    public void setTestApiPort(){
-        admuserpassword = jasypte.decrypt(admuserHashedPassword);
+//    @BeforeEach
+@Override
+public void setPort(int port){
+        this.port=port;
         userApi.setPort(port);
         userTest.setPort(port);
         groupTest.setPort(port);
-        userTest.setAdmuserPassword(admuserpassword);
-        groupTest.setAdmuserPassword(admuserpassword);
     }
 
-    @Test
+//    @Test
+    @Override
     public void testAuthentication(){
 
         Map<String, String> params = new HashMap<>();
@@ -125,7 +122,8 @@ public class UserTest {
         //REMOVE TEST USER
     }
 
-    @Test //Should return 404 not found error if invalid user, and return null on invalid password
+//    @Test
+    @Override
     public void testAuthenticationWithIvalidUsername(){
         String address = String.format("http://localhost:%d/api/v0/user/authenticate.html", port);
 
@@ -149,7 +147,8 @@ public class UserTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindAll(){
         String address = "http://localhost:{port}/api/v0/user/users.html";
 
@@ -168,7 +167,8 @@ public class UserTest {
         assertTrue(response.getBody().getUsers().size() > 0);
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindAllUnautorized(){
         String address = "http://localhost:{port}/api/v0/user/users.html";
 
@@ -185,7 +185,8 @@ public class UserTest {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindByUsername(){
         String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
 
@@ -205,7 +206,8 @@ public class UserTest {
         assertEquals("admuser", response.getBody().getUsername());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindByUsernameRoleManager(){
 //        headers.add("Authorization", getEncode64("admuser", "secret"));
         Usuario user = new Usuario(
@@ -233,7 +235,8 @@ public class UserTest {
         delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindByUsernameUnauthorized(){
         String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
 
@@ -251,7 +254,8 @@ public class UserTest {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindByUsernameNotFound(){
 //        String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
 //
@@ -272,18 +276,14 @@ public class UserTest {
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testUserCycle(){
         Usuario user = testUserCycleCreate("testuser");
         testUserCycleConfirmEmail(user);
         testUserCycleUpdate("testuser");
         testUserCycleResetPassword("testuser");
         testUserCycleDelete("testuser", "newsecretpassword");
-    }
-
-//   @Test
-    public void deleteTestUser(){
-        testUserCycleDelete("testuser", "secretpassword");
     }
 
     private void testUserCycleDelete(String username, String password) {
@@ -422,7 +422,8 @@ public class UserTest {
         return result;
     }
 
-    @Test
+//    @Test
+    @Override
     public void testCreateUserRepeatedUsername(){
         String address = "http://localhost:{port}/api/v0/user/create.html";
 
@@ -443,7 +444,8 @@ public class UserTest {
 
     }
 
-    @Test
+//    @Test
+    @Override
     public void testCreateUserRepeatedEmail(){
         String address = "http://localhost:{port}/api/v0/user/create.html";
         Usuario user = findByUsername("admuser").getBody();
@@ -454,7 +456,8 @@ public class UserTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testCreateUserBadPassword(){
         String address = "http://localhost:{port}/api/v0/user/create.html";
         Usuario user = getUser();
@@ -463,7 +466,8 @@ public class UserTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testDeleteNotFound(){
         String address = "http://localhost:{port}/api/v0/user/delete.html?username={username}";
         Map<String, String> params = new HashMap<>();
@@ -473,7 +477,8 @@ public class UserTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testDeleteUnauthorized(){
         //Create first user
         Usuario user1 = new Usuario(
@@ -506,7 +511,8 @@ public class UserTest {
         delete(user2.getUsername(), user2.getUsername(), user2.getPassword());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testDeleteAdmuser(){
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
             ((UserApi)userApi.setCredentials( ADMUSER, ADMUSER_PASSWORD)).delete(ADMUSER);
@@ -514,7 +520,8 @@ public class UserTest {
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void testFindApplicationProfiles(){
 
         RestClient httpClient = tb.getHttpClient(admuser, jasypte.decrypt(admuserHashedPassword));
@@ -621,7 +628,8 @@ public class UserTest {
         return user;
     }
 
-    @Test
+//    @Test
+    @Override
     public void testApi(){
         Usuario user = new Usuario(
                 "testapicreate",
@@ -648,7 +656,8 @@ public class UserTest {
         return response;
     }
 
-    @Test
+//    @Test
+    @Override
     public void deleteApiUser(){
 //        testApiDelete("anothertestuser", "anothertestuser", "secretpassword");
 //        testApiDelete("testuser", ADMUSER, ADMUSER_PASSWORD);
@@ -695,7 +704,8 @@ public class UserTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
     }
 
-    @Test //Should send error in some way. If user is authenticated user can't be created
+//    @Test
+    @Override
     public void testCreateWithAuthenticatedUser(){
         Usuario user = new Usuario(
                 "testCreateWithAuthenticatedUser",
@@ -717,7 +727,8 @@ public class UserTest {
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 
-    @Test
+//    @Test
+    @Override
     public void login(){
         Usuario user = new Usuario(
                 "testLogin",
@@ -741,7 +752,8 @@ public class UserTest {
         userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
-    @Test
+//    @Test
+    @Override
     public void session(){
         userTest.session();
     }
