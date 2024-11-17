@@ -196,6 +196,7 @@ RUN mvn clean -f spring/pom.xml
 RUN mvn install -f spring/library/pom.xml
 RUN mvn install -f spring/model/pom.xml
 RUN mvn install -f spring/utils/pom.xml
+RUN mvn install -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################
 ## MY messengerapp IMAGE
