@@ -61,10 +61,13 @@ public class UserServiceImpl implements UserService {
     @Value("${admuser.username}")
     private String admuser;
 
+    @Value("${backend.username}")
+    private String backendUsername;
+
     @Override
     public UsuarioList findAll() throws NotValidCustomException {
-
-        if(isUserInRole("ROLE_MANAGER")){
+        String username = request.getUserPrincipal().getName();
+        if(isUserInRole("ROLE_MANAGER") || backendUsername.equals(username)){
             return repository.findAll();
         }else{
             throw new NotValidCustomException(
@@ -77,32 +80,48 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Usuario find(String username) throws NotValidCustomException {
-        Usuario result = null;
-        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
-//            Usuario result = repository.find(username);
-//            result = springRepository.findByUsername(username);
-            result = repository.findbyUsername(username);
+        log.debug("USER_SERVICE::find. $username: {}", username);
+        Usuario result = springRepository.findByUsername(username);
 
-            if(result == null){
-                throw new NotValidCustomException(
-                        String.format("User, (%s), does not exist.", username),
-                        HttpStatus.NOT_FOUND,
-                        "username"
-                );
-            }else{
-                log.trace("User found. Full Name: {}", result.getFullName());
-            }
-
-        }else{
+        if(result == null){
             throw new NotValidCustomException(
-                    HttpStatus.UNAUTHORIZED.toString(),
-                    HttpStatus.UNAUTHORIZED,
+                    String.format("User, (%s), does not exist.", username),
+                    HttpStatus.NOT_FOUND,
                     "username"
             );
         }
 
-        log.trace("USER_SERVICE::find. $userDn: {}", dn.getFullDn(result.getId()));
-        return result;
+        if(canRead(result)){
+            log.trace("USER_SERVICE::find. $userDn: {}", dn.getFullDn(result.getId()));
+            return result;
+        }else{
+            throw new NotValidCustomException(
+                    HttpStatus.UNAUTHORIZED.toString(),
+                    HttpStatus.UNAUTHORIZED,
+                    "username");
+        }
+//        if(request.getUserPrincipal().getName().equals(username) || isUserInRole("ROLE_MANAGER")){
+//            Usuario result = repository.find(username);
+//            result = springRepository.findByUsername(username);
+//            result = repository.findbyUsername(username);
+
+//            if(result == null){
+//                throw new NotValidCustomException(
+//                        String.format("User, (%s), does not exist.", username),
+//                        HttpStatus.NOT_FOUND,
+//                        "username"
+//                );
+//            }else{
+//                log.trace("User found. Full Name: {}", result.getFullName());
+//            }
+
+//        }else{
+//            throw new NotValidCustomException(
+//                    HttpStatus.UNAUTHORIZED.toString(),
+//                    HttpStatus.UNAUTHORIZED,
+//                    "username"
+//            );
+//        }
     }
 
     private boolean isUserInRole(String role_name) {
@@ -376,6 +395,24 @@ public class UserServiceImpl implements UserService {
             result += profile;
 
         return result;
+    }
+
+    private Boolean canRead(Usuario user){
+        String loginUsername = request.getUserPrincipal().getName();
+
+        if(loginUsername.equals(user.getUsername())
+                || isUserInRole("ROLE_MANAGER")
+                || admuser.equals(loginUsername)
+                || backendUsername.equals(loginUsername)
+        ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    private Boolean canEdit(){
+        return false;
     }
 
     private Boolean isValidPassword(String password, String password2) throws NotValidCustomException{

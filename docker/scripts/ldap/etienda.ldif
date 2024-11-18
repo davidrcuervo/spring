@@ -41,6 +41,17 @@ cn: admuser
 mail: admin@la-etienda.com
 userPassword: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
 
+dn: uid=backendservices,ou=people,dc=la-etienda,dc=com
+changetype:add
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+uid: backendservices
+sn: backend
+cn: services
+mail: admin@la-etienda.com
+userPassword: {SSHA}AFBbJETtgsY5AOZlDUCXlqsxeiEz+gm6
+
 dn: ou=wroups,dc=la-etienda,dc=com
 changetype: add
 objectClass: top
@@ -61,4 +72,5 @@ changetype: add
 objectClass: groupOfUniqueNames
 cn: validUserAccounts
 uniqueMember: uid=admuser,ou=people,dc=la-etienda,dc=com
+uniqueMember: uid=backendservices,ou=people,dc=la-etienda,dc=com
 owner: uid=admuser,ou=people,dc=la-etienda,dc=com

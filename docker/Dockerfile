@@ -238,3 +238,6 @@ FROM webapp AS testcontainer
 #Set application folder
 WORKDIR /opt/webapp
 ENV HOME=/opt/webapp
+
+RUN chmod 744 spring/usuario/test.sh
+RUN chmod 744 spring/schema/test.sh

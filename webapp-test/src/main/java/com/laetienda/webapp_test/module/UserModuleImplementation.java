@@ -13,8 +13,6 @@ import com.laetienda.utils.service.api.UserApi;
 import com.laetienda.webapp_test.service.UserTestService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.jasypt.encryption.StringEncryptor;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +67,12 @@ public class UserModuleImplementation implements UserModule {
 
     @Value("${admuser.password}")
     private String admuserpassword;
+
+    @Value("${backend.username}")
+    private String backendUsername;
+
+    @Value("${backend.password}")
+    private String backendPassword;
 
     private final String apiurl = "/api/v0/user";
 
@@ -157,7 +161,7 @@ public void setPort(int port){
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_JSON);
-        headers.add("Authorization", getEncode64("admuser", "secret"));
+        headers.add("Authorization", getEncode64(backendUsername,backendPassword));
 
         HttpEntity entity = new HttpEntity<>(headers);
 
@@ -185,28 +189,28 @@ public void setPort(int port){
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
-//    @Test
     @Override
     public void testFindByUsername(){
-        String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
+//        String address = "http://localhost:{port}/api/v0/user/user.html?username={username}";
+//
+//        Map<String, String> params = new HashMap<>();
+//        params.put("port", Integer.toString(port));
+//        params.put("username", "admuser");
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(APPLICATION_JSON);
+//        headers.add("Authorization", getEncode64("admuser", "secret"));
 
-        Map<String, String> params = new HashMap<>();
-        params.put("port", Integer.toString(port));
-        params.put("username", "admuser");
+//        HttpEntity entity = new HttpEntity<>(headers);
+//
+//        ResponseEntity<Usuario> response = restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
+        ResponseEntity<Usuario> response = userTest.findByUsername(admuser, backendUsername, backendPassword);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON);
-        headers.add("Authorization", getEncode64("admuser", "secret"));
-
-        HttpEntity entity = new HttpEntity<>(headers);
-
-        ResponseEntity<Usuario> response = restTemplate.exchange(address, HttpMethod.GET, entity, Usuario.class, params);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("admuser", response.getBody().getUsername());
     }
 
-//    @Test
     @Override
     public void testFindByUsernameRoleManager(){
 //        headers.add("Authorization", getEncode64("admuser", "secret"));
