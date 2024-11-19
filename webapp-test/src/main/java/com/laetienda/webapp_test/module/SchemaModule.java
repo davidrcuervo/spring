@@ -5,4 +5,6 @@ public interface SchemaModule {
 
     void cycle();
     void login();
+    void createBadEditor();
+    void addReader();
 }

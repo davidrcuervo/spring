@@ -165,6 +165,18 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
+    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::findById. $class: {}, $id: {}", clazz.getName(), id);
+        ResponseEntity<T> response = schemaApi.findById(clazz, id);
+
+        //test result
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(((DbItem)response.getBody()).getId() > 0);
+        return response;
+    }
+
+    @Override
     public <T> HttpClientErrorException notFound(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::notFound. $class: {}, $key: {}, $value: {}", clazz.getName());
 
@@ -190,6 +202,18 @@ public class SchemaTestImplementation implements SchemaTest {
         assertNotNull(response.getBody());
         assertTrue(Boolean.parseBoolean(response.getBody()));
         return null;
+    }
+
+    @Override
+    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws HttpClientErrorException {
+        log.debug("SCHEMA_TEST::deleteById. $class: {}, $id: {}", clazz.getName(), id);
+        ResponseEntity<String> response = schemaApi.deleteById(clazz, id);
+
+        //test response is fine
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(Boolean.parseBoolean(response.getBody()));
+        return response;
     }
 
     @Override

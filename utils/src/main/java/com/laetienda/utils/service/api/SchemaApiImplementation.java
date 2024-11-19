@@ -65,10 +65,16 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.create"));
         String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
         log.trace("SCHEMA_API::create $item.owner: {}, $address: {}, $ecodedClazz: {}", item.getOwner(), address, encodedClazzName);
-        return getRestClient().post()
-                .uri(address, getPort(), encodedClazzName)
-                .body(item)
-                .retrieve().toEntity(clazz);
+
+        try {
+            return getRestClient().post()
+                    .uri(address, getPort(), encodedClazzName)
+                    .body(item)
+                    .retrieve().toEntity(clazz);
+        }catch(Exception e){
+            log.trace("SCHEMA_API::create $error: {}, $code: {}", e.getMessage(), e.getClass().getName());
+            throw e;
+        }
     }
 
     @Override
@@ -84,6 +90,17 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
     }
 
     @Override
+    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws HttpClientErrorException {
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+        String address = String.format("%s/%s?clase=%s", schemaUri, env.getProperty("api.schema.findById"), encodedClazzName);
+        log.trace("SCHEMA_API::findById $address: {}", address);
+
+        return getRestClient().get()
+                .uri(address, getPort(), id)
+                .retrieve().toEntity(clazz);
+    }
+
+    @Override
     public <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.delete"));
         String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
@@ -92,6 +109,17 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
         return getRestClient().post()
                 .uri(address, getPort(), encodedClazzName)
                 .body(body)
+                .retrieve().toEntity(String.class);
+    }
+
+    @Override
+    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws HttpClientErrorException {
+        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+        String address = String.format("%s/%s?clase=%s", schemaUri, env.getProperty("api.schema.deleteById"), encodedClazzName);
+        log.trace("SCHEMA_API::delete $address: {}", address);
+
+        return getRestClient().delete()
+                .uri(address, getPort(), id)
                 .retrieve().toEntity(String.class);
     }
 

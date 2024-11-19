@@ -38,53 +38,14 @@ class SchemaApplicationTests {
 		schemaTest.setPort(port);
 	}
 
-	@Test
-	void login(){
-		schemaTest.login();
-	}
-
-	@Test
-	void cycle(){
-		schemaTest.cycle();
-	}
-
-	@Test
-	void createBadEditor(){
-		fail();
-	}
-
-	@Test
-	void update(){
-		fail();
-	}
-
-	@Test
-	void addReader(){
-		fail();
-	}
-
-	@Test
-	void addEditor(){
-		fail();
-	}
-
-	@Test
-	void removeReader(){
-		fail();
-	}
-
-	@Test
-	void removeEditor(){
-		fail();
-	}
-
-	@Test
-	void deleteUser(){
-		fail();
-	}
-
-	@Test
-	void updateOwnerBadUnauthorized(){
-		fail();
-	}
+	@Test void login(){schemaTest.login();}
+	@Test void cycle(){schemaTest.cycle();}
+	@Test void createBadEditor(){schemaTest.createBadEditor();}
+	@Test void addReader(){schemaTest.addReader();}
+	@Test void addEditor(){fail();}
+	@Test void removeReader(){fail();}
+	@Test void removeEditor(){fail();}
+	@Test void readByBackend(){fail();}
+	@Test void updateOwnerBadUnauthorized(){fail();}
+	@Test void deleteUser(){fail();}
 }

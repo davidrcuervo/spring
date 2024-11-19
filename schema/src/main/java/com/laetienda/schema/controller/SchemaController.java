@@ -51,6 +51,9 @@ public class SchemaController {
             log.error(e.getMessage());
             log.trace(e.getMessage(), e);
             throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        } catch(NotValidCustomException ex){
+            log.trace("SCHEMA_CONTROLLER::create $error: {}", ex.getMessage());
+            throw ex;
         }
     }
 
@@ -61,6 +64,21 @@ public class SchemaController {
         try {
             Class<T> clazz = (Class<T>) Class.forName(clazzName);
             return ResponseEntity.ok(itemService.find(clazz, body));
+        } catch (ClassNotFoundException e) {
+            log.error(e.getMessage());
+            log.trace(e.getMessage(), e);
+            throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @GetMapping("${api.schema.findById}")
+    public <T> ResponseEntity<T> findById(@RequestParam String clase, @PathVariable Long id) throws NotValidCustomException {
+        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
+        log.debug("SCHEMA_CONTROLLER::findById $clazzName: {}, $id: {}", clazzName, id);
+
+        try {
+            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            return ResponseEntity.ok(itemService.findById(clazz, id));
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage());
             log.trace(e.getMessage(), e);
@@ -91,6 +109,22 @@ public class SchemaController {
         try {
             Class clazz = Class.forName(clazzName);
             itemService.delete(clazz, body);
+            return ResponseEntity.ok(true);
+        } catch (ClassNotFoundException e) {
+            log.error(e.getMessage());
+            log.trace(e.getMessage(), e);
+            throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @DeleteMapping("${api.schema.deleteById}")
+    public ResponseEntity<Boolean> deleteById(@RequestParam String clase, @PathVariable Long id) throws NotValidCustomException{
+        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
+        log.debug("SCHEMA_CONTROLLER::deleteById $clazzName: {}, $id: {}", clazzName, id);
+
+        try {
+            Class clazz = Class.forName(clazzName);
+            itemService.deleteById(clazz, id);
             return ResponseEntity.ok(true);
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage());

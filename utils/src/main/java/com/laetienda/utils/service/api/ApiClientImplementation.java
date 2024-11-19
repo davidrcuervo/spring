@@ -123,9 +123,9 @@ public class ApiClientImplementation implements ApiClient {
                 .uri(logoutAddress, getPort())
                 .retrieve().toEntity(String.class);
 
-        if(sessionId == null){
+        if (sessionId == null) {
             log.trace("API::endSession. sessionId is null. session has not been set");
-        }else{
+        } else {
             setSessionId(null);
         }
         return resp;

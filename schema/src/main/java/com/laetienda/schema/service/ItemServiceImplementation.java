@@ -40,6 +40,12 @@ public class ItemServiceImplementation implements ItemService{
     @Value("${admuser.password}")
     private String admUserPassword;
 
+    @Value("${backend.username}")
+    private String backendUsername;
+
+    @Value("${backend.password}")
+    private String backendPassword;
+
     @Override
     public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
@@ -64,30 +70,20 @@ public class ItemServiceImplementation implements ItemService{
             log.error("SCHEMA_REPO::create $error: {}", ex1.getMessage());
             log.trace(ex1.getMessage(), ex1);
             throw new NotValidCustomException(ex1.getMessage(), HttpStatus.BAD_REQUEST, "item");
-        }catch (Exception ex){
-            log.error("SCHEMA_REPO::create $error: {}", ex.getMessage());
-            log.trace(ex.getMessage(), ex);
-            throw new NotValidCustomException(ex.getMessage(), HttpStatus.BAD_REQUEST, "item");
+//        }catch (Exception ex){
+//            log.error("SCHEMA_REPO::create $error: {}", ex.getMessage());
+//            log.trace(ex.getMessage(), ex);
+//            throw new NotValidCustomException(ex.getMessage(), HttpStatus.BAD_REQUEST, "item");
         }
     }
 
     @Override
     public <T> T find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("ITEM_SERVICE::find $clazzName: {}", clazz.getName());
-        String username = request.getUserPrincipal().getName();
 
         if(body.size() == 1) {
             T item = schemaRepo.find(clazz, body);
-
-            if (item == null) {
-                String message = String.format("Item does not exist.");
-                throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
-            } else if (canRead((DbItem) item)) {
-                return item;
-            } else {
-                String message = String.format("User, %s, doesn't have privileges to read the item.");
-                throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
-            }
+            return find(clazz, item);
         }else{
             String message = String.format("Request body has more paramenters than expected");
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
@@ -95,12 +91,42 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     @Override
+    public <T> T findById(Class<T> clazz, Long id) throws NotValidCustomException {
+        log.debug("ITEM_SERVICE::findById $clazzName: {}, $id: {}", clazz.getName(), id);
+        T item = schemaRepo.findById(id, clazz);
+        return find(clazz, item);
+    }
+
+    private <T> T find(Class<T> clazz, T item) throws NotValidCustomException{
+        String username = request.getUserPrincipal().getName();
+        if (item == null) {
+            String message = String.format("Item does not exist.");
+            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
+        } else if (canRead((DbItem) item)) {
+            return item;
+        } else {
+            String message = String.format("User, %s, doesn't have privileges to read the item.", username);
+            throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+        }
+    }
+
+    @Override
     public <T> void delete(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         T item = find(clazz, body);
-        Long id = ((DbItem)item).getId();
-
         log.debug("ITEM_SERVICE::delete $clazzName: {}", clazz.getName());
+        delete(clazz, item);
+    }
+
+    @Override
+    public <T> void deleteById(Class<T> clazz, Long id) throws NotValidCustomException {
+        log.debug("ITEM_SERVICE::deleteById $clazzName: {}, $id: {}", clazz.getName(), id);
+        T item = schemaRepo.findById(id, clazz);
+        delete(clazz, item);
+    }
+
+    private <T> void delete(Class<T> clazz, T item) throws NotValidCustomException{
         String username = request.getUserPrincipal().getName();
+        Long id = ((DbItem)item).getId();
 
         if(canEdit((DbItem)item)){
             schemaRepo.delete(clazz, item);
@@ -116,7 +142,6 @@ public class ItemServiceImplementation implements ItemService{
         log.debug("ITEM_SERVICE::update $clazz: {}", clazz.getName());
 
         try {
-//            T item = jsonMapper.readValue(data, clazz);
             DbItem newItem = (DbItem)jsonMapper.readValue(data, clazz);
             DbItem oldItem = (DbItem)schemaRepo.findById(newItem.getId(), clazz);
 
@@ -133,8 +158,7 @@ public class ItemServiceImplementation implements ItemService{
                     String message = String.format("%s can't modify the owner of item with id %d", request.getUserPrincipal().getName(), oldItem.getId());
                     throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
                 }
-
-                schemaRepo.create(clazz, newItem);
+                schemaRepo.update(clazz, newItem);
                 return clazz.cast(newItem);
             }else{
                 String message = String.format("%s can't edit the item with id. $id: %d", request.getUserPrincipal().getName(), newItem.getId());
@@ -150,7 +174,7 @@ public class ItemServiceImplementation implements ItemService{
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
         try {
-            ((UserApi)userApi.setCredentials(admUser, admUserPassword)).startSession();
+            ((UserApi)userApi.setCredentials(backendUsername, backendPassword)).startSession();
 
             if(item.getEditors() != null) {
                 item.getEditors().forEach((editor) -> {
@@ -165,7 +189,7 @@ public class ItemServiceImplementation implements ItemService{
             }
 
         }catch(HttpClientErrorException ex){
-            log.debug("ITEM_SERVICE::verifyReadersAndEditors $error: {}", ex.getMessage());
+            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
             throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
 
         }finally{

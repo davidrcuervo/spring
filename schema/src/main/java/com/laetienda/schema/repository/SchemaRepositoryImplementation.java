@@ -29,16 +29,26 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
 
     @Override
     @Transactional
-    public DbItem create(Class<?> clazz, DbItem item) throws NotValidCustomException {
+    public <T> T create(Class<T> clazz, DbItem item) throws NotValidCustomException {
         log.debug("SCHEMA_REPO::create $clazzName: {}", clazz.getName());
         try{
-            em.persist(clazz.cast(item));
-            return item;
+            em.persist(item);
+            return clazz.cast(item);
         }catch(Exception ex){
             log.error(ex.getMessage());
             log.trace(ex.getMessage(), ex);
             throw new NotValidCustomException(ex.getMessage(), HttpStatus.BAD_REQUEST, "item");
         }
+    }
+
+    @Override
+    @Transactional
+    public <T> T update(Class<T> clazz, DbItem item) throws NotValidCustomException {
+        log.debug("SCHEMA_REPO::update $clazzName: {}", clazz.getName());
+        T temp = clazz.cast(item);
+        temp = em.merge(temp);
+        em.persist(temp);
+        return temp;
     }
 
     @Override
