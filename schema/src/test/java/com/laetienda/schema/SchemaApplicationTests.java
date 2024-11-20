@@ -42,10 +42,11 @@ class SchemaApplicationTests {
 	@Test void cycle(){schemaTest.cycle();}
 	@Test void createBadEditor(){schemaTest.createBadEditor();}
 	@Test void addReader(){schemaTest.addReader();}
-	@Test void addEditor(){fail();}
-	@Test void removeReader(){fail();}
+	@Test void addEditor(){schemaTest.addEditor();}
+	@Test void removeReader(){schemaTest.removeReader();}
 	@Test void removeEditor(){fail();}
 	@Test void readByBackend(){fail();}
 	@Test void updateOwnerBadUnauthorized(){fail();}
+	@Test void modifyOwner(){fail();}
 	@Test void deleteUser(){fail();}
 }

@@ -162,7 +162,7 @@ public class ItemServiceImplementation implements ItemService{
                 return clazz.cast(newItem);
             }else{
                 String message = String.format("%s can't edit the item with id. $id: %d", request.getUserPrincipal().getName(), newItem.getId());
-                throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+                throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
             }
         } catch (JsonProcessingException ex1) {
             log.error("SCHEMA_REPO::create $error: {}", ex1.getMessage());

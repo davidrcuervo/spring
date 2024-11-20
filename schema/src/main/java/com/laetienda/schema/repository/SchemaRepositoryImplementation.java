@@ -81,7 +81,7 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
     public <T> T findById(Long id, Class<T> clazz) throws NotValidCustomException {
         log.debug("SCHEMA_REPO::findById $clazz: {}", clazz.getName());
         String query = String.format("SELECT t FROM %s t WHERE t.id = :id", clazz.getName());
-        log.debug("SCHEMA_REPO::findById. $query: {}", query);
+        log.debug("SCHEMA_REPO::findById. $id: {}, $query: {}", id, query);
 
         TypedQuery<T> jpaQuery = em.createQuery(query, clazz);
         jpaQuery.setParameter("id", id);

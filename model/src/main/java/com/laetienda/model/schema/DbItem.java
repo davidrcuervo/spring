@@ -98,6 +98,20 @@ public abstract class DbItem {
         return this;
     }
 
+    public DbItem removeReader(String username){
+        if(readers != null && readers.contains(username)){
+            readers.remove(username);
+        }
+        return this;
+    }
+
+    public DbItem removeEditor(String username){
+        if(editors != null && editors.contains(username)){
+            editors.remove(username);
+        }
+        return this;
+    }
+
     public LocalDateTime getCreated() {
         return created;
     }

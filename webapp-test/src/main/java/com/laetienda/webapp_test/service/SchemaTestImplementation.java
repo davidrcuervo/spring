@@ -2,6 +2,7 @@ package com.laetienda.webapp_test.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.DbItem;
+import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.utils.service.api.SchemaApi;
 import com.laetienda.utils.service.api.UserApi;
 import org.slf4j.Logger;
@@ -128,9 +129,11 @@ public class SchemaTestImplementation implements SchemaTest {
         assertNotNull(response.getBody());
 
         //convert from json string to clazz item
-        DbItem itemResp = (DbItem) response.getBody();
-        assertTrue(itemResp.getId() > 0);
-        assertEquals(admuser, itemResp.getOwner());
+        T itemResp = response.getBody();
+        DbItem dbItem = (DbItem) response.getBody();
+//        ItemTypeA dbItem = (ItemTypeA)response.getBody();
+        assertTrue(dbItem.getId() > 0);
+        assertEquals(admuser, dbItem.getOwner());
 
         return response;
     }
@@ -201,7 +204,11 @@ public class SchemaTestImplementation implements SchemaTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(Boolean.parseBoolean(response.getBody()));
-        return null;
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            schemaApi.find(clazz, body);
+        });
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        return response;
     }
 
     @Override
@@ -213,12 +220,16 @@ public class SchemaTestImplementation implements SchemaTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(Boolean.parseBoolean(response.getBody()));
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            schemaApi.findById(clazz, id);
+        });
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         return response;
     }
 
     @Override
     public <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException {
-        log.debug("SCHEMA_TEST::create $clazzName: {}", clazz.getName());
+        log.debug("SCHEMA_TEST::update $clazzName: {}", clazz.getName());
 
         ResponseEntity<T> response = schemaApi.update(clazz, item);
         assertEquals(HttpStatus.OK, response.getStatusCode());

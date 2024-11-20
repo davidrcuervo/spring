@@ -122,6 +122,100 @@ public class SchemaModuleImplementation implements SchemaModule {
         userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
+    @Override
+    public void addEditor() {
+        Usuario user = new Usuario(
+                "schemaAddEditor",
+                "Add","Editor","Schema Test",
+                "schemaEditorReader@mail.com",
+                "secretpassword","secretpassword"
+        );
+        ItemTypeA item = new ItemTypeA("schemaAddEditor", 22, "Calle 70B # 87B - 24");
+        item.addReader(user.getUsername());
+
+        user = userTest.create(user).getBody();
+        userTest.emailValidation(user.getEncToken(), user.getUsername(), user.getPassword());
+
+        //create item
+        schemaTest.startSession(admuser, admuserPassword);
+        ItemTypeA itemResp = schemaTest.create(ItemTypeA.class, item).getBody();
+        schemaTest.endSession();
+
+        //try to update item. it should throw and unauthorized exception
+        schemaTest.startSession(user.getUsername(), user.getPassword());
+        itemResp.addEditor(user.getUsername());
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            schemaTest.update(ItemTypeA.class, itemResp);
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        schemaTest.endSession();
+
+        //add reader by using the owner
+        schemaTest.startSession(admuser, admuserPassword);
+        schemaTest.update(ItemTypeA.class, itemResp);
+        schemaTest.endSession();
+
+        //try to update item. this time it should work.
+        schemaTest.startSession(user.getUsername(), user.getPassword());
+        itemResp.setAge(43);
+        itemResp.setAddress("1453 Villeray");
+        ItemTypeA itemResp2 = schemaTest.update(ItemTypeA.class, itemResp).getBody();
+        assertEquals("schemaAddEditor", itemResp2.getUsername());
+        assertEquals(43, itemResp2.getAge());
+        assertEquals("1453 Villeray", itemResp2.getAddress());
+        schemaTest.deleteById(ItemTypeA.class, itemResp2.getId());
+        schemaTest.endSession();
+
+        userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
+    }
+
+    @Override
+    public void removeReader() {
+        Usuario user = new Usuario(
+                "schemaRemoveReader",
+                "Remove","Reader","Schema Test",
+                "schemaRemoveReader@mail.com",
+                "secretpassword","secretpassword"
+        );
+
+        user = userTest.create(user).getBody();
+        userTest.emailValidation(user.getEncToken(), user.getUsername(), user.getPassword());
+
+        ItemTypeA item = new ItemTypeA("schemaRemoveReader", 22, "Calle 70B # 87B - 24");
+        item.addReader(user.getUsername());
+
+        //create item
+        schemaTest.startSession(admuser, admuserPassword);
+        item = schemaTest.create(ItemTypeA.class, item).getBody();
+        Long itemId = item.getId();
+        schemaTest.endSession();
+
+        //test reader has privileges
+        schemaTest.startSession(user.getUsername(), user.getPassword());
+        schemaTest.findById(ItemTypeA.class, item.getId());
+        schemaTest.endSession();
+
+        //Remove reader
+        schemaTest.startSession(admuser, admuserPassword);
+        item.removeReader(user.getUsername());
+        schemaTest.update(ItemTypeA.class, item);
+        schemaTest.endSession();
+
+        //test reader can't find item
+        schemaTest.startSession(user.getUsername(), user.getPassword());
+        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
+            schemaTest.findById(ItemTypeA.class, itemId);
+        });
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
+        schemaTest.endSession();
+
+        //delete test objects from db and ldap
+        schemaTest.startSession(admuser, admuserPassword);
+        schemaTest.deleteById(ItemTypeA.class, itemId);
+        schemaTest.endSession();
+        userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
+    }
+
     private ItemTypeA create(ItemTypeA item){
         ResponseEntity<ItemTypeA> resp = schemaTest.create(ItemTypeA.class, item);
         ItemTypeA itemResp = resp.getBody();

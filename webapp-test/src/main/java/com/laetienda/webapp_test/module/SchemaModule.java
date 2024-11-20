@@ -7,4 +7,6 @@ public interface SchemaModule {
     void login();
     void createBadEditor();
     void addReader();
+    void addEditor();
+    void removeReader();
 }
