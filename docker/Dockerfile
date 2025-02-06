@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS myubuntu
+FROM ubuntu:24.04 AS ubuntuet
 
 #Variables and arguments
 #ARG ADMUSER_PASSWORD=secret
@@ -33,21 +33,73 @@ RUN rm private/samsepi0l-password.txt
 
 USER samsepi0l
 ENV HOME=/home/sapsepi0l
+############################################
+## MY Java IMAGE (jdk: 21.0.2 & mvn: 3.9.9)
+############################################
+FROM ubuntuet AS javaet
+
+#Arguments and variables
+ARG DOCKER_GID=9999
+
+USER root
+
+#Create java user and docker group to be able to save data externally
+RUN groupadd --gid $DOCKER_GID docker
+RUN useradd -g docker -c "Java user" --shell /bin/bash --create-home --home-dir /opt/myjava javauser
+
+#install git
+RUN apt install -y git unzip
+
+#create directory and set permissions
+WORKDIR /opt/myjava
+#RUN chown javauser:docker /opt/myjava && chmod 750 /opt/myjava
+
+#copy keys to authenticate with external servers
+RUN sudo -u javauser -g docker mkdir -m 0750 .ssh
+RUN mkdir -m 0750 /opt/jasypt
+RUN chown javauser:docker /opt/jasypt
+COPY private/keys/. .ssh/.
+RUN chown javauser:docker -R .ssh && chmod 700 -R .ssh
+
+#get software from software repository server
+#RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/jdk-21.0.4_linux-x64_bin.tar.gz /opt/myjava/
+COPY Software/jdk-21.0.4_linux-x64_bin.tar.gz /opt/myjava/
+#RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
+COPY Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
+#RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/jasypt/jasypt-1.9.3-dist.zip /opt/jasypt
+COPY Software/jasypt-1.9.3-dist.zip /opt/jasypt/
+RUN chmod 750 .ssh
+
+#extract files
+RUN unzip /opt/jasypt/jasypt-1.9.3-dist.zip -d /opt/jasypt
+RUN rm /opt/jasypt/jasypt-1.9.3-dist.zip
+RUN chmod +x -R /opt/jasypt/jasypt-1.9.3/bin
+RUN tar -xzvf jdk-21.0.4_linux-x64_bin.tar.gz
+RUN rm jdk-21.0.4_linux-x64_bin.tar.gz
+RUN tar -xzvf apache-maven-3.9.9-bin.tar.gz
+RUN rm apache-maven-3.9.9-bin.tar.gz
+
+#set Java environment variables
+ENV JAVA_HOME=/opt/myjava/jdk-21.0.4
+ENV M2_HOME=/opt/myjava/apache-maven-3.9.9
+ENV M2=$M2_HOME/bin
+ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
 
 ################################
 ## MY POSTGRESQL IMAGE
 ###############################
-FROM myubuntu AS mypostgres
+FROM javaet AS postgreset
 
-ENV DEBIAN_FRONTEND=noninteractive
 ARG POSTGRES_UID=1001
 ARG POSTGRES_GID=1001
+ENV DEBIAN_FRONTEND=noninteractive
 
 USER root
 
 #Create postgres user
 RUN groupadd -g $POSTGRES_GID postgres
 RUN useradd -u $POSTGRES_UID -g postgres -c "PostgreSQL Administrator" --shell /bin/bash --home-dir /opt/postgresql postgres
+RUN usermod -a -G docker postgres
 
 #create app directory
 WORKDIR /opt/mypostgres
@@ -63,19 +115,10 @@ RUN apt install -y postgresql
 COPY ../scripts/database/. scripts/.
 RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
-
-#Create databases
-#RUN scripts/createdb.sh
-
-#Run
-#ENTRYPOINT ["/bin/bash"]
-USER postgres
-ENTRYPOINT ["scripts/postgres-entrypoint.sh"]
-
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
 ###############################
-FROM myubuntu AS myslapd
+FROM ubuntuet AS myslapd
 
 #variables and arguments
 ENV DEBIAN_FRONTEND=noninteractive
@@ -117,54 +160,45 @@ ENTRYPOINT ["/opt/myslapd/etienda/scripts/slapd-entrypoint.sh"]
 #USER samsepi0l
 #ENTRYPOINT ["/bin/bash"]
 
-############################################
-## MY Java IMAGE (jdk: 21.0.2 & mvn: 3.9.9)
-############################################
-FROM myubuntu AS myjava
 
-#Arguments and variables
-ARG DOCKER_GID=9999
+
+############################################
+## Keycloak
+############################################
+FROM javaet AS keycloaket
 
 USER root
 
-#Create java user and docker group to be able to save data externally
-RUN groupadd --gid $DOCKER_GID docker
-RUN useradd -g docker -c "Java user" --shell /bin/bash --create-home --home-dir /opt/myjava javauser
+RUN useradd -g docker -c "Keycloak application user" --shell /bin/bash --create-home --home-dir /opt/keycloak keycloak
 
-#install git
-RUN apt install -y git
+#RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/keycloak/keycloak-26.0.5.zip /opt/keycloak
+COPY Software/keycloak-26.0.5.zip /opt/keycloak
+USER keycloak
 
-#create directory and set permissions
-WORKDIR /opt/myjava
-#RUN chown javauser:docker /opt/myjava && chmod 750 /opt/myjava
+WORKDIR /opt/keycloak
+COPY scripts/keycloak/. .
 
-#copy keys to authenticate with external servers
-RUN sudo -u javauser -g docker mkdir -m 0750 .ssh
-COPY private/keys/. .ssh/.
-RUN chown javauser:docker -R .ssh && chmod 700 -R .ssh
+RUN unzip keycloak-26.0.5.zip
+#RUN chmod g+r -R /opt/keycloak/keycloak-26.0.5
+#RUN chmod g+x -R /opt/keycloak/keycloak-26.0.5/bin
 
-USER javauser
+ENV HOME=/opt/keycloak
+ENV PATH="$HOME/keycloak-26.0.5/bin:$PATH"
 
-#get software from software repository server
-RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/jdk-21_linux-x64_bin.tar.gz /opt/myjava/
-RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
+############################################
+## Keycloak Configuration
+############################################
+FROM keycloaket AS keycloaketcnf
 
-#extract files
-RUN tar -xzvf jdk-21_linux-x64_bin.tar.gz
-RUN rm jdk-21_linux-x64_bin.tar.gz
-RUN tar -xzvf apache-maven-3.9.9-bin.tar.gz
-RUN rm apache-maven-3.9.9-bin.tar.gz
+USER root
 
-#set Java environment variables
-ENV JAVA_HOME=/opt/myjava/jdk-21.0.4
-ENV M2_HOME=/opt/myjava/apache-maven-3.9.9
-ENV M2=$M2_HOME/bin
-ENV PATH="$JAVA_HOME/bin:$M2:$PATH"
+RUN apt install -y curl vim
+
 
 ############################################
 ## MY webapp IMAGE
 ############################################
-FROM myjava AS webapp
+FROM javaet AS etapp
 
 USER root
 
@@ -201,7 +235,7 @@ RUN mvn install -DskipTests -f spring/webapp-test/pom.xml
 ############################################
 ## MY messengerapp IMAGE
 ############################################
-FROM webapp AS messengerapp
+FROM etapp AS messengeret
 
 #Set application folder
 WORKDIR /opt/webapp
@@ -217,7 +251,7 @@ ENTRYPOINT ["spring/messenger/start.sh"]
 ############################################
 ## MY usuarioapp IMAGE
 ############################################
-FROM webapp AS usuarioapp
+FROM etapp AS usuarioet
 
 #Set application folder
 WORKDIR /opt/webapp
@@ -233,7 +267,7 @@ ENTRYPOINT ["spring/usuario/start.sh"]
 ############################################
 ## MY usuarioapp IMAGE
 ############################################
-FROM webapp AS testcontainer
+FROM etapp AS testcontainer
 
 #Set application folder
 WORKDIR /opt/webapp

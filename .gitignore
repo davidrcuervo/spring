@@ -1,7 +1,8 @@
 /frontend/target
 /library/target
 /messenger/target
-/usuario/target
+/usuarioLdap/target
+/userKc/target
 /model/target
 /utils/target
 /schema/target
@@ -10,4 +11,5 @@
 /API/User/.api.output
 /API/Group/.api.output
 /docker/private
+/docker/Software
 /z.deprecated.library

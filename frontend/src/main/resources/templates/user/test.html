@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<!-- URL: //user/test.html/{username} -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>La eTienda | Test</title>
+</head>
+<body>
+<div layout:fragment="content" class="container">
+    <div>
+        <span th:text="${result}">Text</span>
+    </div>
+</div>
+</body>
+</html>

@@ -110,7 +110,7 @@ public class UserController {
         return ResponseEntity.ok(principal.getName());
     }
 
-    @PostMapping("${api.usuario.login}")
+    @PostMapping("${api.usuario.login}") //<address>:<port>/usuario/api/v0/login
     public ResponseEntity<String> login(Principal principal){
         log.debug("USUARIO_CONTROLLER::login. $username: {}", principal.getName());
         return ResponseEntity.ok("Successful login. $username: " + principal.getName());

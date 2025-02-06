@@ -1,9 +1,11 @@
 #!/bin/sh
 
-DATABASE_WEB_PASSWORD=$(cat /run/secrets/db-web-password)
-DATABASE_SPRINGSESSION_PASSWORD=$(cat /run/secrets/db-springsession-password)
+DATABASE_WEB_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/db-web-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
+DATABASE_SPRINGSESSION_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/db-springsession-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
+DATABASE_KEYCLOAK_PASSWORD=$(decrypt.sh input=$(cat /run/secrets/db-keycloak-password) password=$(cat /run/secrets/jasypt-password) verbose=false)
 DATABASE_SPRINGSESSION_CREATE_DB=/opt/mypostgres/scripts/createSpringsessionDb.sql
 DATABASE_SPRINGSESSION_CREATE_TABLES=/opt/mypostgres/scripts/createSpringsessionTables.sql
+DATABASE_KEYCLOAK_CREATE_DB=/opt/mypostgres/scripts/createKeycloadkDb.sql
 LOG_PATH=/opt/mypostgres/logs/postgresql.$(date +%F.%Hh%Mm%Ss).log
 DATA_PATH=/opt/mypostgres/data
 HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
@@ -25,6 +27,10 @@ HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE USER springsession WITH PASSWORD '$DATABASE_SPRINGSESSION_PASSWORD';"
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -f $DATABASE_SPRINGSESSION_CREATE_DB
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -d springsession -U springsession -f $DATABASE_SPRINGSESSION_CREATE_TABLES
+
+#set keycloak database
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "CREATE USER keycloak WITH PASSWORD '$DATABASE_KEYCLOAK_PASSWORD';"
+/usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -f $DATABASE_KEYCLOAK_CREATE_DB
 
 # stop internal postgres server
 trap "./scripts/postgres-exitpoint.sh $DATA_PATH" SIGINT SIGTERM
