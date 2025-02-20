@@ -68,6 +68,8 @@ public class UserServiceImpl implements UserService {
 
     @Value("${api.frontend.user.passwordrecovery}")
     private String urlFrontendUserPasswordRecovery;
+    @Value("${api.mailer.disabled}")
+    private String apiMailerDisabled;
 
     @Override
     public UsuarioList findAll() throws NotValidCustomException {
@@ -311,11 +313,19 @@ public class UserServiceImpl implements UserService {
     public String requestPasswordRecovery(String username) throws NotValidCustomException {
 
         Usuario user = springRepository.findByUsername(username);
+        boolean isMailerDisabled = Boolean.parseBoolean(apiMailerDisabled);
+        log.trace("property: $api.mailer.disabled: " + apiMailerDisabled);
+        log.trace("Is mailer enabled: " + Boolean.toString(isMailerDisabled));
 
         String token = getToken();
         user.setEncToken(tb.encrypt(token, System.getProperty("jasypt.encryptor.password")));
 
-        sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
+        if(isMailerDisabled){
+            log.debug("Mailer is not enabled.");
+        }else {
+            sendEmail(user, "default/passwordrecovery.html", "Welcome Back! Please reset your password", urlFrontendUserPasswordRecovery);
+        }
+
         user.setToken(token);
 
         springRepository.save(user);
