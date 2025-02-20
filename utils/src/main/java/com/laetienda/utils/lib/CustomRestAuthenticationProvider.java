@@ -4,12 +4,11 @@ import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.lib.model.AuthCredentials;
 
 import com.laetienda.model.user.GroupList;
-import com.laetienda.utils.service.RestClientService;
+import com.laetienda.model.user.Usuario;
+import com.laetienda.utils.service.api.UserApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,20 +26,16 @@ public class CustomRestAuthenticationProvider implements AuthenticationProvider 
     final private static Logger log = LoggerFactory.getLogger(CustomRestAuthenticationProvider.class);
 
     @Autowired
-    private RestClientService restclient;
-
-    @Value("${api.user.authenticate}")
-    private String urlApiUserAuthenticate;
+    private UserApi userApi;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Authentication result = null;
-        AuthCredentials creds = new AuthCredentials(authentication.getName(), authentication.getCredentials().toString());
-
-        log.trace("Authenticating user. $Username: {}", creds.getUsername());
+        Usuario creds = new Usuario(authentication.getName(), authentication.getCredentials().toString());
+        log.trace("AUTHENTICATION_PROVIDER::authenticate. $username: {}", creds.getUsername());
 
         try {
-            GroupList response = restclient.send(urlApiUserAuthenticate, HttpMethod.POST, creds, GroupList.class, null);
+            GroupList response = userApi.authenticateUser(creds).getBody();
             List<GrantedAuthority> authorities = new ArrayList<>();
 
             if(response != null){

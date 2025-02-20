@@ -13,6 +13,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -44,9 +47,17 @@ public class FrontendApplication {
 	}
 
 	@Bean
-	public CustomRestAuthenticationProvider customRestAuthenticationProvider(){
-		return new CustomRestAuthenticationProvider();
+	public RestClient restClient(RestClient.Builder builder, OAuth2AuthorizedClientManager authorizedClientManager) {
+		OAuth2ClientHttpRequestInterceptor requestInterceptor =
+				new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
+
+		return builder.requestInterceptor(requestInterceptor).build();
 	}
+
+//	@Bean
+//	public CustomRestAuthenticationProvider customRestAuthenticationProvider(){
+//		return new CustomRestAuthenticationProvider();
+//	}
 	public static void main(String[] args) {
 		SpringApplication.run(FrontendApplication.class, args);
 	}

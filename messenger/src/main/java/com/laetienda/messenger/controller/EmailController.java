@@ -1,12 +1,13 @@
 package com.laetienda.messenger.controller;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.messenger.service.EmailService;
 import com.laetienda.model.messager.EmailMessage;
 import com.laetienda.model.user.Usuario;
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,28 +22,29 @@ public class EmailController {
     @Autowired
     private EmailService service;
 
-    @GetMapping("hola.html")
-    public ResponseEntity<String> hola(){
-        log.trace("running hola email controller");
+    @GetMapping("${api.messenger.helloworld}")
+    public ResponseEntity<String> helloWorld(){
+        log.trace("MESSENGER_CONTROLLER::helloWorld");
         return ResponseEntity.ok("Hola mundo");
     }
 
-    @GetMapping("testMailer.html")
+    @GetMapping("${api.messenger.test}")
     public ResponseEntity<Boolean> testMailer(){
-        log.trace("running Test Mailer controller");
+        log.trace("MESSENGER_CONTROLLER::testMailer");
         service.testMailer();
         return ResponseEntity.ok(true);
     }
 
-    @PostMapping("holaPost.html")
-    public ResponseEntity<Boolean> holaPost(@RequestBody Usuario usuario){
-        log.trace("running holapost email controller. $email: {}", usuario.getEmail());
-        return ResponseEntity.ok(true);
+    @PostMapping("${api.messenger.testSimplePost}")
+    public ResponseEntity<Boolean> testSimplePost(@RequestBody Usuario usuario) throws NotValidCustomException{
+        log.trace("MESSENGER_CONTROLLER::testSimplePost. $email: {}", usuario.getEmail());
+        throw new NotValidCustomException("test exception", HttpStatus.BAD_REQUEST);
+//        return ResponseEntity.badRequest(false);
     }
 
-    @PostMapping("sendMessage.html")
-    public ResponseEntity<Boolean> sendMessage(@Valid @RequestBody EmailMessage message) throws ResponseStatusException{
-        log.trace("Running send message email controller");
+    @PostMapping("${api.messenger.send}")
+    public ResponseEntity<Boolean> sendMessage(@Valid @RequestBody EmailMessage message) throws NotValidCustomException {
+        log.trace("MESSENGER_CONTROLLER::sendMessage.");
         service.sendMessage(message);
         return ResponseEntity.ok(true);
     }

@@ -1,0 +1,173 @@
+services:
+  postgreset:
+    image: postgreset:16.4
+    restart: always
+    user: postgres
+    working_dir: /opt/mypostgres
+    entrypoint: scripts/postgres-entrypoint.sh
+    secrets:
+      - jasypt-password
+      - db-web-password
+      - db-springsession-password
+      - db-keycloak-password
+    #    volumes:
+    #      - /var/data/docker/db/postgresql:/opt/mypostgres/data
+    environment:
+      - HOME=/opt/mypostgres
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
+    build:
+#      dockerfile: dockerfiles/mypostgres.2404.Dockerfile
+      target: postgreset
+      args:
+        - POSTGRES_UID=110
+        - POSTGRES_GID=119
+
+  myldap:
+    image: myslapd:2.6.7
+    restart: always
+    user: openldap
+    secrets:
+      - ldap-password
+    networks:
+      - backend
+    ports:
+      - "389:389"
+#    volumes:
+#      - /var/data/docker/openldap/etienda:/opt/myslapd/etienda/data
+    build:
+#      dockerfile: dockerfiles/myldap.2404.Dockerfile
+      target: myslapd
+      args:
+        - OPENLDAP_UID=109
+        - OPENLDAP_GID=117
+
+  messengeret:
+    image: messengerapp:1.0
+    user: webappuser
+    secrets:
+      - jasypt-password
+    depends_on:
+      - postgreset
+      - myldap
+    networks:
+      - backend
+    ports:
+      - "8082:8082"
+    env_file:
+      - webapp.env
+#    volumes:
+#      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+    build:
+#      dockerfile: dockerfiles/myjava.21.Dockerfile
+      target: messengerapp
+      args:
+        - DOCKER_GID=999
+
+  keycloaket:
+    image: keycloaket:26.0.5
+    user: keycloak
+    working_dir: /opt/keycloak
+    entrypoint: /opt/keycloak/kc.entrypoint.sh
+    secrets:
+      - db-keycloak-password
+      - kc-admin-password
+      - jasypt-password
+    depends_on:
+      - postgreset
+    networks:
+      - backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - webapp.env
+    build:
+      target: keycloaket
+      args:
+        - DOCKER_GID=2
+
+  keycloaketcnf:
+    image: keycloaketcnf:26.0.5
+    user: keycloak
+    working_dir: /opt/keycloak
+    secrets:
+      - kc-admin-password
+      - kc-clientid-secret
+      - jasypt-password
+      - webapp-admin-password
+      - email-smtp-password
+    depends_on:
+      - keycloaket
+    networks:
+      - backend
+    build:
+      target: keycloaketcnf
+      args:
+        - DOCKER_GID=2
+
+  usuarioet:
+    image: usuarioapp:1.0
+    user: webappuser
+#    entrypoint: /bin/bash
+    secrets:
+      - jasypt-password
+    depends_on:
+      - postgreset
+      - myldap
+      - messengeret
+    networks:
+      - backend
+    ports:
+      - "8081:8081"
+    env_file:
+      - webapp.env
+    build:
+      #      dockerfile: dockerfiles/myjava.21.Dockerfile
+      target: usuarioapp
+      args:
+        - DOCKER_GID=999
+
+  testcontainer:
+    image: testcontainer:1.0
+    user: webappuser
+    entrypoint: /bin/bash
+    secrets:
+      - jasypt-password
+    depends_on:
+      - postgreset
+      - myldap
+    networks:
+      - backend
+    env_file:
+      - webapp.env
+#    volumes:
+#      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+    build:
+      target: testcontainer
+      args:
+        - DOCKER_GID=999
+
+networks:
+  backend:
+
+secrets:
+  db-web-password:
+    file: private/db-web-password.txt
+  db-springsession-password:
+    file: private/db-springsession-password.txt
+  ldap-password:
+    file: ./private/ldap-password.txt
+  jasypt-password:
+    file: ./private/jasypt-password.txt
+  db-keycloak-password:
+    file: ./private/db-keycloak-password.txt
+  kc-admin-password:
+    file: ./private/kc-admin-password.txt
+  kc-clientid-secret:
+    file: ./private/kc-clientid-secret.txt
+  webapp-admin-password:
+    file: ./private/admuser-password.txt
+  email-smtp-password:
+    file: ./private/email-smtp-password.txt

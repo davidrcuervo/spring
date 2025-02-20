@@ -1,12 +1,15 @@
 package com.laetienda.messenger.service;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.messager.EmailMessage;
 
+import jakarta.validation.Validator;
 import org.apache.logging.log4j.message.SimpleMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -31,11 +34,15 @@ public class EmailServiceImpl implements EmailService{
     @Autowired
     private SpringTemplateEngine templateEngine;
 
+//    @Autowired
+//    private Validator validator;
+
     @Value("${spring.mail.username}")
     private String senderAddress;
 
     @Override
-    public void sendMessage(EmailMessage message) throws ResponseStatusException {
+    public void sendMessage(EmailMessage message) throws NotValidCustomException {
+
         try{
             MimeMessage  mimeMessage = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());

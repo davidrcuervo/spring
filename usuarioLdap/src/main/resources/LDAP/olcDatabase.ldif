@@ -1,0 +1,27 @@
+dn: olcDatabase={2}mdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMdbConfig
+olcDatabase: {2}mdb
+olcDbDirectory: /var/openldap/la-etienda.com
+olcSuffix: dc=la-etienda,dc=com
+olcRootDN: cn=sysadmin,dc=la-etienda,dc=com
+olcRootPW: {SSHA}xgocTytxLYRBaziMqENQeV/E1Xhn7Ebm
+olcAccess: {0}to attrs=userPassword
+    by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" =w
+    by self =xw
+    by anonymous auth
+    by * none
+olcAccess: {1}to dn="dc=la-etienda,dc=com"
+    by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" read
+    by users none
+    by * none
+olcAccess: {2}to dn.subtree="ou=people,dc=la-etienda,dc=com"
+    by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" write
+    by self read
+    by users none
+    by * none
+olcAccess: {3}to dn.subtree="ou=wroups,dc=la-etienda,dc=com"
+     by dn="uid=tomcat,ou=people,dc=la-etienda,dc=com" write
+     by self read
+     by users none
+     by * none

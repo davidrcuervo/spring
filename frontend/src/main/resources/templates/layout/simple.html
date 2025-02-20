@@ -53,12 +53,12 @@
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li><i class="bi-person-fill"></i> User:</li>
                                 <li><a class="dropdown-item" th:href="@{/user/signup.html}">Sign Up</a></li>
-                                <li><a class="dropdown-item" href="#">Log In</a></li>
+                                <li><a class="dropdown-item" th:href="@{/oauth2/authorization/keycloak}">Log In</a></li>
                                 <li>
-<!--                                    <a class="dropdown-item" href="#">Log Out</a>-->
-                                    <form th:action="@{/logout}" method="post">
-                                        <button type="submit" class="dropdown-item">Log Out</button>
-                                    </form>
+                                    <a class="dropdown-item" th:href="@{/logout}">Log Out</a>
+<!--                                    <form th:action="@{/logout}" method="post">-->
+<!--                                        <button type="submit" class="dropdown-item">Log Out</button>-->
+<!--                                    </form>-->
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><i class="bi-gear-fill"></i> Settings:</li>

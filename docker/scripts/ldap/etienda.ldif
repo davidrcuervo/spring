@@ -1,0 +1,76 @@
+dn: dc=la-etienda,dc=com
+changetype: add
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: la-etienda
+dc: la-etienda
+
+dn: ou=people,dc=la-etienda,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: people
+description: People who has been registered in the domain
+
+dn: cn=sysadmin,dc=la-etienda,dc=com
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: sysadmin
+description: LDAP super administrator
+userPassword: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
+
+dn: uid=tomcat,ou=people,dc=la-etienda,dc=com
+changetype:add
+objectClass: inetOrgPerson
+uid: tomcat
+sn: tomcat
+cn: tomcat
+mail: myself@la-etienda.com
+userPassword: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
+
+dn: uid=admuser,ou=people,dc=la-etienda,dc=com
+changetype:add
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+uid: admuser
+sn: admuser
+cn: admuser
+mail: admin@la-etienda.com
+userPassword: {SSHA}7x9W4/q2u/mVASXd1IyNrbdvhy2fR0k0
+
+dn: uid=backendservices,ou=people,dc=la-etienda,dc=com
+changetype:add
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+uid: backendservices
+sn: backend
+cn: services
+mail: admin@la-etienda.com
+userPassword: {SSHA}AFBbJETtgsY5AOZlDUCXlqsxeiEz+gm6
+
+dn: ou=wroups,dc=la-etienda,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: wroups
+description: Groups of the domain
+
+dn: cn=manager,ou=wroups,dc=la-etienda,dc=com
+changetype: add
+objectClass: groupOfUniqueNames
+cn: manager
+description: Group of managers
+uniqueMember: uid=admuser,ou=people,dc=la-etienda,dc=com
+owner: uid=admuser,ou=people,dc=la-etienda,dc=com
+
+dn: cn=validUserAccounts,ou=wroups,dc=la-etienda,dc=com
+changetype: add
+objectClass: groupOfUniqueNames
+cn: validUserAccounts
+uniqueMember: uid=admuser,ou=people,dc=la-etienda,dc=com
+uniqueMember: uid=backendservices,ou=people,dc=la-etienda,dc=com
+owner: uid=admuser,ou=people,dc=la-etienda,dc=com

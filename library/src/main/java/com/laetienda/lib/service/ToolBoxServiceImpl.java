@@ -1,7 +1,11 @@
 package com.laetienda.lib.service;
 
+import org.jasypt.encryption.StringEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestClient;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -20,6 +24,7 @@ public class ToolBoxServiceImpl implements ToolBoxService {
     final private static Logger log = LoggerFactory.getLogger(ToolBoxServiceImpl.class);
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
+
     @Override
     public String newToken(int length) {
         byte[] randomBytes = new byte[length];
@@ -62,6 +67,26 @@ public class ToolBoxServiceImpl implements ToolBoxService {
         }
 
         return result;
+    }
+
+    @Override
+    public String getEncode64(String username, String password) {
+        String creds = String.format("%s:%s", username, password);
+        String result = new String(org.apache.tomcat.util.codec.binary.Base64.encodeBase64String(creds.getBytes()));
+        return "Basic " + result;
+    }
+
+    @Override
+    public RestClient getHttpClient() {
+        return RestClient.builder().build();
+    }
+
+    @Override
+    public RestClient getHttpClient(String username, String password) {
+
+        return RestClient.builder()
+                .defaultHeader(HttpHeaders.AUTHORIZATION, this.getEncode64(username, password))
+                .build();
     }
 
     private SecretKeySpec setKey(String secret){

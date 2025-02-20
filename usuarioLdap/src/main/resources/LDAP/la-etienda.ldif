@@ -1,0 +1,56 @@
+#create ldap entries
+dn: dc=la-etienda,dc=com
+objectClass: dcObject
+objectClass: top
+objectClass: organization
+o: la-etienda
+dc: la-etienda
+
+dn: cn=sysadmin,dc=la-etienda,dc=com
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: sysadmin
+description: LDAP administrator
+userPassword: {SSHA}xgocTytxLYRBaziMqENQeV/E1Xhn7Ebm
+
+dn: ou=people,dc=la-etienda,dc=com
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=tomcat,ou=people,dc=la-etienda,dc=com
+objectClass: inetOrgPerson
+uid: tomcat
+sn: tomcat
+cn: tomcat
+mail: myself@la-etienda.com
+userPassword: {SSHA}pe41u/Ntj68B7eQH8PBmCyUuxl2kxZYn
+
+dn: uid=admuser,ou=people,dc=la-etienda,dc=com
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+uid: admuser
+sn: admuser
+cn: admuser
+mail: admin@la-etienda.com
+userPassword: {SSHA}tW0/Og3F+OMWkvCyV9ofIzJQFlQfOZfm
+
+dn: ou=groups,dc=la-etienda,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: ou=wroups,dc=la-etienda,dc=com
+objectClass: organizationalUnit
+ou: wroups
+
+dn: cn=manager,ou=wroups,dc=la-etienda,dc=com
+objectClass: groupOfUniqueNames
+cn: manager
+uniqueMember: uid=admuser,ou=people
+owner: uid=admuser,ou=people
+
+dn: cn=validUserAccounts,ou=wroups,dc=la-etienda,dc=com
+objectClass: groupOfUniqueNames
+cn: validUserAccounts
+uniqueMember: uid=admuser,ou=people
+owner: uid=admuser,ou=people

@@ -1,4 +1,15 @@
-/library/target/
-/.idea/
+/frontend/target
+/library/target
+/messenger/target
+/usuarioLdap/target
+/userKc/target
+/model/target
+/utils/target
+/schema/target
+/webapp-test/target
+/.idea
 /API/User/.api.output
 /API/Group/.api.output
+/docker/private
+/docker/Software
+/z.deprecated.library

@@ -4,11 +4,12 @@ import com.laetienda.lib.model.Mistake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 public class NotValidCustomException extends Exception{
     final private static Logger log = LoggerFactory.getLogger(NotValidCustomException.class);
     private Mistake mistake;
-    private HttpStatus status;
+    private HttpStatusCode status;
 
     public NotValidCustomException(String message, HttpStatus statuscode){
         super(message);
@@ -23,6 +24,13 @@ public class NotValidCustomException extends Exception{
      * @param key name of the pointer error. Used by forms
      */
     public NotValidCustomException(String message, HttpStatus statuscode, String key){
+        super(message);
+        this.status = statuscode;
+        mistake = new Mistake(statuscode.value());
+        addError(key, message);
+    }
+
+    public NotValidCustomException(String message, HttpStatusCode statuscode, String key){
         super(message);
         this.status = statuscode;
         mistake = new Mistake(statuscode.value());
@@ -49,7 +57,7 @@ public class NotValidCustomException extends Exception{
         this.mistake = mistake;
     }
 
-    public HttpStatus getStatus() {
+    public HttpStatusCode getStatus() {
         return status;
     }
 

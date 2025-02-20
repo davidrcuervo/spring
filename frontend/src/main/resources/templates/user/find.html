@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>La eTienda | User</title>
+</head>
+<body>
+<div layout:fragment="content" class="container">
+    <h1 class="text-center">User | <span th:text="${}">Username</span></h1>
+    <div>
+        <p>Username: <span th:text="${user.username}">username</span></p>
+        <p>Email address:<span th:text="${user.email}">email address</span></p>
+    </div>
+</div>
+</body>
+</html>
