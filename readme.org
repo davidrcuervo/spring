@@ -32,11 +32,10 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 #+END_SRC
 ** Run
 #+BEGIN_SRC shell
-    spring-boot:run "-Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=6xtehPTxAL5Rj6sH3WrB \
-		    -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring/,C:\Users\I849921\IdeaProjects\spring\API/" \
-		    -f pom.xml
 #+END_SRC
-
+** Security
+** Database
+** OpenLdap
 * API
 
 ** v0
