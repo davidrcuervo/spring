@@ -5,9 +5,37 @@
 
 * About
 * Installation
-** Security
-** Database
-** OpenLdap
+** Docker
+** Get code
+** Create private files
+*** Create key
+Create key in %APP_ROOT_FOLDER%/docker/private/keys
+*** create passwords
++ admuser-password.txt
++ db-keycloak-password.txt
++ db-springsession-password.txt *DEPRECATED*
++ db-web-password.txt
++ email-smtp-password.txt
++ jasypt-password.txt
++ kc-admin-password.txt
++ kc-clientid-secret.txt
++ ldap-password.txt *DEPRECATED*
++ samsepi0l-password.txt
+
+*** Edit environmental file
+%APP_ROOT_FOLDER%/docker/webapp.env
+
+* Test and Run
+** Run Junit test
+#+BEGIN_SRC intellij
+  -ea -Djasypt.encryptor.password=6xtehPTxAL5Rj6sH3WrB -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring\API\,C:\Users\I849921\IdeaProjects\spring\
+#+END_SRC
+** Run
+#+BEGIN_SRC shell
+    spring-boot:run "-Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=6xtehPTxAL5Rj6sH3WrB \
+		    -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring/,C:\Users\I849921\IdeaProjects\spring\API/" \
+		    -f pom.xml
+#+END_SRC
 
 * API
 
