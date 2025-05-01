@@ -11,12 +11,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.client.RestClient;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 @Controller("user")
 @RequestMapping("user")
@@ -31,6 +42,7 @@ public class UserController {
 
     @Value ("${api.usuario.port}") private String usuarioPort;
     @Value("${api.user.create}") private String apiAddUrl;
+    @Value ("${spring.security.oauth2.client.registration.keycloak.client-id}") private String clientId;
 
     public UserController(RestClient client){
         this.client = client;
@@ -82,11 +94,40 @@ public class UserController {
 
     //TODO: FOR TESTING PORPUSE. MUST BE REMOVED
     @GetMapping("${api.frontend.user.test}") //user/test.html/{username}
-    private String testUser(@PathVariable String username, Model model){
+    private String testUser(@PathVariable String username, HttpServletRequest request, Model model, Principal principal){
         log.trace("USER_CONTROLLER::test $username: {}", username);
-        String address = env.getProperty("api.usuario.test.uri");
+
+        //Get JWT Token
+        String authHeader = request.getHeader("Authorization");
+        log.trace("USER_CONTROLLER::test $authToken: {}", authHeader);
+
+        if(principal instanceof OAuth2AuthenticationToken authentication){
+            log.trace("USER_CONTROLLER::test $principal.name: {}", principal.getName());
+            log.trace("USER_CONTROLLER::test $principal.email: {}", authentication.getPrincipal().getAttribute("email").toString());
+            log.trace("USER_CONTROLLER::test $principal.family_nome: {}", authentication.getPrincipal().getAttribute("family_name").toString());
+            log.trace("USER_CONTROLLER::test $principal.given_name: {}", authentication.getPrincipal().getAttribute("given_name").toString());
+
+//            Map<String, Object> attributes = authentication.getPrincipal().getAttributes();
+//            for(Map.Entry<String, Object> attribute : attributes.entrySet()){
+//                log.trace("USER_CONTROLLER::test $attribute: {}", attribute.getKey());
+//            }
+
+        }else if(principal != null){
+            log.trace("USER_CONTROLLER::test (non-OAuth2): {}", principal.getName());
+
+        }else{
+            log.trace("USER_CONTROLLER::test No authenticated user found");
+        }
+
+        //Send request to User Resource server
+//        String address = env.getProperty("api.usuario.test.uri"); //http://usuarioet:{port}/api/v0/user/test.html
+        String address = env.getProperty("api.usuario.login.uri"); //http://usuarioet:{port}login.html/login.html
         log.trace("USER_CONTROLLER::test $address: {}", address);
-        String result = client.get().uri(address, usuarioPort, username).retrieve().toEntity(String.class).getBody();
+        String result = client.get()
+                .uri(address, usuarioPort, username)
+//                .attributes(clientRegistrationId("keycloak"))
+                .retrieve()
+                .toEntity(String.class).getBody();
         model.addAttribute("result", result);
         return "user/test";
     }

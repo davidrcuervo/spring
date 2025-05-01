@@ -46,14 +46,6 @@ public class FrontendApplication {
 		return new RestClientServiceImpl();
 	}
 
-	@Bean
-	public RestClient restClient(RestClient.Builder builder, OAuth2AuthorizedClientManager authorizedClientManager) {
-		OAuth2ClientHttpRequestInterceptor requestInterceptor =
-				new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
-
-		return builder.requestInterceptor(requestInterceptor).build();
-	}
-
 //	@Bean
 //	public CustomRestAuthenticationProvider customRestAuthenticationProvider(){
 //		return new CustomRestAuthenticationProvider();

@@ -16,7 +16,7 @@ RESPONSE_CODE=$(curl -i --request $METHOD --header "Content-Type: application/js
 --write-out "%{http_code}" --output .api.output \
 --data '{
 "username":"shellapitestuser",
-"password":"shellapipassword1234"
+"password":"passrecovery"
 }' \
 $REQUEST)
 
