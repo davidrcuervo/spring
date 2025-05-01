@@ -14,13 +14,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.web.client.RestClient;
+
+import java.security.Principal;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +35,9 @@ import java.util.Map;
 @RequestMapping("manage")
 public class ManagementController {
     final private static Logger log = LoggerFactory.getLogger(ManagementController.class);
+    private final RestClient client;
+
+    @Value("${api.usuario.port}") private String usuarioPort;
 
     @Value("${api.user.findall}")
     private String urlFindAllUsers;
@@ -58,11 +66,13 @@ public class ManagementController {
     @Value("${api.group.add.owner}")
     private String urlGroupAddOwner;
 
-    @Autowired
-    private RestClientService restclient;
+    @Autowired private RestClientService restclient;
+    @Autowired private FormRepository formRepository;
+    @Autowired private Environment env;
 
-    @Autowired
-    private FormRepository formRepository;
+    public ManagementController(RestClient client){
+        this.client = client;
+    }
 
     @GetMapping("/{viewpath}")
     public String getView(@PathVariable String viewpath, Model model, HttpSession session){
@@ -148,6 +158,37 @@ public class ManagementController {
             default:
                 return "redirect:/notfound.html";
         }
+    }
+
+    @GetMapping("${api.frontend.manger.test.file}")//manage/test.html
+    public String test(Model model, Principal principal){
+        log.trace("MANAGEMENT_CONTROLLER::test. $username: {}", principal.getName());
+
+        if(principal instanceof OAuth2AuthenticationToken authentication){
+            log.trace("MANAGEMENT_CONTROLLER::test $principal.name: {}", principal.getName());
+            log.trace("MANAGEMENT_CONTROLLER::test $principal.email: {}", authentication.getPrincipal().getAttribute("email").toString());
+            log.trace("MANAGEMENT_CONTROLLER::test $principal.family_nome: {}", authentication.getPrincipal().getAttribute("family_name").toString());
+            log.trace("MANAGEMENT_CONTROLLER::test $principal.given_name: {}", authentication.getPrincipal().getAttribute("given_name").toString());
+
+//            Map<String, Object> attributes = authentication.getPrincipal().getAttributes();
+//            for(Map.Entry<String, Object> attribute : attributes.entrySet()){
+//                log.trace("MANAGEMENT_CONTROLLER::test $attribute: {}", attribute.getKey());
+//            }
+
+        }else {
+            log.trace("MANAGEMENT_CONTROLLER::test (non-OAuth2): {}", principal.getName());
+        }
+
+        //Send request to User Resource server
+        String address = env.getProperty("api.usuario.testAuthorization.uri"); //http://usuarioet:{port}/api/v0/user/testAuthorization.html
+        log.trace("MANAGEMENT_CONTROLLER::test $address: {}", address);
+        String result = client.get()
+                .uri(address, usuarioPort)
+//                .attributes(clientRegistrationId("keycloak"))
+                .retrieve()
+                .toEntity(String.class).getBody();
+        model.addAttribute("result", result);
+        return "user/test";
     }
 
     private String addAndRemoveOwnersAndMembersFromGroup(Map<String, String> params, Model model, String url, HttpMethod method, Group data, HttpSession session) {

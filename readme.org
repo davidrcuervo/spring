@@ -5,25 +5,58 @@
 
 * About
 * Installation
-** Docker
-** Get code
-** Create private files
-*** Create key
-Create key in %APP_ROOT_FOLDER%/docker/private/keys
-*** create passwords
-+ admuser-password.txt
-+ db-keycloak-password.txt
-+ db-springsession-password.txt *DEPRECATED*
-+ db-web-password.txt
-+ email-smtp-password.txt
-+ jasypt-password.txt
-+ kc-admin-password.txt
-+ kc-clientid-secret.txt
-+ ldap-password.txt *DEPRECATED*
-+ samsepi0l-password.txt
+** TODO Install docker
+#+begin_src bash
+  #update ubuntu
+  apt update
+  apt upgrade
+#+end_src
 
-*** Edit environmental file
+** Get code
+#+BEGIN_SRC src
+git clone git@github.com:davidrcuervo/spring.git
+#+END_SRC
+
+** Crete private folders.
+- $APP_ROOT_FOLDER$
+  + docker
+    - private
+    - Software
+
+** Download software
+Download software to folder %APP_ROOT_FOLDER%/docker/private/Software
+
++ [X] jdk-21.0.6_linux-x64_bin.tar.gz | Link: [[https://www.oracle.com/ca-en/java/technologies/downloads/#java21][Java SE Development Kit 21.0.6 downloads]]
++ [X] apache-maven-3.9.9-bin.tar.gz | Link: [[https://maven.apache.org/download.cgi][Downloading Apache Maven 3.9.9]]
++ [X] jasypt-1.9.3-dist.zip | Link: [[https://github.com/jasypt/jasypt/releases/download/jasypt-1.9.3/jasypt-1.9.3-dist.zip][jasypt 1.9.3 (binaries and javadocs)]]
++ [X] keycloak-26.1.5.zip | Link: [[https://www.keycloak.org/archive/downloads-26.1.5.html][Keycloak Downloads 26.1.5]]
+
+** Create key                                                    :deprecated:
+Create key in %APP_ROOT_FOLDER%/docker/private/keys
+** create passwords [9/11]
++ [X] admuser-password.txt
++ [X] samsepi0l-password.txt
++ [X] db-keycloak-password.txt
++ [X] db-web-password.txt
++ [X] email-smtp-password.txt
++ [X] jasypt-password.txt
++ [X] kc-admin-password.txt
++ [X] kc-clientid-secret.txt
++ [X] webapp-admin-password.txt
++ [ ] db-springsession-password.txt *DEPRECATED*
++ [ ] ldap-password.txt *DEPRECATED*
+
+** Edit environmental file
 %APP_ROOT_FOLDER%/docker/webapp.env
+
+** Build docker images
+#+begin_src bash
+  #find docker group id
+  cat /etc/group | grep docker
+
+  #build docker images
+  docker copose build --no-cache --build-arg DOCKER_GID=999
+#+end_src
 
 * Test and Run
 ** Run Junit test
@@ -32,6 +65,17 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 #+END_SRC
 ** Run
 #+BEGIN_SRC shell
+  #0. Ideally it should works by only running the following command, but that is not ready. So that, steps 1. 2. and 3 must be completed instead
+  dockerm compose up -dx
+
+  #1. Run database and keycloak container
+  docker compose up -d postgreset keycloaket
+
+  #2. Test if keycloak is up and ready to accept connections
+  kcadm.sh config credentials --server http://127.0.0.1:8001 --realm master --user etadmuser
+
+  #3. Run keycloak configuration container
+  docker compose up keycloaketcnf
 #+END_SRC
 ** Security
 ** Database
@@ -47,6 +91,49 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 | * add  | /add         | POST   |      |
 | * show | /show/{id}   | GET    |      |
 |        |              |        |      |
+
+* Appendix
+** Install Java
+#+begin_src shell
+  #Extract java
+
+  #Set java environmental variables
+  export JAVA_HOME=/opt/java/jdk-21.0.6
+  export PATH=$JAVA_HOME/bin:$PATH
+#+end_src
+
+** Install Maven
+#+begin_src shell
+
+  #1. Uncompress maven
+   tar -xzvf Software/apache-maven-3.9.9-bin.tar.gz -C /opt/maven/
+
+  #2. Set envrionment variables
+  export M2_HOME=/opt/myjava/apache-maven-3.9.9
+  export M2=$M2_HOME/bin
+  export PATH="$M2:$PATH"
+
+#+end_src
+
+** Install key cloak
+#+begin_src shell
+  #1. Uncompress keycloak
+  unzip Software/keycloak-26.1.5.zip -d /opt/keycloak
+
+  #2. Add bin to path env variable
+  export KC_HOME=/opt/keycloak/keycloak-26.1.5
+  export PATH="$KC_HOME/bin:$PATH"
+#+end_src
+
+** Encrypt passwords
+#+begin_src shell
+  #ENCRYPT
+  ./encrypt.sh input="<data>" password="<secret>"
+
+  #DECRYPT
+  ./decrypt.sh input="<encrypted_data>" password="secret" verbose=false
+
+#+end_src
 
 * References 
 

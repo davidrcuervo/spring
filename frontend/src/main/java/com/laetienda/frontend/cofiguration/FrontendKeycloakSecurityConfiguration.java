@@ -1,6 +1,9 @@
 package com.laetienda.frontend.cofiguration;
 
+import com.laetienda.lib.service.KeycloakGrantedAuthoritiesConverter;
 import com.laetienda.utils.lib.CustomRestAuthenticationProvider;
+import ognl.CollectionElementsAccessor;
+import org.ietf.jgss.Oid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +20,13 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
@@ -27,10 +35,9 @@ import org.springframework.security.web.authentication.session.RegisterSessionAu
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -61,50 +68,43 @@ public class FrontendKeycloakSecurityConfiguration {
                         requestMatchers("/home", "/", "/home.html", "/index", "/index.html", "/user/signup.html").permitAll().
                         requestMatchers("/bootstrap/**", "/styles/**", "/scripts/**").permitAll().
                         requestMatchers("/login*").permitAll().
-                        requestMatchers("/manage/*").hasAuthority("role_manager").
+                        requestMatchers("/manage/**").hasAuthority("role_manager").
                         anyRequest().authenticated()
                 );
+
         http.oauth2Login(Customizer.withDefaults())
                 .logout((logout) -> {
                     logout.logoutSuccessHandler(oidcLogoutSuccessHandler);
                 });
 
+        http.oauth2Client(Customizer.withDefaults());
         return http.build();
     }
 
     @Bean
-    public GrantedAuthoritiesMapper userAuthoritiesMapper(){
+    public KeycloakGrantedAuthoritiesConverter kcAuthoritiesConverter(){
+        return new KeycloakGrantedAuthoritiesConverter();
+    }
+
+    @Bean
+    public GrantedAuthoritiesMapper userAuthoritiesMapper() {
+        log.trace("FRONTEND_SECURITY::userAuthoritiesMapper");
+
         return (authorities) -> {
-            Set<GrantedAuthority> mappedAuthorities = new HashSet<GrantedAuthority>();
+            Optional<OidcUserInfo> oidcUserInfo =
+                    authorities.stream()
+                            .filter(authority -> authority instanceof OidcUserAuthority)
+                            .map(OidcUserAuthority.class::cast)
+                            .map(OidcUserAuthority::getUserInfo)
+                            .findFirst();
 
-            authorities.forEach(authority -> {
-                if(OidcUserAuthority.class.isInstance(authority)){
-
-                    OidcUserAuthority oidcUserAuthority = (OidcUserAuthority)authority;
-                    OidcIdToken idToken = oidcUserAuthority.getIdToken();
-                    OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
-
-                    Map<String, Object> realmAccess = userInfo.getClaim("realm_access");
-
-                    if(realmAccess != null){
-                        Collection<String> realmRoles = (Collection<String>)realmAccess.get("roles");
-                        if(realmRoles != null){
-
-                            realmRoles.forEach((role) -> {
-                                log.debug("FRONTEND_SECURITY::Config token contains role. $role: {}", role);
-                                mappedAuthorities.add(new SimpleGrantedAuthority(role));
-                            });
-
-                        }else{
-                            log.error("FRONTEND_SECURITY::Config Keycloak token does not contain any realm roles");
-                        }
-                    }else{
-                        log.error("FRONTEND_SECURITY::Config Keycloak token does not contain realm access");
-                    }
-                }
-            });
-
-            return mappedAuthorities;
+            if (oidcUserInfo.isPresent()) {
+                Map<String, Object> realmAccess = oidcUserInfo.get().getClaim("realm_access");
+                return kcAuthoritiesConverter().getKcRealmRoles(realmAccess);
+            } else {
+                log.warn("FRONTEND_SECURITY::userAuthoritiesMapper. No realm access found");
+                return null;
+            }
         };
     }
 }

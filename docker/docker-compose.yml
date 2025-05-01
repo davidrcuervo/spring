@@ -8,8 +8,8 @@ services:
     secrets:
       - jasypt-password
       - db-web-password
-      - db-springsession-password
       - db-keycloak-password
+    #  - db-springsession-password
     #    volumes:
     #      - /var/data/docker/db/postgresql:/opt/mypostgres/data
     environment:
@@ -67,7 +67,7 @@ services:
         - DOCKER_GID=999
 
   keycloaket:
-    image: keycloaket:26.0.5
+    image: keycloaket:26.1.5
     user: keycloak
     working_dir: /opt/keycloak
     entrypoint: /opt/keycloak/kc.entrypoint.sh
@@ -89,9 +89,10 @@ services:
         - DOCKER_GID=2
 
   keycloaketcnf:
-    image: keycloaketcnf:26.0.5
+    image: keycloaketcnf:26.1.5
     user: keycloak
     working_dir: /opt/keycloak
+    entrypoint: /opt/keycloak/kc.config.sh
     secrets:
       - kc-admin-password
       - kc-clientid-secret
@@ -137,7 +138,7 @@ services:
       - jasypt-password
     depends_on:
       - postgreset
-      - myldap
+      - keycloaket
     networks:
       - backend
     env_file:
@@ -155,8 +156,6 @@ networks:
 secrets:
   db-web-password:
     file: private/db-web-password.txt
-  db-springsession-password:
-    file: private/db-springsession-password.txt
   ldap-password:
     file: ./private/ldap-password.txt
   jasypt-password:
@@ -168,6 +167,8 @@ secrets:
   kc-clientid-secret:
     file: ./private/kc-clientid-secret.txt
   webapp-admin-password:
-    file: ./private/admuser-password.txt
+    file: ./private/webapp-admin-password.txt
   email-smtp-password:
     file: ./private/email-smtp-password.txt
+  #db-springsession-password:
+  #  file: private/db-springsession-password.txt

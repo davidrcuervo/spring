@@ -1,5 +1,4 @@
 FROM ubuntu:24.04 AS ubuntuet
-
 #Variables and arguments
 #ARG ADMUSER_PASSWORD=secret
 #ARG SAMSEPI0L_PASSWORD=secret
@@ -33,8 +32,9 @@ RUN rm private/samsepi0l-password.txt
 
 USER samsepi0l
 ENV HOME=/home/sapsepi0l
+
 ############################################
-## MY Java IMAGE (jdk: 21.0.2 & mvn: 3.9.9)
+## MY Java IMAGE (jdk: 21.0.6 & mvn: 3.9.9)
 ############################################
 FROM ubuntuet AS javaet
 
@@ -58,12 +58,12 @@ WORKDIR /opt/myjava
 RUN sudo -u javauser -g docker mkdir -m 0750 .ssh
 RUN mkdir -m 0750 /opt/jasypt
 RUN chown javauser:docker /opt/jasypt
-COPY private/keys/. .ssh/.
+#COPY private/keys/. .ssh/.
 RUN chown javauser:docker -R .ssh && chmod 700 -R .ssh
 
 #get software from software repository server
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/jdk-21.0.4_linux-x64_bin.tar.gz /opt/myjava/
-COPY Software/jdk-21.0.4_linux-x64_bin.tar.gz /opt/myjava/
+COPY Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
 COPY Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/jasypt/jasypt-1.9.3-dist.zip /opt/jasypt
@@ -74,13 +74,13 @@ RUN chmod 750 .ssh
 RUN unzip /opt/jasypt/jasypt-1.9.3-dist.zip -d /opt/jasypt
 RUN rm /opt/jasypt/jasypt-1.9.3-dist.zip
 RUN chmod +x -R /opt/jasypt/jasypt-1.9.3/bin
-RUN tar -xzvf jdk-21.0.4_linux-x64_bin.tar.gz
-RUN rm jdk-21.0.4_linux-x64_bin.tar.gz
+RUN tar -xzvf jdk-21.0.6_linux-x64_bin.tar.gz
+RUN rm jdk-21.0.6_linux-x64_bin.tar.gz
 RUN tar -xzvf apache-maven-3.9.9-bin.tar.gz
 RUN rm apache-maven-3.9.9-bin.tar.gz
 
 #set Java environment variables
-ENV JAVA_HOME=/opt/myjava/jdk-21.0.4
+ENV JAVA_HOME=/opt/myjava/jdk-21.0.6
 ENV M2_HOME=/opt/myjava/apache-maven-3.9.9
 ENV M2=$M2_HOME/bin
 ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
@@ -115,6 +115,7 @@ RUN apt install -y postgresql
 COPY ../scripts/database/. scripts/.
 RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
+
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
 ###############################
@@ -160,8 +161,6 @@ ENTRYPOINT ["/opt/myslapd/etienda/scripts/slapd-entrypoint.sh"]
 #USER samsepi0l
 #ENTRYPOINT ["/bin/bash"]
 
-
-
 ############################################
 ## Keycloak
 ############################################
@@ -172,18 +171,19 @@ USER root
 RUN useradd -g docker -c "Keycloak application user" --shell /bin/bash --create-home --home-dir /opt/keycloak keycloak
 
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/keycloak/keycloak-26.0.5.zip /opt/keycloak
-COPY Software/keycloak-26.0.5.zip /opt/keycloak
+COPY Software/keycloak-26.1.5.zip /opt/keycloak
 USER keycloak
 
 WORKDIR /opt/keycloak
 COPY scripts/keycloak/. .
 
-RUN unzip keycloak-26.0.5.zip
+RUN unzip keycloak-26.1.5.zip
+RUN rm keycloak-26.1.5.zip
 #RUN chmod g+r -R /opt/keycloak/keycloak-26.0.5
 #RUN chmod g+x -R /opt/keycloak/keycloak-26.0.5/bin
 
 ENV HOME=/opt/keycloak
-ENV PATH="$HOME/keycloak-26.0.5/bin:$PATH"
+ENV PATH="$HOME/keycloak-26.1.5/bin:$PATH"
 
 ############################################
 ## Keycloak Configuration
@@ -192,8 +192,8 @@ FROM keycloaket AS keycloaketcnf
 
 USER root
 
-RUN apt install -y curl vim
-
+RUN apt install -y curl vim dos2unix
+RUN dos2unix /opt/keycloak/kc.config.sh
 
 ############################################
 ## MY webapp IMAGE
