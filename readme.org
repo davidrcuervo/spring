@@ -61,7 +61,7 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 * Test and Run
 ** Run Junit test
 #+BEGIN_SRC intellij
-  -ea -Djasypt.encryptor.password=6xtehPTxAL5Rj6sH3WrB -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring\API\,C:\Users\I849921\IdeaProjects\spring\
+  -ea -Djasypt.encryptor.password=secret -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring\API\,C:\Users\I849921\IdeaProjects\spring\
 #+END_SRC
 ** Run
 #+BEGIN_SRC shell
