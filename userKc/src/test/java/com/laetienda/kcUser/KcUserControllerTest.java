@@ -1,4 +1,4 @@
-package com.laetienda.usuerKc;
+package com.laetienda.kcUser;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

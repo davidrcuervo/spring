@@ -1,7 +1,8 @@
 #!/bin/bash
 
 KC_ADMIN_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/kc-admin-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
-KC_CLIENTID_SECRET=$(decrypt.sh input="$(cat /run/secrets/kc-clientid-secret)" password=$(cat /run/secrets/jasypt-password) verbose=false)
+KC_FRONTEND_CLIENT_ID_SECRET=$(decrypt.sh input="$(cat /run/secrets/kc-frontend-clientId-secret)" password=$(cat /run/secrets/jasypt-password) verbose=false)
+KC_USER_CLIENT_ID_SECRET=$(decrypt.sh input="$(cat /run/secrets/kc-user-clientId-secret)" password=$(cat /run/secrets/jasypt-password) verbose=false)
 WEBAPP_ADMIN_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/webapp-admin-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
 EMAIL_SMTP_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/webapp-admin-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
 
@@ -48,15 +49,29 @@ kcadm.sh update realms/$REALM_ID -f - << EOF
 }
 EOF
 
-#create client
+#CREATE KC CLIENTS (one for each microservice)
+#create client for frontend
 kcadm.sh create clients -r etrealm -f - << EOF
 {
   "clientId":"et-frontend-kc-client",
   "name":"Et. Frontend KC Client",
   "enabled":"true",
   "clientAuthenticatorType":"client-secret",
-  "secret":"$KC_CLIENTID_SECRET",
+  "secret":"$KC_FRONTEND_CLIENT_ID_SECRET",
   "redirectUris":["http://127.0.0.1:8080/*"]
+}
+EOF
+
+#create client for user microservice
+kcadm.sh create clients -r etrealm -f - << EOF
+{
+  "clientId":"et-user-kc-client",
+  "name":"Et. User KC Client",
+  "enabled":"true",
+  "clientAuthenticatorType":"client-secret",
+  "secret":"$KC_USER_CLIENT_ID_SECRET",
+  "redirectUris":["http://127.0.0.1:8080/*"],
+  "directAccessGrantsEnabled":"true"
 }
 EOF
 

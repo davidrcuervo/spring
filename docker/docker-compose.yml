@@ -95,7 +95,8 @@ services:
     entrypoint: /opt/keycloak/kc.config.sh
     secrets:
       - kc-admin-password
-      - kc-clientid-secret
+      - kc-frontend-clientId-secret
+      - kc-user-clientId-secret
       - jasypt-password
       - webapp-admin-password
       - email-smtp-password
@@ -164,8 +165,10 @@ secrets:
     file: ./private/db-keycloak-password.txt
   kc-admin-password:
     file: ./private/kc-admin-password.txt
-  kc-clientid-secret:
-    file: ./private/kc-clientid-secret.txt
+  kc-frontend-clientId-secret:
+    file: ./private/kc-frontend-clientId-secret.txt
+  kc-user-clientId-secret:
+    file: ./private/kc-user-clientId-secret.txt
   webapp-admin-password:
     file: ./private/webapp-admin-password.txt
   email-smtp-password:
