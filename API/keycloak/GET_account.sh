@@ -4,7 +4,7 @@
 
 JSON=$(curl -X POST \
 -d "client_id=et-user-kc-client" \
--d "client_secret=ttw8cT6DfTLsUgkWcIe6" \
+-d "client_secret=secret" \
 -d "username=myself" \
 -d "password=secret" \
 -d "grant_type=password" \
