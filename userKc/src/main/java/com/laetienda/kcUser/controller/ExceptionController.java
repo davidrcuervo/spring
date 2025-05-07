@@ -1,4 +1,4 @@
-package com.laetienda.usuerKc.controller;
+package com.laetienda.kcUser.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.model.Mistake;

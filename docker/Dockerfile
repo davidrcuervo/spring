@@ -68,6 +68,7 @@ COPY Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
 COPY Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/jasypt/jasypt-1.9.3-dist.zip /opt/jasypt
 COPY Software/jasypt-1.9.3-dist.zip /opt/jasypt/
+COPY scripts/jasypt/pom.xml /opt/jasypt/
 RUN chmod 750 .ssh
 
 #extract files

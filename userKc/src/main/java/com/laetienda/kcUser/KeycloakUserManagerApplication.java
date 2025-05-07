@@ -1,4 +1,4 @@
-package com.laetienda.usuerKc;
+package com.laetienda.kcUser;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

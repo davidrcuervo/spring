@@ -33,7 +33,7 @@ Download software to folder %APP_ROOT_FOLDER%/docker/private/Software
 
 ** Create key                                                    :deprecated:
 Create key in %APP_ROOT_FOLDER%/docker/private/keys
-** create passwords [9/11]
+** create passwords [10/12]
 + [X] admuser-password.txt
 + [X] samsepi0l-password.txt
 + [X] db-keycloak-password.txt
@@ -41,7 +41,8 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 + [X] email-smtp-password.txt
 + [X] jasypt-password.txt
 + [X] kc-admin-password.txt
-+ [X] kc-clientid-secret.txt
++ [X] kc-frontend-clientid-secret.txt
++ [X] kc-user-clientId-secret.txt
 + [X] webapp-admin-password.txt
 + [ ] db-springsession-password.txt *DEPRECATED*
 + [ ] ldap-password.txt *DEPRECATED*
@@ -61,7 +62,7 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 * Test and Run
 ** Run Junit test
 #+BEGIN_SRC intellij
-  -ea -Djasypt.encryptor.password=6xtehPTxAL5Rj6sH3WrB -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring\API\,C:\Users\I849921\IdeaProjects\spring\
+  -ea -Djasypt.encryptor.password=secret -Dspring.config.additional-location=C:\Users\I849921\IdeaProjects\spring\API\,C:\Users\I849921\IdeaProjects\spring\
 #+END_SRC
 ** Run
 #+BEGIN_SRC shell

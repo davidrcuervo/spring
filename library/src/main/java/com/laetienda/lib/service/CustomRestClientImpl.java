@@ -9,6 +9,8 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,6 +39,13 @@ public class CustomRestClientImpl implements CustomRestClient{
                     log.trace("RESTCLIENT_CONFIGURATION::intercept. $token: {}", token);
                     request.getHeaders().setBearerAuth(token);
                 }
+            }else if(authentication instanceof JwtAuthenticationToken jwtAuthenticationToken){
+                log.trace("RESTCLIENT_CONFIGURATION::intercept. token instance of JwtAuthenticationToken");
+
+                Jwt jwt = jwtAuthenticationToken.getToken();
+                request.getHeaders().setBearerAuth(jwt.getTokenValue());
+            }else{
+                log.debug("RESTCLIENT_CONFIGURATION::intercept. Token is not instance of any token");
             }
 
             return execution.execute(request, body);

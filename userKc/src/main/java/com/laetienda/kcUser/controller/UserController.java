@@ -1,24 +1,38 @@
-package com.laetienda.usuerKc.controller;
+package com.laetienda.kcUser.controller;
 
+import com.laetienda.kcUser.service.KcUserService;
+import com.laetienda.model.kc.KcUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Map;
 
 @RestController
-@RequestMapping("api/v0/user")
+@RequestMapping("${api.kcUser.folder}") // api/v0/user
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Autowired private Environment env;
+    @Autowired private KcUserService service;
+
+    @GetMapping("${api.kcUser.find.file}") //find.html
+    public ResponseEntity<KcUser> find(){
+        log.trace("USER_CONTROLLER::find");
+        return ResponseEntity.ok(service.find());
+    }
+
+    @PostMapping("${api.kcUser.token.file}")
+    public ResponseEntity<String> getToken(@RequestParam MultiValueMap<String, String> creds){
+        log.trace("USER_CONTROLLER::getToken $username: {}", creds.get("username"));
+        return ResponseEntity.ok(service.getToken(creds));
+    }
 
     @GetMapping("${api.usuario.test.file}") //api/v0/user/test.html
     public ResponseEntity<String> test(Principal principal){

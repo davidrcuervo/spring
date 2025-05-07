@@ -1,4 +1,4 @@
-package com.laetienda.usuerKc.configuration;
+package com.laetienda.kcUser.configuration;
 
 import com.laetienda.lib.service.KeycloakGrantedAuthoritiesConverter;
 import org.slf4j.Logger;
@@ -15,8 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class UserKcSecurity {
-    private final static Logger log = LoggerFactory.getLogger(UserKcSecurity.class);
+public class KcUserSecurity {
+    private final static Logger log = LoggerFactory.getLogger(KcUserSecurity.class);
 
     @Autowired private Environment env;
 
@@ -25,11 +25,12 @@ public class UserKcSecurity {
         String userPath = env.getProperty("api.usuario.folder");
 
         http.authorizeHttpRequests((authorize) -> {
-            authorize.
-                    requestMatchers(env.getProperty("api.usuario.test.path")).permitAll().
+            authorize
+                    .requestMatchers(env.getProperty("api.usuario.test.path")).permitAll()
+                    .requestMatchers(env.getProperty("api.kcUser.token.path")).permitAll() //api/v0/user/token
 //                    requestMatchers(env.getProperty("api.usuario.login.path")).permitAll().
-                    requestMatchers(env.getProperty("api.usuario.testAuthorization.path")).hasAuthority("role_manager").
-                    anyRequest().fullyAuthenticated();
+                    .requestMatchers(env.getProperty("api.usuario.testAuthorization.path")).hasAuthority("role_manager")
+                    .anyRequest().fullyAuthenticated();
         });
 
         http.oauth2ResourceServer((oath2) -> {

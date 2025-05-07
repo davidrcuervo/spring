@@ -1,7 +1,8 @@
 #!/bin/bash
 
 KC_ADMIN_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/kc-admin-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
-KC_CLIENTID_SECRET=$(decrypt.sh input="$(cat /run/secrets/kc-clientid-secret)" password=$(cat /run/secrets/jasypt-password) verbose=false)
+KC_FRONTEND_CLIENT_ID_SECRET=$(decrypt.sh input="$(cat /run/secrets/kc-frontend-clientId-secret)" password=$(cat /run/secrets/jasypt-password) verbose=false)
+KC_USER_CLIENT_ID_SECRET=$(decrypt.sh input="$(cat /run/secrets/kc-user-clientId-secret)" password=$(cat /run/secrets/jasypt-password) verbose=false)
 WEBAPP_ADMIN_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/webapp-admin-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
 EMAIL_SMTP_PASSWORD=$(decrypt.sh input="$(cat /run/secrets/webapp-admin-password)" password=$(cat /run/secrets/jasypt-password) verbose=false)
 
@@ -48,15 +49,29 @@ kcadm.sh update realms/$REALM_ID -f - << EOF
 }
 EOF
 
-#create client
+#CREATE KC CLIENTS (one for each microservice)
+#create client for frontend
 kcadm.sh create clients -r etrealm -f - << EOF
 {
   "clientId":"et-frontend-kc-client",
   "name":"Et. Frontend KC Client",
   "enabled":"true",
   "clientAuthenticatorType":"client-secret",
-  "secret":"$KC_CLIENTID_SECRET",
+  "secret":"$KC_FRONTEND_CLIENT_ID_SECRET",
   "redirectUris":["http://127.0.0.1:8080/*"]
+}
+EOF
+
+#create client for user microservice
+kcadm.sh create clients -r etrealm -f - << EOF
+{
+  "clientId":"et-user-kc-client",
+  "name":"Et. User KC Client",
+  "enabled":"true",
+  "clientAuthenticatorType":"client-secret",
+  "secret":"$KC_USER_CLIENT_ID_SECRET",
+  "redirectUris":["http://127.0.0.1:8080/*"],
+  "directAccessGrantsEnabled":"true"
 }
 EOF
 
@@ -66,8 +81,8 @@ kcadm.sh create roles -r etrealm -s name=role_manager -s 'description=Manager of
 #create users
 kcadm.sh create users -r etrealm -s username=etadmuser -s enabled=true \
 -s email=admin@la-etienda.com \
--s firstName="Keycloak" \
--s lastName="Realm Admin" \
+-s firstName="Realm Admin" \
+-s lastName="Keycloak" \
 -s emailVerified=true
 kcadm.sh add-roles --uusername etadmuser --rolename role_manager -r etrealm
 kcadm.sh set-password -r etrealm --username etadmuser --new-password $WEBAPP_ADMIN_PASSWORD
@@ -98,3 +113,22 @@ kcadm.sh update client-scopes/$ROLES_SCOPE_ID/protocol-mappers/models/$REALM_ROL
   }
 }
 EOF
+
+##CREATE TEST USER
+#encrypt test user password
+KC_TEST_USER_PASSWORD=$(mvn jasypt:decrypt-value \
+-Djasypt.encryptor.password=$(cat /run/secrets/jasypt-password) \
+-Djasypt.plugin.value="$KC_TEST_USER_ENC_PASSWORD" \
+-f /opt/jasypt/pom.xml \
+| grep -v "Downloading" | grep -v "Downloaded" \
+| grep -v "^\[INFO\]" | grep -v "^\[WARNING\]" | grep -v "^\[ERROR\]" | grep -v "^$")
+
+#create test user
+kcadm.sh create users -r etrealm -s username=$KC_TEST_USER_USERNAME -s enabled=true \
+-s email=myself@la-etienda.com \
+-s firstName="Test User" \
+-s lastName="Keycloak" \
+-s emailVerified=true
+
+#set password to test user
+kcadm.sh set-password -r etrealm --username $KC_TEST_USER_USERNAME --new-password $KC_TEST_USER_PASSWORD
