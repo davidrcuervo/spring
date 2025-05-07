@@ -81,8 +81,8 @@ kcadm.sh create roles -r etrealm -s name=role_manager -s 'description=Manager of
 #create users
 kcadm.sh create users -r etrealm -s username=etadmuser -s enabled=true \
 -s email=admin@la-etienda.com \
--s firstName="Keycloak" \
--s lastName="Realm Admin" \
+-s firstName="Realm Admin" \
+-s lastName="Keycloak" \
 -s emailVerified=true
 kcadm.sh add-roles --uusername etadmuser --rolename role_manager -r etrealm
 kcadm.sh set-password -r etrealm --username etadmuser --new-password $WEBAPP_ADMIN_PASSWORD
@@ -113,3 +113,22 @@ kcadm.sh update client-scopes/$ROLES_SCOPE_ID/protocol-mappers/models/$REALM_ROL
   }
 }
 EOF
+
+##CREATE TEST USER
+#encrypt test user password
+KC_TEST_USER_PASSWORD=$(mvn jasypt:decrypt-value \
+-Djasypt.encryptor.password=$(cat /run/secrets/jasypt-password) \
+-Djasypt.plugin.value="$KC_TEST_USER_ENC_PASSWORD" \
+-f /opt/jasypt/pom.xml \
+| grep -v "Downloading" | grep -v "Downloaded" \
+| grep -v "^\[INFO\]" | grep -v "^\[WARNING\]" | grep -v "^\[ERROR\]" | grep -v "^$")
+
+#create test user
+kcadm.sh create users -r etrealm -s username=$KC_TEST_USER_USERNAME -s enabled=true \
+-s email=myself@la-etienda.com \
+-s firstName="Test User" \
+-s lastName="Keycloak" \
+-s emailVerified=true
+
+#set password to test user
+kcadm.sh set-password -r etrealm --username $KC_TEST_USER_USERNAME --new-password $KC_TEST_USER_PASSWORD

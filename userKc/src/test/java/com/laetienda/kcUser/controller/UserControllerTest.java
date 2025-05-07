@@ -64,18 +64,23 @@ class UserControllerTest {
 
     @Test
     void find() throws Exception {
+        String username = env.getProperty("kc.test.user.username", "");
+        String secret = env.getProperty("kc.test.user.password", "");
         String address = env.getProperty("api.kcUser.find.uri", ""); //http://127.0.0.1:$8001/api/v0/user/find
-        String token = getToken("myself","secret");
+        String token = getToken(username,secret);
+
         mvc.perform(get(address)
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName").value("David Ricardo"))
-                .andExpect(jsonPath("$.username").value("myself"));
+                .andExpect(jsonPath("$.firstName").value("Test User"))
+                .andExpect(jsonPath("$.username").value("samsepi0l"));
     }
 
     @Test
     void token() throws Exception {
-        getToken("myself", "secret");
+        String username = env.getProperty("kc.test.user.username", "");
+        String secret = env.getProperty("kc.test.user.password", "");
+        getToken(username, secret);
     }
 
     String getToken(String username, String password) throws Exception {

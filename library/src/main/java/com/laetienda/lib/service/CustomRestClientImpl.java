@@ -45,7 +45,7 @@ public class CustomRestClientImpl implements CustomRestClient{
                 Jwt jwt = jwtAuthenticationToken.getToken();
                 request.getHeaders().setBearerAuth(jwt.getTokenValue());
             }else{
-                log.debug("RESTCLIENT_CONFIGURATION::intercept. Token is not instance of OAuth2AuthenticationToken");
+                log.debug("RESTCLIENT_CONFIGURATION::intercept. Token is not instance of any token");
             }
 
             return execution.execute(request, body);
