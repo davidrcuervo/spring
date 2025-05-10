@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/simple.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>La eTienda | Account</title>
+</head>
+<body>
+<div layout:fragment="content" class="container">
+    <h1>User profile</h1>
+    <div sec:authorize="isAuthenticated()">
+        <div>Username: <span th:text="${user.username}">Username</span></div>
+        <div>Name: <span th:text="${user.fullName}">Full Name</span></div>
+        <div>Email: <span th:text="${user.email}">email address</span></div>
+        <a type="button" class="btn btn-primary"
+           th:href="${@utils.href('api.kc.account')}" alt="edit" title="Edit" target="_blank">
+           Edit profile
+        </a>
+    </div>
+</div>
+</body>
+</html>

@@ -64,8 +64,8 @@ class UserControllerTest {
 
     @Test
     void find() throws Exception {
-        String username = env.getProperty("kc.test.user.username", "");
-        String secret = env.getProperty("kc.test.user.password", "");
+        String username = env.getProperty("webapp.user.test.username", "");
+        String secret = env.getProperty("webapp.user.test.password", "");
         String address = env.getProperty("api.kcUser.find.uri", ""); //http://127.0.0.1:$8001/api/v0/user/find
         String token = getToken(username,secret);
 
@@ -78,8 +78,8 @@ class UserControllerTest {
 
     @Test
     void token() throws Exception {
-        String username = env.getProperty("kc.test.user.username", "");
-        String secret = env.getProperty("kc.test.user.password", "");
+        String username = env.getProperty("webapp.user.test.username", "");
+        String secret = env.getProperty("webapp.user.test.password", "");
         getToken(username, secret);
     }
 

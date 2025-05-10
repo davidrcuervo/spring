@@ -11,14 +11,15 @@ public class RootController {
 
     final private static Logger log = LoggerFactory.getLogger(RootController.class);
 
-    @GetMapping("/{viewpath}")
-    public String getView(@PathVariable String viewpath){
-        log.trace("Running getView controller in Root. $viewpath: {}", viewpath);
-        return String.format("Root/%s", viewpath);
+    @GetMapping("/{viewPath}")
+    public String getView(@PathVariable String viewPath){
+        log.debug("ROOT_CONTROLLER::getView. $viewpath: {}", viewPath);
+        return String.format("Root/%s", viewPath);
     }
 
     @GetMapping({"/", "home", "home.html", "index", "index.html"})
     public String home(){
+        log.debug("ROOT_CONTROLLER::home.");
 //        return "Welcome to the home page!";
         return "Root/home";
     }

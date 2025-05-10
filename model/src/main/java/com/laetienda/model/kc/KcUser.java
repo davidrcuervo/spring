@@ -2,6 +2,7 @@ package com.laetienda.model.kc;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import net.minidev.json.annotate.JsonIgnore;
 
 public class KcUser {
 
@@ -52,5 +53,10 @@ public class KcUser {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    @JsonIgnore
+    public String getFullName(){
+        return getFirstName() + " " + getLastName();
     }
 }

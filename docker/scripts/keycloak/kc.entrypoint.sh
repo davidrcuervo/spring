@@ -30,13 +30,26 @@ if [ -z "$SCHEMA_KEYCLOAK_ENC_PASSWORD" ]; then
   exit 1
 fi
 
+if [ -z "$PORT_KEYCLOAK_MANAGEMENT" ]; then
+  echo "Variable, PORT_KEYCLOAK_MANAGEMENT, is unset" >&2
+  exit 1
+fi
+
 export KC_BOOTSTRAP_ADMIN_PASSWORD=$(/opt/jasypt/jdecrypt.sh "$KC_BOOTSTRAP_ADMIN_ENC_PASSWORD")
 
-SCHEMA_KEYCLOAK_ENC_PASSWORD=$(/opt/jasypt/jdecrypt.sh "$SCHEMA_KEYCLOAK_ENC_PASSWORD")
+SCHEMA_KEYCLOAK_PASSWORD=$(/opt/jasypt/jdecrypt.sh "$SCHEMA_KEYCLOAK_ENC_PASSWORD")
+
+echo "keycloak username: $KC_BOOTSTRAP_ADMIN_USERNAME"
+echo "keycloak database type: $SCHEMA_TYPE"
+echo "keycloak database url: $SCHEMA_KEYCLOAK_URL"
+echo "keycloak database username: $SCHEMA_KEYCLOAK_USERNAME"
 
 $HOME/keycloak-26.1.5/bin/kc.sh start-dev \
+--http-port=$PORT_KEYCLOAK \
 --db=$SCHEMA_TYPE \
 --db-url=$SCHEMA_KEYCLOAK_URL \
---db-username= \
---http-port=$PORT_KEYCLOAK \
---db-password=$SCHEMA_KEYCLOAK_ENC_PASSWORD
+--db-username=$SCHEMA_KEYCLOAK_USERNAME \
+--db-password=$SCHEMA_KEYCLOAK_PASSWORD \
+--health-enabled=true \
+--metrics-enabled=true \
+--http-management-port $PORT_KEYCLOAK_MANAGEMENT

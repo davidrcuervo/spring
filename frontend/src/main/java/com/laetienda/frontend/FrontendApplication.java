@@ -21,35 +21,6 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class FrontendApplication {
 
-	@Bean
-	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.build();
-	}
-
-	@Bean(name="formRepository")
-	public FormRepository getFormRepository(){
-		return new FormRepositoryImpl();
-	}
-
-	@Bean
-	public ThankyouPageRepository getThankyouPageRepository(){
-		return new ThankyouPageRepoImpl();
-	}
-
-	@Bean
-	public ThankyouPageService getThankyouPageService(){
-		return new ThankyouPageServiceImpl(getThankyouPageRepository());
-	}
-
-	@Bean
-	public RestClientService getUserService(){
-		return new RestClientServiceImpl();
-	}
-
-//	@Bean
-//	public CustomRestAuthenticationProvider customRestAuthenticationProvider(){
-//		return new CustomRestAuthenticationProvider();
-//	}
 	public static void main(String[] args) {
 		SpringApplication.run(FrontendApplication.class, args);
 	}

@@ -36,16 +36,7 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 ** create passwords [10/12]
 + [X] admuser-password.txt
 + [X] samsepi0l-password.txt
-+ [X] db-keycloak-password.txt
-+ [X] db-web-password.txt
-+ [X] email-smtp-password.txt
 + [X] jasypt-password.txt
-+ [X] kc-admin-password.txt
-+ [X] kc-frontend-clientid-secret.txt
-+ [X] kc-user-clientId-secret.txt
-+ [X] webapp-admin-password.txt
-+ [ ] db-springsession-password.txt *DEPRECATED*
-+ [ ] ldap-password.txt *DEPRECATED*
 
 ** Edit environmental file
 %APP_ROOT_FOLDER%/docker/webapp.env
@@ -129,10 +120,10 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 ** Encrypt passwords
 #+begin_src shell
   #ENCRYPT
-  ./encrypt.sh input="<data>" password="<secret>"
+  mvn jasypt:encrypt-value -Djasypt.encryptor.password="password" -Djasypt.plugin.value="DEC(plain)" -f pom.xml
 
   #DECRYPT
-  ./decrypt.sh input="<encrypted_data>" password="secret" verbose=false
+  mvn jasypt:decrypt-value -Djasypt.encryptor.password="password" -Djasypt.plugin.value="ENC(encrypted)" -f pom.xml
 
 #+end_src
 

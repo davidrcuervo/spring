@@ -1,19 +1,74 @@
 #!/bin/bash
 
-$KC_BOOTSTRAP_ADMIN_ENC_PASSWORD
-$KC_BOOTSTRAP_ADMIN_USERNAME
-$SMTP_EMAIL_ENC_PASSWORD
-$SMTP_EMAIL_PORT
-$SMTP_EMAIL_HOST
-$SMTP_EMAIL_USERNAME
-$KC_FRONTEND_CLIENT_ID
-$KC_FRONTEND_CLIENT_ENC_PASSWORD
-$KC_USER_CLIENT_ID
-$KC_USER_CLIENT_ENC_PASSWORD
-$APP_USER_ADMIN_USERNAME
-$APP_USER_ADMIN_ENC_PASSWORD
-$APP_USER_TEST_USERNAME
-$APP_USER_TEST_ENC_PASSWORD
+if [ -z "$KC_BOOTSTRAP_ADMIN_ENC_PASSWORD" ]; then
+  echo "Variable, KC_BOOTSTRAP_ADMIN_ENC_PASSWORD, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_BOOTSTRAP_ADMIN_USERNAME" ]; then
+  echo "Variable, KC_BOOTSTRAP_ADMIN_USERNAME, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$SMTP_EMAIL_ENC_PASSWORD" ]; then
+  echo "Variable, SMTP_EMAIL_ENC_PASSWORD, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$SMTP_EMAIL_PORT" ]; then
+  echo "Variable, SMTP_EMAIL_PORT, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$SMTP_EMAIL_HOST" ]; then
+  echo "Variable, SMTP_EMAIL_HOST, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$SMTP_EMAIL_USERNAME" ]; then
+  echo "Variable, SMTP_EMAIL_USERNAME, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_FRONTEND_CLIENT_ID" ]; then
+  echo "Variable, KC_FRONTEND_CLIENT_ID, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_FRONTEND_CLIENT_ENC_PASSWORD" ]; then
+  echo "Variable, KC_FRONTEND_CLIENT_ENC_PASSWORD, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_USER_CLIENT_ID" ]; then
+  echo "Variable, KC_USER_CLIENT_ID, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_USER_CLIENT_ENC_PASSWORD" ]; then
+  echo "Variable, KC_USER_CLIENT_ENC_PASSWORD, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$APP_USER_ADMIN_USERNAME" ]; then
+  echo "Variable, APP_USER_ADMIN_USERNAME, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$APP_USER_ADMIN_ENC_PASSWORD" ]; then
+  echo "Variable, APP_USER_ADMIN_ENC_PASSWORD, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$APP_USER_TEST_USERNAME" ]; then
+  echo "Variable, APP_USER_TEST_USERNAME, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$APP_USER_TEST_ENC_PASSWORD" ]; then
+  echo "Variable, APP_USER_TEST_ENC_PASSWORD, is unset" >&2
+  exit 1
+fi
 
 #set admin credentials
 KC_ADMIN_PASSWORD=$(/opt/jasypt/jdecrypt.sh "$KC_BOOTSTRAP_ADMIN_ENC_PASSWORD")
@@ -26,7 +81,7 @@ kcadm.sh config credentials \
 #SET EMAIL TO etadmuser
 ##Get user id
 HOME_MASTER_USER_ID=$(kcadm.sh get users -r master \
--q q=username:etadmuser \
+-q q=username:$KC_BOOTSTRAP_ADMIN_USERNAME \
 --fields id \
 --format csv --noquotes)
 ##Set email
@@ -98,7 +153,7 @@ kcadm.sh create users -r etrealm -s username=$APP_USER_ADMIN_USERNAME -s enabled
 -s firstName="Realm Admin" \
 -s lastName="Keycloak" \
 -s emailVerified=true
-kcadm.sh add-roles --uusername etadmuser --rolename role_manager -r etrealm
+kcadm.sh add-roles --uusername $APP_USER_ADMIN_USERNAME --rolename role_manager -r etrealm
 kcadm.sh set-password -r etrealm --username $APP_USER_ADMIN_USERNAME --new-password $APP_USER_ADMIN_PASSWORD
 
 #enable keycloak to send roles in token (userinfo.token.claim: true)

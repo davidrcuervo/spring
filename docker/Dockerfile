@@ -8,7 +8,7 @@ RUN apt update
 RUN apt upgrade -y
 
 #install required packages
-RUN apt install -y openssl sudo openssh-client
+RUN apt install -y openssl sudo openssh-client curl
 
 #copy private files
 WORKDIR /var/docker/build
@@ -108,6 +108,7 @@ WORKDIR /opt/mypostgres
 RUN chown postgres:postgres /opt/mypostgres
 RUN sudo -u postgres mkdir -m 700 data
 RUN sudo -u postgres mkdir -m 755 logs
+RUN sudo -u postgres mkdir -m 775 .m2
 
 #Install postgres
 RUN apt install -y postgresql
@@ -193,7 +194,7 @@ FROM keycloaket AS keycloaketcnf
 
 USER root
 
-RUN apt install -y curl vim dos2unix
+RUN apt install -y vim dos2unix
 RUN dos2unix /opt/keycloak/kc.config.sh
 
 ############################################

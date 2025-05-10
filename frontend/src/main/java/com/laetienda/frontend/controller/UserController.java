@@ -1,9 +1,11 @@
 package com.laetienda.frontend.controller;
 
+import com.laetienda.frontend.service.UserService;
 import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.frontend.model.ThankyouPage;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
+import com.laetienda.model.kc.KcUser;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.model.user.Usuario;
 import org.slf4j.Logger;
@@ -11,34 +13,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.client.RestClient;
 
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
 
-import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
-
-@Controller("user")
-@RequestMapping("user")
+@Controller
+@RequestMapping("${api.frontend.user.folder}") //user
 public class UserController {
     final private static Logger log = LoggerFactory.getLogger(UserController.class);
     private final RestClient client;
 
     @Autowired private FormRepository formRepository;
     @Autowired private ThankyouPageService thankyouService;
-    @Autowired private RestClientService service;
+    @Autowired private RestClientService restClientService;
     @Autowired private Environment env;
+    @Autowired private UserService service;
 
     @Value ("${api.usuario.port}") private String usuarioPort;
     @Value("${api.user.create}") private String apiAddUrl;
@@ -62,7 +57,7 @@ public class UserController {
         String result = new String();
 
         try {
-            Usuario response = service.post(apiAddUrl, user, Usuario.class);
+            Usuario response = restClientService.post(apiAddUrl, user, Usuario.class);
             log.trace("username: {}", response.getUsername());
             log.trace("email: {}", response.getEmail());
             ThankyouPage thankyou = thankyouService.set(new ThankyouPage("/thankyou/user/signup.html", "", "You have succesfully Signed Up!", "Thank you for your interest in our web site.", "/user/login.html", "Log In"));
@@ -78,6 +73,14 @@ public class UserController {
     private String signUp(Model model, Usuario user){
         model.addAttribute("form", formRepository.getForm(user));
         return "user/signup";
+    }
+
+    @GetMapping("${api.frontend.user.account.file}") //user/account.html
+    private String account(Model model){
+        log.debug("USER_CONTROLLER::account.");
+        KcUser user = service.getUserAccount();
+        model.addAttribute("user", user);
+        return "user/account";
     }
 
     @GetMapping("${api.frontend.user.find}") //user/find.html/{username}
