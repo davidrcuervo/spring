@@ -63,6 +63,13 @@ class UserControllerTest {
     }
 
     @Test
+    void health() throws Exception {
+        String address = env.getProperty("api.kcUser.actuator.health.uri", "health");
+        mvc.perform(get(address))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void find() throws Exception {
         String username = env.getProperty("webapp.user.test.username", "");
         String secret = env.getProperty("webapp.user.test.password", "");

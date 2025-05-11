@@ -6,7 +6,7 @@ import com.laetienda.lib.annotation.HtmlInput;
 import com.laetienda.lib.interfaces.Forma;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ldap.odm.annotations.*;
+//import org.springframework.ldap.odm.annotations.*;
 
 import javax.naming.Name;
 import jakarta.validation.constraints.NotEmpty;
@@ -16,39 +16,39 @@ import java.io.IOException;
 import java.util.*;
 
 @HtmlForm(name = "group")
-@Entry(base = "ou=wroups", objectClasses = {"groupOfUniqueNames"})
+//@Entry(base = "ou=wroups", objectClasses = {"groupOfUniqueNames"})
 final public class Group implements Forma {
     final private static Logger log = LoggerFactory.getLogger(Group.class);
 
-    @Id
+//    @Id
     @JsonIgnore
     private Name dn;
 
     @NotNull @NotEmpty @Size(min = 4, max = 64 )
     @HtmlInput(label = "Name", placeholder = "Entry the name of the group", style_size="col-md-4")
-    @Attribute(name = "cn")
-    @DnAttribute(value = "cn", index=1)
+//    @Attribute(name = "cn")
+//    @DnAttribute(value = "cn", index=1)
     private String name;
 
-    @Attribute(name = "owner")
+//    @Attribute(name = "owner")
     @JsonIgnore
     private Set<Name> ownersdn;
 
-    @Transient
+//    @Transient
     private Map<String, Usuario> owners;
 
-    @Attribute(name = "uniqueMember")
+//    @Attribute(name = "uniqueMember")
     @JsonIgnore
     private Set<Name> membersdn;
 
-    @Transient
+//    @Transient
     private Map<String, Usuario> members;
 
     @Size(min = 4, max = 255)
     @HtmlInput(label = "Descriptions", placeholder = "Enter small description of the gruup, up to 255 characters", style_size="col-md-8")
-    @Attribute(name = "description")
+//    @Attribute(name = "description")
     private String description;
-    @Transient
+//    @Transient
     private boolean newFlag = false;
 
     public Group (){

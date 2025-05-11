@@ -33,31 +33,14 @@ services:
         - POSTGRES_UID=110
         - POSTGRES_GID=119
 
-  myldap:
-    image: myslapd:2.6.7
-    restart: always
-    user: openldap
-    networks:
-      - backend
-    ports:
-      - "389:389"
-#    volumes:
-#      - /var/data/docker/openldap/etienda:/opt/myslapd/etienda/data
-    build:
-#      dockerfile: dockerfiles/myldap.2404.Dockerfile
-      target: myslapd
-      args:
-        - OPENLDAP_UID=109
-        - OPENLDAP_GID=117
-
   messengeret:
     image: messengerapp:1.0
     user: webappuser
     secrets:
       - jasypt-password
     depends_on:
-      - postgreset
-      - myldap
+      keycloaket:
+        condition: service_healthy
     networks:
       - backend
     ports:
@@ -133,18 +116,19 @@ services:
     secrets:
       - jasypt-password
     depends_on:
-      - postgreset
-      - myldap
-      - messengeret
+      keycloaket:
+          condition: service_healthy
     networks:
       - backend
     ports:
       - "8081:8081"
     env_file:
       - webapp.env
+    volumes:
+      - ./userKc/start.sh:/opt/webapp/userKc/start.sh
     build:
       #      dockerfile: dockerfiles/myjava.21.Dockerfile
-      target: usuarioapp
+      target: etUser
       args:
         - DOCKER_GID=999
 

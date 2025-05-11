@@ -215,8 +215,8 @@ ENV HOME=/opt/webapp
 #Set ssh to be able to connect to github
 RUN mkdir .ssh
 COPY private/keys/. .ssh/.
-COPY scripts/webapp/github.ssh.config .ssh/
-RUN cat .ssh/github.ssh.config >> .ssh/config
+COPY scripts/webapp/github.ssh.config .ssh/config
+#RUN #cat .ssh/github.ssh.config >> .ssh/config
 
 USER root
 RUN chown webappuser:docker -R .ssh && chmod 750 -R .ssh
@@ -253,18 +253,14 @@ ENTRYPOINT ["spring/messenger/start.sh"]
 ############################################
 ## MY usuarioapp IMAGE
 ############################################
-FROM etapp AS usuarioet
+FROM etapp AS etUser
 
 #Set application folder
 WORKDIR /opt/webapp
 ENV HOME=/opt/webapp
 
 #Set permissions to start script
-RUN chmod 744 spring/usuario/start.sh
-
-ENTRYPOINT ["spring/usuario/start.sh"]
-#ENTRYPOINT ["/bin/bash", "-c"]
-#CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/usuario/pom.xml"]
+RUN chmod 744 spring/usuarioKc/start.sh
 
 ############################################
 ## MY usuarioapp IMAGE

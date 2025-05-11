@@ -5,68 +5,69 @@ import com.laetienda.lib.annotation.HtmlForm;
 import com.laetienda.lib.annotation.HtmlInput;
 import com.laetienda.lib.interfaces.Forma;
 import com.laetienda.lib.options.HtmlInputType;
-import org.springframework.ldap.odm.annotations.*;
+//import org.springframework.ldap.odm.annotations.*;
 
 import javax.naming.Name;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Entry(
-        base = "ou=people",
-        objectClasses = {"person", "inetOrgPerson", "top"}
-)
+//@Entry(
+//        base = "ou=people",
+//        objectClasses = {"person", "inetOrgPerson", "top"}
+//)
 @HtmlForm(name="usuario", url = "/user/signup.html")
 final public class Usuario implements Forma {
 
-    @Id
+//    @Id
     @JsonIgnore
     private Name id;
 
     @NotNull @Size(min=5, max=64)
     @HtmlInput(label = "Username", placeholder = "Place the username", style_size="col-md-12")
-    @Attribute(name="uid")
-    @DnAttribute(value = "uid", index=1)
+//    @Attribute(name="uid")
+//    @DnAttribute(value = "uid", index=1)
     private String username;
 
     @NotNull @Size(max=20)
     @HtmlInput(label = "First Name", placeholder = "Insert your first name", style_size="col-md-4")
-    @Attribute(name = "cn")
+//    @Attribute(name = "cn")
     private String firstname;
 
     @Size(max=20)
     @HtmlInput(label = "Middle Name", placeholder = "Insert your middle name", required = false, style_size="col-md-4")
-    @Attribute(name ="givenName")
+//    @Attribute(name ="givenName")
     private String middlename;
 
     @NotNull @Size(max=20)
     @HtmlInput(label = "Last Name", placeholder = "Please insert your last name", style_size="col-md-4")
-    @Attribute(name = "sn")
+//    @Attribute(name = "sn")
     private String lastname;
 
     @NotNull @Size(max=254) @Email
     @HtmlInput(label = "eMail address", placeholder = "Please insert your email address", style_size="col-md-12")
-    @Attribute(name = "mail")
+//    @Attribute(name = "mail")
     private String email;
 
     @Size(min=8, max=64)
     @HtmlInput(type= HtmlInputType.PASSWORD, label = "Password", placeholder = "Please insert your password", style_size="col-md-6")
-    @Attribute(name = "userPassword")
+//    @Attribute(name = "userPassword")
     private String password;
 
     @Size(min=8, max=64)
     @HtmlInput(type= HtmlInputType.PASSWORD, label = "Re-enter password", placeholder = "Please confirm your password", style_size="col-md-6")
-    @Transient
+//    @Transient
     private String password2;
 
     @JsonIgnore
-    @Attribute(name="labeledURI")
+//    @Attribute(name="labeledURI")
     private String token;
 
-    @Transient
+//    @Transient
     private String encToken;
 
-    @Transient @JsonIgnore
+//    @Transient
+    @JsonIgnore
     private boolean isNew = false;
     public Usuario() {
 

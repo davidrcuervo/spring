@@ -23,11 +23,14 @@ public class KcUserSecurity {
     @Bean
     public SecurityFilterChain userKcSecurityFilterChain(HttpSecurity http) throws Exception {
         String userPath = env.getProperty("api.usuario.folder");
+        String actuatorPath = String.format("%s/*",
+                env.getProperty("api.kcUser.actuator.path", "/actuator"));
 
         http.authorizeHttpRequests((authorize) -> {
             authorize
                     .requestMatchers(env.getProperty("api.usuario.test.path")).permitAll()
                     .requestMatchers(env.getProperty("api.kcUser.token.path")).permitAll() //api/v0/user/token
+                    .requestMatchers(actuatorPath).permitAll() //actuator/*
 //                    requestMatchers(env.getProperty("api.usuario.login.path")).permitAll().
                     .requestMatchers(env.getProperty("api.usuario.testAuthorization.path")).hasAuthority("role_manager")
                     .anyRequest().fullyAuthenticated();
