@@ -109,10 +109,11 @@ services:
       args:
         - DOCKER_GID=2
 
-  usuarioet:
-    image: usuarioapp:1.0
+  etuser:
+    image: etuser:1.0
     user: webappuser
-#    entrypoint: /bin/bash
+    working_dir: /opt/webapp
+    entrypoint: ./spring/userKc/start.sh
     secrets:
       - jasypt-password
     depends_on:
@@ -124,11 +125,19 @@ services:
       - "8081:8081"
     env_file:
       - webapp.env
-    volumes:
-      - ./userKc/start.sh:/opt/webapp/userKc/start.sh
+    environment:
+      - HOME=/opt/webapp
+    healthcheck:
+      test: [ "CMD","curl","--fail","http://etuser:8081/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
+#    volumes:
+#      - ./../userKc/start.sh:/opt/webapp/spring/userKc/start.sh
     build:
       #      dockerfile: dockerfiles/myjava.21.Dockerfile
-      target: etUser
+      target: etapp
       args:
         - DOCKER_GID=999
 

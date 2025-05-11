@@ -226,6 +226,7 @@ RUN chmod 700 .ssh/docker.key
 
 #Clone the application
 RUN git clone github.com:davidrcuervo/spring.git
+RUN chmod 744 spring/userKc/start.sh
 
 #Clean project through maven
 RUN mvn clean -f spring/pom.xml
@@ -256,11 +257,11 @@ ENTRYPOINT ["spring/messenger/start.sh"]
 FROM etapp AS etUser
 
 #Set application folder
-WORKDIR /opt/webapp
-ENV HOME=/opt/webapp
+#WORKDIR /opt/webapp
+#ENV HOME=/opt/webapp
 
 #Set permissions to start script
-RUN chmod 744 spring/usuarioKc/start.sh
+#RUN chmod 744 spring/userKc/start.sh
 
 ############################################
 ## MY usuarioapp IMAGE
