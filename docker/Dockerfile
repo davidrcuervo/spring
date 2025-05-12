@@ -226,7 +226,7 @@ RUN chmod 700 .ssh/docker.key
 
 #Clone the application
 RUN git clone github.com:davidrcuervo/spring.git
-RUN chmod 744 spring/userKc/start.sh
+#RUN chmod 744 spring/start.sh
 
 #Clean project through maven
 RUN mvn clean -f spring/pom.xml
@@ -240,37 +240,20 @@ RUN mvn install -DskipTests -f spring/webapp-test/pom.xml
 ############################################
 FROM etapp AS messengeret
 
-#Set application folder
-WORKDIR /opt/webapp
-ENV HOME=/opt/webapp
-
 #Set permissions to start script
 RUN chmod 744 spring/messenger/start.sh
-
-ENTRYPOINT ["spring/messenger/start.sh"]
-#ENTRYPOINT ["/bin/bash", "-c"]
-#CMD ["JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password) && mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Djasypt.encryptor.password=$JASYPT_PASSWORD -f spring/messenger/pom.xml"]
 
 ############################################
 ## MY usuarioapp IMAGE
 ############################################
 FROM etapp AS etUser
 
-#Set application folder
-#WORKDIR /opt/webapp
-#ENV HOME=/opt/webapp
-
-#Set permissions to start script
-#RUN chmod 744 spring/userKc/start.sh
+RUN chmod 744 spring/userKc/start.sh
 
 ############################################
 ## MY usuarioapp IMAGE
 ############################################
 FROM etapp AS testcontainer
-
-#Set application folder
-WORKDIR /opt/webapp
-ENV HOME=/opt/webapp
 
 RUN chmod 744 spring/usuario/test.sh
 RUN chmod 744 spring/schema/test.sh

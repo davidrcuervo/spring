@@ -33,28 +33,6 @@ services:
         - POSTGRES_UID=110
         - POSTGRES_GID=119
 
-  messengeret:
-    image: messengerapp:1.0
-    user: webappuser
-    secrets:
-      - jasypt-password
-    depends_on:
-      keycloaket:
-        condition: service_healthy
-    networks:
-      - backend
-    ports:
-      - "8082:8082"
-    env_file:
-      - webapp.env
-#    volumes:
-#      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
-    build:
-#      dockerfile: dockerfiles/myjava.21.Dockerfile
-      target: messengerapp
-      args:
-        - DOCKER_GID=999
-
   keycloaket:
     image: keycloaket:26.1.5
     user: keycloak
@@ -109,11 +87,30 @@ services:
       args:
         - DOCKER_GID=2
 
-  etuser:
-    image: etuser:1.0
+  etimage:
+    image: etimage:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ./spring/userKc/start.sh
+    secrets:
+      - jasypt-password
+    networks:
+      - backend
+    env_file:
+      - webapp.env
+    environment:
+      - HOME=/opt/webapp
+    build:
+      target: etapp
+      args:
+        - DOCKER_GID=1
+
+  etuser:
+    image: etimage:1.0
+    user: webappuser
+    working_dir: /opt/webapp
+    entrypoint: ./spring/start.sh
+    command:
+      - spring/userKc/pom.xml
     secrets:
       - jasypt-password
     depends_on:
@@ -133,17 +130,62 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2m
-#    volumes:
-#      - ./../userKc/start.sh:/opt/webapp/spring/userKc/start.sh
+    volumes:
+      - ./../start.sh:/opt/webapp/spring/start.sh
+
+  messengeret:
+    image: messengerapp:1.0
+    user: webappuser
+    working_dir: /opt/webapp
+    entrypoint: ./spring/messenger/start.sh
+    secrets:
+      - jasypt-password
+    depends_on:
+      keycloaket:
+        condition: service_healthy
+    networks:
+      - backend
+    ports:
+      - "8082:8082"
+    env_file:
+      - webapp.env
+    environment:
+      - HOME=/opt/webapp
+    #    volumes:
+    #      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
     build:
       #      dockerfile: dockerfiles/myjava.21.Dockerfile
-      target: etapp
+      target: messengerapp
       args:
         - DOCKER_GID=999
+
+  frontend:
+    image: etimage:1.0
+    user: webappuser
+    working_dir: /opt/webapp
+    entrypoint: ./spring/start.sh
+    command:
+      - spring/frontend/pom.xml
+    secrets:
+      - jasypt-password
+    depends_on:
+      etuser:
+        condition: service_healthy
+    networks:
+      - backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - webapp.env
+    environment:
+      - HOME=/opt/webapp
+    volumes:
+      - ./../start.sh:/opt/webapp/spring/start.sh
 
   testcontainer:
     image: testcontainer:1.0
     user: webappuser
+    working_dir: /opt/webapp
     entrypoint: /bin/bash
     secrets:
       - jasypt-password
@@ -154,6 +196,8 @@ services:
       - backend
     env_file:
       - webapp.env
+    environment:
+      - HOME=/opt/webapp
 #    volumes:
 #      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
     build:
