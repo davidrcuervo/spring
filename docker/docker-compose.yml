@@ -179,6 +179,12 @@ services:
       - webapp.env
     environment:
       - HOME=/opt/webapp
+    healthcheck:
+      test: [ "CMD","curl","--fail","http://frontend:8080/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
     volumes:
       - ./../start.sh:/opt/webapp/spring/start.sh
 

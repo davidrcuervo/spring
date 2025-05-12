@@ -61,9 +61,11 @@ public class FrontendKeycloakSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain frontendSecurityFilterChain(HttpSecurity http, OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler) throws Exception{
+        String actuator = String.format("%s/*", env.getProperty("api.actuator.folder", "/actuator"));
         http.authorizeHttpRequests((requests) ->
                 requests.
                         requestMatchers("/anonymous*").anonymous().
+                        requestMatchers(actuator).permitAll().
                         requestMatchers("/home.html").permitAll().
                         requestMatchers("/home", "/", "/home.html", "/index", "/index.html", "/user/signup.html").permitAll().
                         requestMatchers("/bootstrap/**", "/styles/**", "/scripts/**").permitAll().

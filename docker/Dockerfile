@@ -226,7 +226,7 @@ RUN chmod 700 .ssh/docker.key
 
 #Clone the application
 RUN git clone github.com:davidrcuervo/spring.git
-#RUN chmod 744 spring/start.sh
+RUN chmod 744 spring/start.sh
 
 #Clean project through maven
 RUN mvn clean -f spring/pom.xml
