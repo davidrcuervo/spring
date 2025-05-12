@@ -185,8 +185,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2m
-    volumes:
-      - ./../start.sh:/opt/webapp/spring/start.sh
+#    volumes:
+#      - ./../start.sh:/opt/webapp/spring/start.sh
 
   testcontainer:
     image: testcontainer:1.0
