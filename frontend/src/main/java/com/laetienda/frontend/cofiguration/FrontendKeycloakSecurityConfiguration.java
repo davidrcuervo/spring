@@ -55,7 +55,7 @@ public class FrontendKeycloakSecurityConfiguration {
     @Bean
     OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository){
         OidcClientInitiatedLogoutSuccessHandler successHandler = new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        successHandler.setPostLogoutRedirectUri(URI.create(env.getProperty("api.frontend.home")).toString());
+        successHandler.setPostLogoutRedirectUri(URI.create(env.getProperty("api.frontend.home.uri", "/home.html")).toString());
         return successHandler;
     }
 

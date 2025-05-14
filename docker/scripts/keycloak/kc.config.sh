@@ -125,7 +125,7 @@ kcadm.sh create clients -r etrealm -f - << EOF
   "enabled":"true",
   "clientAuthenticatorType":"client-secret",
   "secret":"$KC_FRONTEND_CLIENT_ID_SECRET",
-  "redirectUris":["http://127.0.0.1:8080/*"]
+  "redirectUris":["http://127.0.0.1:8080/*","http://frontend:8080/*","http://www.webapp.com/*"]
 }
 EOF
 

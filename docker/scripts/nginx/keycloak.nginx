@@ -1,0 +1,19 @@
+# NGINX CONFIGURATION FOR REVERSE PROXY OF KEYCLOAK
+
+upstream auth.webapp.com {
+    server keycloaket:8001;
+}
+
+server {
+    listen 80;
+    server_name auth.webapp.com;
+
+    location / {
+        proxy_pass http://auth.webapp.com;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}

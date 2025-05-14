@@ -87,6 +87,25 @@ services:
       args:
         - DOCKER_GID=2
 
+  etnginx:
+    image: etnginx:1.24
+#    user: nginx
+    working_dir: /opt/nginx
+    entrypoint: ["nginx", "-g", "daemon off;"]
+    depends_on:
+      keycloaket:
+        condition: service_healthy
+    networks:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    build:
+      target: etnginx
+    volumes:
+      - ./scripts/nginx/keycloak.nginx:/etc/nginx/sites-available/keycloak.nginx
+      - ./scripts/nginx/webapp.nginx:/etc/nginx/sites-available/webapp.nginx
+
   etimage:
     image: etimage:1.0
     user: webappuser
@@ -103,6 +122,8 @@ services:
       target: etapp
       args:
         - DOCKER_GID=1
+    volumes:
+      - ./../API:/opt/webapp/spring/API
 
   etuser:
     image: etimage:1.0
@@ -118,8 +139,8 @@ services:
           condition: service_healthy
     networks:
       - backend
-    ports:
-      - "8081:8081"
+#    ports:
+#      - "8081:8081"
     env_file:
       - webapp.env
     environment:
@@ -131,7 +152,7 @@ services:
       retries: 5
       start_period: 2m
     volumes:
-      - ./../start.sh:/opt/webapp/spring/start.sh
+      - ./../API:/opt/webapp/spring/API
 
   messengeret:
     image: messengerapp:1.0
@@ -185,7 +206,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2m
-#    volumes:
+    volumes:
+      - ./../API:/opt/webapp/spring/API
 #      - ./../start.sh:/opt/webapp/spring/start.sh
 
   testcontainer:

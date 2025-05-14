@@ -30,8 +30,8 @@ RUN SAMSEPI0L_CYPHERED_PASSWORD=$(cat private/samsepi0l-password.txt | openssl p
 RUN rm private/admuser-password.txt
 RUN rm private/samsepi0l-password.txt
 
-USER samsepi0l
-ENV HOME=/home/sapsepi0l
+#USER samsepi0l
+#ENV HOME=/home/sapsepi0l
 
 ############################################
 ## MY Java IMAGE (jdk: 21.0.6 & mvn: 3.9.9)
@@ -117,6 +117,23 @@ RUN apt install -y postgresql
 COPY ../scripts/database/. scripts/.
 RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
+
+################################
+## MY POSTGRESQL IMAGE
+###############################
+FROM javaet AS etnginx
+
+USER root
+
+#install nginx
+RUN apt install -y nginx
+
+RUN useradd -g docker -c "Nginx application user" --shell /bin/bash --create-home --home-dir /opt/nginx nginx
+
+#copy sites and enable them
+COPY ./scripts/nginx/. /etc/nginx/sites-available/.
+RUN ln -s /etc/nginx/sites-available/keycloak.nginx /etc/nginx/sites-enabled/keycloak
+RUN ln -s /etc/nginx/sites-available/webapp.nginx /etc/nginx/sites-enabled/webapp
 
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
