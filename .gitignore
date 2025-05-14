@@ -13,3 +13,7 @@
 /docker/private
 /docker/Software
 /z.deprecated.library
+/API.iml
+/docker/docker.iml
+/schema/.mvn/
+/userKc/.mvn/
