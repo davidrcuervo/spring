@@ -1,0 +1,118 @@
+#+TITLE: Readme
+#+AUTHOR: David Cuervo
+#+LANGUAGE: en
+#+EMAIL: davidrcuervo@outlook.com
+#+DATE: 2023-1016
+#+HTML_DOCTYPE: html5
+#+OPTIONS: title:nil num:nil toc:nil html-preamble:nil html-postamble:nil
+#+OPTIONS: html-style:nil html-scripts:nil org-html-head-include-default-style:nil
+#+STARTUP: overview
+#+COLUMNS: %ITEM %TODO %METHOD %PATH %AUTHORIZATION
+* User [9/9]
+  :PROPERTIES:
+  :PORT:     8081
+  :PATH:     /api/v0/user
+  :END:
+** DONE find users
+     :PROPERTIES:
+     :path:     users.html
+     :METHOD:   GET
+     :RESPONSE_BODY: UserList
+     :AUTHORIZATION: manager
+     :END:
+
+** DONE find user
+     :PROPERTIES:
+     :path:     user.html?usernamen={username}
+     :METHOD:   GET
+     :RESPONSE_BODY: user
+     :AUTHORIZATION: manager or self
+     :END:
+
+** DONE create user
+     :PROPERTIES:
+     :path:     create.html
+     :REQUEST_BODY: user
+     :RESPONSE_BODY: user
+     :AUTHORIZATION: any
+     :METHOD:   post
+     :END:
+
+#+BEGIN_SRC shell
+  curl -i -X POST -H "Content-Type: application/json" \
+  -d '{
+    "username":"postman",
+    "firstname":"Post",
+    "lastname":"Man",
+    "email":"postman@mail.com",
+    "password":"postpassword1234",
+    "password2":"postpassword1234"
+}' \
+  http://172.27.176.1:8081/api/v0/user/create.html
+#+END_SRC
+     
+** DONE update user
+     :PROPERTIES:
+     :PATH:     update.html
+     :METHOD:   PUT
+     :REQUEST_BODY: user
+     :RESPONSE_BODY: user
+     :AUTHORIZATION: manger or self
+     :END:
+
+** DONE delete user
+     :PROPERTIES:
+     :path:     delete.html?username={username}
+     :METHOD:   delte
+     :RESPONSE_BODY: Boolean
+     :AUTHORIZATION: manager or self
+     :END:
+
+** DONE authenticate
+     :PROPERTIES:
+     :path:     authenticate.html
+     :METHOD:   post
+     :REQUEST_BODY: user
+     :RESPONSE_BODY: GroupList
+     :AUTHORIZATION: any
+     :END:
+
+#+BEGIN_SRC shell
+  curl -i -X GET -u admuser:secret http://172.29.0.1:8081/api/v0/user/authenticate.html
+#+END_SRC
+     
+** DONE email validation
+:PROPERTIES:
+:PATH:     emailvalidation.html?token={token}
+:METHOD:   GET
+:RESPONSE_BODY: user
+:AUTHORIZATION: self
+:END:
+** DONE request password recovery
+:PROPERTIES:
+:PATH:     requestpasswordrecovery.html
+:METHOD:   POST
+:REQUEST_BODY: username
+:RESPONSE_BODY: Boolean
+:DESCRIPTION: Send email whith token to recover password
+:AUTHORIZATION: any
+:END:
+** DONE password recovery
+:PROPERTIES:
+:DESCRIPTION: Validate token, and passwords then change password
+:PATH:     passwordrecovery.html?token={encToken}
+:METHOD:   POST
+:REQUEST_BODY: token, username, password
+:RESPONSE_BODY: Boolean
+:AUTHORIZATION: any
+:END:
+
+* Group
+
+* COMMENT Local Variables
+# Local Variables:
+# after-save-hook: org-html-export-to-html
+# org-html-validation-link: nil
+# org-html-doctype: "html5"
+# org-tags-column: -50
+# End:

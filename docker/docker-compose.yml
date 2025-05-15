@@ -8,10 +8,12 @@ services:
     secrets:
       - jasypt-password
     #  - db-springsession-password
-#    volumes:
-#      - ./scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
-#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
+    volumes:
+      - ./scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
+      - ./scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
+#      - /var/data/docker/postgres/logs:/opt/mypostgres/logs
 #      - /var/data/docker/db/postgresql:/opt/mypostgres/data
+#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
     environment:
       - HOME=/opt/mypostgres
     env_file:
@@ -20,6 +22,8 @@ services:
       - backend
     ports:
       - "5432:5432"
+    pre_stop:
+      - command: /opt/mypostgres/scripts/postgres-exitpoint.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
       interval: 20s

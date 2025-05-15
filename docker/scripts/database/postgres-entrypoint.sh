@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -z "$SCHEMA_DATASOURCE_DB_NAME" ]; then
   echo "Variable, SCHEMA_DATASOURCE_DB_NAME, is unset" >&2
@@ -65,8 +65,10 @@ HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "ALTER DATABASE $SCHEMA_KEYCLOAK_DB_NAME OWNER TO $SCHEMA_KEYCLOAK_USERNAME;"
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE $SCHEMA_KEYCLOAK_DB_NAME TO $SCHEMA_KEYCLOAK_USERNAME;"
 
-# stop internal postgres server
-trap "./scripts/postgres-exitpoint.sh $DATA_PATH" SIGINT SIGTERM
-tail -f "$LOG_PATH"
+function close(){
+  echo "good bye!!"
+}
 
-exec "$@"
+# stop internal postgres server
+trap '/opt/mypostgres/scripts/postgres-exitpoint.sh "$LOG_PATH"' SIGTERM SIGINT SIGKILL
+exec tail -f "$LOG_PATH"
