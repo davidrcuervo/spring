@@ -55,7 +55,7 @@ services:
       interval: 20s
       timeout: 10s
       retries: 5
-      start_period: 2m
+      start_period: 40s
 #    volumes:
 #      - ./scripts/keycloak/kc.entrypoint.sh:/opt/keycloak/kc.entrypoint.sh
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
@@ -69,6 +69,7 @@ services:
     user: keycloak
     working_dir: /opt/keycloak
     entrypoint: /opt/keycloak/kc.config.sh
+#    entrypoint: ["nc", "-l", "-p", "8002"]
     env_file:
       - webapp.env
     secrets:
@@ -78,9 +79,15 @@ services:
         condition: service_healthy
     networks:
       - backend
+    healthcheck:
+      test: [ "CMD","sh","-c","./kc.check.sh" ]
+      interval: 20s
+      timeout: 25s
+      retries: 5
+      start_period: 40s
 #    volumes:
 #      - ./scripts/keycloak/kc.config.sh:/opt/keycloak/kc.config.sh
-#      - ./scripts/keycloak/kc.testconf.sh:/opt/keycloak/kc.testconf.sh
+#      - ./scripts/keycloak/kc.check.sh:/opt/keycloak/kc.check.sh
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
     build:
       target: keycloaketcnf
@@ -93,7 +100,7 @@ services:
     working_dir: /opt/nginx
     entrypoint: ["nginx", "-g", "daemon off;"]
     depends_on:
-      keycloaket:
+      keycloaketcnf:
         condition: service_healthy
     networks:
       - backend
@@ -135,7 +142,7 @@ services:
     secrets:
       - jasypt-password
     depends_on:
-      keycloaket:
+      keycloaketcnf:
           condition: service_healthy
     networks:
       - backend
@@ -162,7 +169,7 @@ services:
     secrets:
       - jasypt-password
     depends_on:
-      keycloaket:
+      keycloaketcnf:
         condition: service_healthy
     networks:
       - backend

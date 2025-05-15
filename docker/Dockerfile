@@ -8,7 +8,7 @@ RUN apt update
 RUN apt upgrade -y
 
 #install required packages
-RUN apt install -y openssl sudo openssh-client curl
+RUN apt install -y openssl sudo openssh-client curl dos2unix
 
 #copy private files
 WORKDIR /var/docker/build
@@ -85,6 +85,10 @@ ENV JAVA_HOME=/opt/myjava/jdk-21.0.6
 ENV M2_HOME=/opt/myjava/apache-maven-3.9.9
 ENV M2=$M2_HOME/bin
 ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
+
+#compile jasypt decrypt
+RUN mvn clean -f /opt/jasypt/pom.xml
+RUN mvn install -f /opt/jasypt/pom.xml
 
 ################################
 ## MY POSTGRESQL IMAGE
@@ -191,10 +195,12 @@ RUN useradd -g docker -c "Keycloak application user" --shell /bin/bash --create-
 
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/keycloak/keycloak-26.0.5.zip /opt/keycloak
 COPY Software/keycloak-26.1.5.zip /opt/keycloak
-USER keycloak
 
 WORKDIR /opt/keycloak
 COPY scripts/keycloak/. .
+RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
+
+USER keycloak
 
 RUN unzip keycloak-26.1.5.zip
 RUN rm keycloak-26.1.5.zip
@@ -211,8 +217,7 @@ FROM keycloaket AS keycloaketcnf
 
 USER root
 
-RUN apt install -y vim dos2unix
-RUN dos2unix /opt/keycloak/kc.config.sh
+RUN apt install -y vim netcat-openbsd
 
 ############################################
 ## MY webapp IMAGE
