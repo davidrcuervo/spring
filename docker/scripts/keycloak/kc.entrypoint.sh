@@ -44,12 +44,19 @@ echo "keycloak database type: $SCHEMA_TYPE"
 echo "keycloak database url: $SCHEMA_KEYCLOAK_URL"
 echo "keycloak database username: $SCHEMA_KEYCLOAK_USERNAME"
 
-$HOME/keycloak-26.1.5/bin/kc.sh start-dev \
---http-port=$PORT_KEYCLOAK \
+$HOME/keycloak-26.1.5/bin/kc.sh start \
 --db=$SCHEMA_TYPE \
 --db-url=$SCHEMA_KEYCLOAK_URL \
 --db-username=$SCHEMA_KEYCLOAK_USERNAME \
 --db-password=$SCHEMA_KEYCLOAK_PASSWORD \
 --health-enabled=true \
 --metrics-enabled=true \
---http-management-port $PORT_KEYCLOAK_MANAGEMENT
+--http-management-port $PORT_KEYCLOAK_MANAGEMENT \
+--hostname-strict false \
+--https-certificate-file=$HOME/kc.crt \
+--https-certificate-key-file=$HOME/kc.unsecure.key
+#--http-enabled true \
+#--proxy-headers=forwarded \
+#--http-port=$PORT_KEYCLOAK
+#--hostname=auth.webapp.com \
+#--hostname-backchannel-dynamic true \

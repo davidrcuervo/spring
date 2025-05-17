@@ -17,10 +17,16 @@
 git clone git@github.com:davidrcuervo/spring.git
 #+END_SRC
 
-** Crete private folders.
+** Crete private folders and keys.
 - $APP_ROOT_FOLDER$
   + docker
     - private
+      - keys
+	* docker.key
+	* docker.key.pub
+	* kc.private.key
+	* kc.unsecure.key
+	* kc.crt
     - Software
 
 ** Download software
@@ -31,8 +37,9 @@ Download software to folder %APP_ROOT_FOLDER%/docker/private/Software
 + [X] jasypt-1.9.3-dist.zip | Link: [[https://github.com/jasypt/jasypt/releases/download/jasypt-1.9.3/jasypt-1.9.3-dist.zip][jasypt 1.9.3 (binaries and javadocs)]]
 + [X] keycloak-26.1.5.zip | Link: [[https://www.keycloak.org/archive/downloads-26.1.5.html][Keycloak Downloads 26.1.5]]
 
-** Create key                                                    :deprecated:
-Create key in %APP_ROOT_FOLDER%/docker/private/keys
+** Create key
+Copy github key in %APP_ROOT_FOLDER%/docker/private/keys
+Copy certifcates and 
 ** create passwords [10/12]
 + [X] admuser-password.txt
 + [X] samsepi0l-password.txt
@@ -127,6 +134,17 @@ Create key in %APP_ROOT_FOLDER%/docker/private/keys
 
 #+end_src
 
+** Create a self signed certificate
+#+BEGIN_SRC shell
+  # Create private key with password
+  openssl genrsa -aes256 -out private.key 4096
+
+  # Remove password protection from private key
+  openssl rsa -in private.key -out unsecure.key
+
+  # Create certificate
+  openssl req -x509 -new -key .unsecure.key -out certificate.crt -days 365
+#+END_SRC
 * References 
 
 + Bootstrap: [[https://getbootstrap.com/docs/5.1/getting-started/introduction/][Bootstrap 5.1 Documentation]]

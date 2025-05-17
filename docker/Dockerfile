@@ -133,6 +133,15 @@ USER root
 RUN apt install -y nginx
 
 RUN useradd -g docker -c "Nginx application user" --shell /bin/bash --create-home --home-dir /opt/nginx nginx
+WORKDIR /opt/nginx
+
+#copy cartificates and keys
+COPY ./private/keys/kc.crt .
+RUN chmod 744 kc.crt
+COPY ./private/keys/kc.unsecure.key .
+RUN chmod 700 kc.unsecure.key
+COPY ./private/keys/kc.private.key .
+RUN chmod 700 kc.private.key
 
 #copy sites and enable them
 COPY ./scripts/nginx/. /etc/nginx/sites-available/.
@@ -199,6 +208,16 @@ COPY Software/keycloak-26.1.5.zip /opt/keycloak
 WORKDIR /opt/keycloak
 COPY scripts/keycloak/. .
 RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
+
+#copy cartificates and keys
+COPY ./private/keys/kc.crt .
+RUN chmod 744 kc.crt
+COPY ./private/keys/kc.unsecure.key .
+RUN chmod 700 kc.unsecure.key
+COPY ./private/keys/kc.private.key .
+RUN chmod 700 kc.private.key
+RUN find ./ -maxdepth 1 -type f -name "kc.*" | xargs chown keycloak:docker
+RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias keycloak -file kc.crt
 
 USER keycloak
 

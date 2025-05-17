@@ -8,9 +8,9 @@ services:
     secrets:
       - jasypt-password
     #  - db-springsession-password
-    volumes:
-      - ./scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
-      - ./scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
+#    volumes:
+#      - ./scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
+#      - ./scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
 #      - /var/data/docker/postgres/logs:/opt/mypostgres/logs
 #      - /var/data/docker/db/postgresql:/opt/mypostgres/data
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
@@ -49,13 +49,14 @@ services:
         condition: service_healthy
     networks:
       - backend
-    ports:
-      - "8001:8001"
-      - "9001:9001"
+#    ports:
+#      - "9001:9001"
+#      - "8001:8001"
+#      - "8443:8443"
     env_file:
       - webapp.env
     healthcheck:
-      test: ["CMD","curl","--fail","http://keycloaket:9001/health/ready"]
+      test: ["CMD","curl","--fail","--insecure","https://keycloaket:9001/health/ready"]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -111,11 +112,13 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    healthcheck:
+      test: ["CMD","curl","--fail","--insecure","https://auth.webapp.com/nginx/health"]
     build:
       target: etnginx
-    volumes:
-      - ./scripts/nginx/keycloak.nginx:/etc/nginx/sites-available/keycloak.nginx
-      - ./scripts/nginx/webapp.nginx:/etc/nginx/sites-available/webapp.nginx
+#    volumes:
+#      - ./scripts/nginx/keycloak.nginx:/etc/nginx/sites-available/keycloak.nginx
+#      - ./scripts/nginx/webapp.nginx:/etc/nginx/sites-available/webapp.nginx
 
   etimage:
     image: etimage:1.0
