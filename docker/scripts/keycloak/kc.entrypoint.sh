@@ -53,8 +53,8 @@ $HOME/keycloak-26.1.5/bin/kc.sh start \
 --metrics-enabled=true \
 --http-management-port $PORT_KEYCLOAK_MANAGEMENT \
 --hostname-strict false \
---https-certificate-file=$HOME/kc.crt \
---https-certificate-key-file=$HOME/kc.unsecure.key
+--https-certificate-file=/opt/myjava/certs/kc.crt \
+--https-certificate-key-file=/opt/myjava/certs/kc.unsecure.key
 #--http-enabled true \
 #--proxy-headers=forwarded \
 #--http-port=$PORT_KEYCLOAK

@@ -63,7 +63,7 @@ kcadm.sh create clients -r etrealm -f - << EOF
     "http://127.0.0.1:$PORT_FRONTEND/*",
     "http://frontend:$PORT_FRONTEND/*",
     "https://$WEBAPP_PUBLIC_ADDRESS:$KC_PUBLIC_PORT/*",
-    "http://WEBAPP_PUBLIC_ADDRESS/*"]
+    "http://$WEBAPP_PUBLIC_ADDRESS/*"]
 }
 EOF
 

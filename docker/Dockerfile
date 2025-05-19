@@ -37,9 +37,6 @@ RUN rm private/samsepi0l-password.txt
 ############################################
 FROM ubuntuet AS javaet
 
-#Arguments and variables
-#ARG DOCKER_GID=9999
-
 USER root
 
 #Create java user and docker group to be able to save data externally
@@ -85,6 +82,16 @@ ENV JAVA_HOME=/opt/myjava/jdk-21.0.6
 ENV M2_HOME=/opt/myjava/apache-maven-3.9.9
 ENV M2=$M2_HOME/bin
 ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
+
+#import self signed certificates in java
+RUN mkdir certs
+RUN chown javauser:docker certs && chmod 750 certs
+COPY ./private/keys/*.crt certs
+RUN chmod 744 certs/*.crt
+COPY ./private/keys/*.key certs
+RUN chmod 700 certs/*.key
+RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias keycloak -file certs/kc.crt
+RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias webapp -file certs/webapp.crt
 
 #compile jasypt decrypt
 RUN mvn clean -f /opt/jasypt/pom.xml
@@ -136,18 +143,19 @@ RUN useradd -g docker -c "Nginx application user" --shell /bin/bash --create-hom
 WORKDIR /opt/nginx
 
 #copy cartificates and keys
-COPY ./private/keys/kc.crt .
-RUN chmod 744 kc.crt
-COPY ./private/keys/kc.unsecure.key .
-RUN chmod 700 kc.unsecure.key
-COPY ./private/keys/kc.private.key .
-RUN chmod 700 kc.private.key
-COPY ./private/keys/webapp.crt .
-RUN chmod 744 webapp.crt
-COPY ./private/keys/webapp.unsecure.key .
-RUN chmod 700 webapp.unsecure.key
-COPY ./private/keys/webapp.private.key .
-RUN chmod 700 webapp.private.key
+
+#COPY ./private/keys/kc.crt .
+#RUN chmod 744 kc.crt
+#COPY ./private/keys/kc.unsecure.key .
+#RUN chmod 700 kc.unsecure.key
+#COPY ./private/keys/kc.private.key .
+#RUN chmod 700 kc.private.key
+#COPY ./private/keys/webapp.crt .
+#RUN chmod 744 webapp.crt
+#COPY ./private/keys/webapp.unsecure.key .
+#RUN chmod 700 webapp.unsecure.key
+#COPY ./private/keys/webapp.private.key .
+#RUN chmod 700 webapp.private.key
 
 #copy sites and enable them
 COPY ./scripts/nginx/. .
@@ -169,22 +177,14 @@ WORKDIR /opt/keycloak
 COPY scripts/keycloak/. .
 RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
 
-#copy cartificates and keys
-COPY ./private/keys/kc.crt .
-RUN chmod 744 kc.crt
-COPY ./private/keys/kc.unsecure.key .
-RUN chmod 700 kc.unsecure.key
-COPY ./private/keys/kc.private.key .
-RUN chmod 700 kc.private.key
-RUN find ./ -maxdepth 1 -type f -name "kc.*" | xargs chown keycloak:docker
-RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias keycloak -file kc.crt
+#copy certificates and keys
+RUN chown keycloak:docker /opt/myjava/certs/kc.unsecure.key
+#RUN find ./ -maxdepth 1 -type f -name "kc.*" | xargs chown keycloak:docker
 
 USER keycloak
 
 RUN unzip keycloak-26.1.5.zip
 RUN rm keycloak-26.1.5.zip
-#RUN chmod g+r -R /opt/keycloak/keycloak-26.0.5
-#RUN chmod g+x -R /opt/keycloak/keycloak-26.0.5/bin
 
 ENV HOME=/opt/keycloak
 ENV PATH="$HOME/keycloak-26.1.5/bin:$PATH"
@@ -231,12 +231,12 @@ RUN chmod 744 spring/start.sh
 
 #Clean project through maven
 RUN mvn clean -f spring/pom.xml
-RUN mvn package -f spring/library/pom.xml
-RUN mvn package -f spring/model/pom.xml
-RUN mvn package -f spring/utils/pom.xml
-RUN mvn package -f spring/userKc/pom.xml
-RUN mvn package -f spring/frontend/pom.xml
-RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
+RUN mvn install -f spring/library/pom.xml
+RUN mvn install -f spring/model/pom.xml
+RUN mvn install -f spring/utils/pom.xml
+#RUN mvn install -f spring/userKc/pom.xml
+#RUN mvn install -f spring/frontend/pom.xml
+#RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################
 ## MY usuarioapp IMAGE

@@ -1,7 +1,6 @@
 # NGINX CONFIGURATION FOR REVERSE PROXY OF WEBAPP
 upstream webapp {
    server frontend:${PORT_FRONTEND};
-   server 172.28.224.1:${PORT_FRONTEND};
 }
 
 server {
@@ -14,8 +13,8 @@ server{
     listen 443 ssl;
     server_name ${WEBAPP_PUBLIC_ADDRESS};
 
-    ssl_certificate /opt/nginx/webapp.crt;
-    ssl_certificate_key /opt/nginx/webapp.unsecure.key;
+    ssl_certificate /opt/myjava/certs/webapp.crt;
+    ssl_certificate_key /opt/myjava/certs/webapp.unsecure.key;
 
     location / {
         proxy_pass http://webapp;

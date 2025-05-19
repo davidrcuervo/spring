@@ -27,26 +27,32 @@ git clone git@github.com:davidrcuervo/spring.git
 	* kc.private.key
 	* kc.unsecure.key
 	* kc.crt
+	* webapp.crt
+	* webapp.private.key
+	* webapp.unsecure.key
+      - admuser-password.txt
+      - jasypt-password.txt
+      - sampsepi0l-password.txt
     - Software
 
 ** Download software
 Download software to folder %APP_ROOT_FOLDER%/docker/private/Software
 
-+ [X] jdk-21.0.6_linux-x64_bin.tar.gz | Link: [[https://www.oracle.com/ca-en/java/technologies/downloads/#java21][Java SE Development Kit 21.0.6 downloads]]
-+ [X] apache-maven-3.9.9-bin.tar.gz | Link: [[https://maven.apache.org/download.cgi][Downloading Apache Maven 3.9.9]]
-+ [X] jasypt-1.9.3-dist.zip | Link: [[https://github.com/jasypt/jasypt/releases/download/jasypt-1.9.3/jasypt-1.9.3-dist.zip][jasypt 1.9.3 (binaries and javadocs)]]
-+ [X] keycloak-26.1.5.zip | Link: [[https://www.keycloak.org/archive/downloads-26.1.5.html][Keycloak Downloads 26.1.5]]
++ [ ] jdk-21.0.6_linux-x64_bin.tar.gz | Link: [[https://www.oracle.com/ca-en/java/technologies/downloads/#java21][Java SE Development Kit 21.0.6 downloads]]
++ [ ] apache-maven-3.9.9-bin.tar.gz | Link: [[https://maven.apache.org/download.cgi][Downloading Apache Maven 3.9.9]]
++ [ ] jasypt-1.9.3-dist.zip | Link: [[https://github.com/jasypt/jasypt/releases/download/jasypt-1.9.3/jasypt-1.9.3-dist.zip][jasypt 1.9.3 (binaries and javadocs)]]
++ [ ] keycloak-26.1.5.zip | Link: [[https://www.keycloak.org/archive/downloads-26.1.5.html][Keycloak Downloads 26.1.5]]
 
 ** Create key
-Copy github key in %APP_ROOT_FOLDER%/docker/private/keys
-Copy certifcates and 
-** create passwords [10/12]
-+ [X] admuser-password.txt
-+ [X] samsepi0l-password.txt
-+ [X] jasypt-password.txt
++ Copy github key in %APP_ROOT_FOLDER%/docker/private/keys
++ Copy certifcates anp copy them to %APP_ROOT_FOLDER%/docker/private/keys
+** create passwords [0/3]
++ [ ] admuser-password.txt
++ [ ] samsepi0l-password.txt
++ [ ] jasypt-password.txt
 
 ** Edit environmental file
-%APP_ROOT_FOLDER%/docker/webapp.env
+%APP_ROOT_FOLDER%/docker/.env
 
 ** Build docker images
 #+begin_src bash
