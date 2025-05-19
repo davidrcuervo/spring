@@ -142,55 +142,16 @@ COPY ./private/keys/kc.unsecure.key .
 RUN chmod 700 kc.unsecure.key
 COPY ./private/keys/kc.private.key .
 RUN chmod 700 kc.private.key
+COPY ./private/keys/webapp.crt .
+RUN chmod 744 webapp.crt
+COPY ./private/keys/webapp.unsecure.key .
+RUN chmod 700 webapp.unsecure.key
+COPY ./private/keys/webapp.private.key .
+RUN chmod 700 webapp.private.key
 
 #copy sites and enable them
 COPY ./scripts/nginx/. .
 RUN chmod 740 nginx.entrypoint.sh
-
-################################
-## MY OpenLDAP IMAGE (2.6.7)
-###############################
-FROM ubuntuet AS myslapd
-
-#variables and arguments
-ENV DEBIAN_FRONTEND=noninteractive
-ARG OPENLDAP_UID=1001
-ARG OPENLDAP_GID=1001
-
-USER root
-WORKDIR /opt/myslapd
-
-#Create openldap user
-RUN groupadd -g $OPENLDAP_GID openldap
-RUN useradd -u $OPENLDAP_UID -g openldap -c "OpenLDAP Server Account" --shell /bin/false --home-dir /opt/myslapd openldap
-
-#install openldap
-RUN echo 'slapd/root_password password password' | debconf-set-selections && \
-    echo 'slapd/root_password_again password password' | debconf-set-selections && \
-    apt install -y slapd ldap-utils
-#    /etc/init.d/slapd start
-
-#Copy ldif schemas to docker guest container
-RUN mkdir etienda
-RUN mkdir etienda/scripts
-RUN mkdir etienda/data
-COPY ./scripts/ldap/. etienda/scripts/
-#COPY ./scripts/ldap/etienda.github.ssh.config.ldif etienda/scripts/
-#COPY ./scripts/ldap/etienda.ldif etienda/scripts/
-RUN chown openldap:openldap -R etienda
-RUN chmod 700 -R etienda
-
-#install ldap directory
-RUN /etc/init.d/slapd start && \
-    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.config.ldif
-#    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.ldif
-
-#RUN
-USER openldap
-ENTRYPOINT ["/opt/myslapd/etienda/scripts/slapd-entrypoint.sh"]
-#ENTRYPOINT ["/usr/sbin/slapd", "-u", "openldap", "-g", "openldap", "-F", "/etc/ldap/slapd.d", "-h", "ldaps:/// ldapi:/// ldap:///", "-d", "stats"]
-#USER samsepi0l
-#ENTRYPOINT ["/bin/bash"]
 
 ############################################
 ## Keycloak
@@ -270,25 +231,12 @@ RUN chmod 744 spring/start.sh
 
 #Clean project through maven
 RUN mvn clean -f spring/pom.xml
-RUN mvn install -f spring/library/pom.xml
-RUN mvn install -f spring/model/pom.xml
-RUN mvn install -f spring/utils/pom.xml
-RUN mvn install -DskipTests -f spring/webapp-test/pom.xml
-
-############################################
-## MY messengerapp IMAGE
-############################################
-FROM etapp AS messengeret
-
-#Set permissions to start script
-RUN chmod 744 spring/messenger/start.sh
-
-############################################
-## MY usuarioapp IMAGE
-############################################
-FROM etapp AS etUser
-
-RUN chmod 744 spring/userKc/start.sh
+RUN mvn package -f spring/library/pom.xml
+RUN mvn package -f spring/model/pom.xml
+RUN mvn package -f spring/utils/pom.xml
+RUN mvn package -f spring/userKc/pom.xml
+RUN mvn package -f spring/frontend/pom.xml
+RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################
 ## MY usuarioapp IMAGE
@@ -297,3 +245,48 @@ FROM etapp AS testcontainer
 
 RUN chmod 744 spring/usuario/test.sh
 RUN chmod 744 spring/schema/test.sh
+
+################################
+## MY OpenLDAP IMAGE (2.6.7)
+###############################
+FROM ubuntuet AS myslapd
+
+#variables and arguments
+ENV DEBIAN_FRONTEND=noninteractive
+ARG OPENLDAP_UID=1001
+ARG OPENLDAP_GID=1001
+
+USER root
+WORKDIR /opt/myslapd
+
+#Create openldap user
+RUN groupadd -g $OPENLDAP_GID openldap
+RUN useradd -u $OPENLDAP_UID -g openldap -c "OpenLDAP Server Account" --shell /bin/false --home-dir /opt/myslapd openldap
+
+#install openldap
+RUN echo 'slapd/root_password password password' | debconf-set-selections && \
+    echo 'slapd/root_password_again password password' | debconf-set-selections && \
+    apt install -y slapd ldap-utils
+#    /etc/init.d/slapd start
+
+#Copy ldif schemas to docker guest container
+RUN mkdir etienda
+RUN mkdir etienda/scripts
+RUN mkdir etienda/data
+COPY ./scripts/ldap/. etienda/scripts/
+#COPY ./scripts/ldap/etienda.github.ssh.config.ldif etienda/scripts/
+#COPY ./scripts/ldap/etienda.ldif etienda/scripts/
+RUN chown openldap:openldap -R etienda
+RUN chmod 700 -R etienda
+
+#install ldap directory
+RUN /etc/init.d/slapd start && \
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.config.ldif
+#    ldapmodify -Y EXTERNAL -H ldapi:/// -f /opt/myslapd/etienda/scripts/etienda.ldif
+
+#RUN
+USER openldap
+ENTRYPOINT ["/opt/myslapd/etienda/scripts/slapd-entrypoint.sh"]
+#ENTRYPOINT ["/usr/sbin/slapd", "-u", "openldap", "-g", "openldap", "-F", "/etc/ldap/slapd.d", "-h", "ldaps:/// ldapi:/// ldap:///", "-d", "stats"]
+#USER samsepi0l
+#ENTRYPOINT ["/bin/bash"]

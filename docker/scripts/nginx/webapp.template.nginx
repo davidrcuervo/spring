@@ -7,6 +7,15 @@ upstream webapp {
 server {
     listen 80;
     server_name ${WEBAPP_PUBLIC_ADDRESS};
+    return 301 https://${DOLLAR}host${DOLLAR}request_uri;
+}
+
+server{
+    listen 443 ssl;
+    server_name ${WEBAPP_PUBLIC_ADDRESS};
+
+    ssl_certificate /opt/nginx/webapp.crt;
+    ssl_certificate_key /opt/nginx/webapp.unsecure.key;
 
     location / {
         proxy_pass http://webapp;

@@ -135,6 +135,7 @@ Copy certifcates and
 #+end_src
 
 ** Create a self signed certificate
+*** Commands
 #+BEGIN_SRC shell
   # Create private key with password
   openssl genrsa -aes256 -out private.key 4096
@@ -143,7 +144,43 @@ Copy certifcates and
   openssl rsa -in private.key -out unsecure.key
 
   # Create certificate
-  openssl req -x509 -new -key .unsecure.key -out certificate.crt -days 365
+  openssl req -x509 -key unsecure.key -config config.cfg -out certificate.crt
+#+END_SRC
+
+*** Example of config.cfg file
+#+BEGIN_SRC shell
+[req]
+distinguished_name=req_distinguished_name
+x509_extensions=v3_req
+prompt=no
+
+[req_distinguished_name]
+C=CA
+ST=Quebec
+L=Montreal
+O=La eTienda
+OU=Webapp IT
+CN=webapp.com
+
+[v3_req]
+subjectAltName=@alt_names
+
+[alt_names]
+DNS.1=www.webapp.com
+DNS.2=frontend
+DNS.3=localhost
+IP.1=127.0.0.1
+#+END_SRC
+*** Add self signed certificate to java keystore
+#+BEGIN_SRC shell
+  # Add certificate to java trusted certs
+  %JAVA_HOME%\bin\keytool.exe -importcert -file 'C:\path\to\cert\cert.crt' -alias aliasName -keystore '%JAVA_HOME%\lib\security\cacerts'
+
+  # List certificate by alias
+  %JAVA_HOME%\bin\keytool.exe -list -alias webapp -keystore '%JAVA_HOME%\lib\security\cacerts'
+
+  # Delete certificate by alias
+  %JAVA_HOME%\bin\keytool.exe -delete -alias webapp -keystore '%JAVA_HOME%\lib\security\cacerts
 #+END_SRC
 * References 
 

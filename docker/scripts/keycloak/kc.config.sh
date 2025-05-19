@@ -59,7 +59,11 @@ kcadm.sh create clients -r etrealm -f - << EOF
   "enabled":"true",
   "clientAuthenticatorType":"client-secret",
   "secret":"$KC_FRONTEND_CLIENT_ID_SECRET",
-  "redirectUris":["http://127.0.0.1:8080/*","http://frontend:8080/*","http://www.webapp.com/*"]
+  "redirectUris":[
+    "http://127.0.0.1:$PORT_FRONTEND/*",
+    "http://frontend:$PORT_FRONTEND/*",
+    "https://$WEBAPP_PUBLIC_ADDRESS:$KC_PUBLIC_PORT/*",
+    "http://WEBAPP_PUBLIC_ADDRESS/*"]
 }
 EOF
 
@@ -222,6 +226,16 @@ fi
 
 if [ -z "$KC_PUBLIC_PORT" ]; then
   echo "Variable, KC_PUBLIC_PORT, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$PORT_FRONTEND" ]; then
+  echo "Variable, PORT_FRONTEND, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$WEBAPP_PUBLIC_ADDRESS" ]; then
+  echo "Variable, WEBAPP_PUBLIC_ADDRESS, is unset" >&2
   exit 1
 fi
 
