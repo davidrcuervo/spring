@@ -17,7 +17,7 @@ services:
     environment:
       - HOME=/opt/mypostgres
     env_file:
-      - webapp.env
+      - .env
     networks:
       - backend
     ports:
@@ -54,7 +54,7 @@ services:
 #      - "8001:8001"
 #      - "8443:8443"
     env_file:
-      - webapp.env
+      - .env
     healthcheck:
       test: ["CMD","curl","--fail","--insecure","https://keycloaket:9001/health/ready"]
       interval: 20s
@@ -74,13 +74,12 @@ services:
     user: keycloak
     working_dir: /opt/keycloak
     entrypoint: /opt/keycloak/kc.config.sh
-#    entrypoint: ["nc", "-l", "-p", "8002"]
     env_file:
-      - webapp.env
+      - .env
     secrets:
       - jasypt-password
     depends_on:
-      keycloaket:
+      etnginx:
         condition: service_healthy
     networks:
       - backend
@@ -103,12 +102,17 @@ services:
     image: etnginx:1.24
 #    user: nginx
     working_dir: /opt/nginx
-    entrypoint: ["nginx", "-g", "daemon off;"]
+    entrypoint: ./nginx.entrypoint.sh
+    env_file:
+      - .env
     depends_on:
-      keycloaketcnf:
+      keycloaket:
         condition: service_healthy
     networks:
-      - backend
+      backend:
+        aliases:
+          - ${KC_PUBLIC_ADDRESS}
+          - ${WEBAPP_PUBLIC_ADDRESS}
     ports:
       - "80:80"
       - "443:443"
@@ -117,8 +121,9 @@ services:
     build:
       target: etnginx
 #    volumes:
-#      - ./scripts/nginx/keycloak.nginx:/etc/nginx/sites-available/keycloak.nginx
-#      - ./scripts/nginx/webapp.nginx:/etc/nginx/sites-available/webapp.nginx
+#      - ./scripts/nginx/nginx.entrypoint.sh:/opt/nginx/nginx.entrypoint.sh
+#      - ./scripts/nginx/keycloak.template.nginx:/opt/nginx/keycloak.template.nginx
+#      - ./scripts/nginx/webapp.template.nginx:/opt/nginx/webapp.template.nginx
 
   etimage:
     image: etimage:1.0
@@ -129,7 +134,7 @@ services:
     networks:
       - backend
     env_file:
-      - webapp.env
+      - .env
     environment:
       - HOME=/opt/webapp
     build:
@@ -156,7 +161,7 @@ services:
 #    ports:
 #      - "8081:8081"
     env_file:
-      - webapp.env
+      - .env
     environment:
       - HOME=/opt/webapp
     healthcheck:
@@ -183,7 +188,7 @@ services:
     ports:
       - "8082:8082"
     env_file:
-      - webapp.env
+      - .env
     environment:
       - HOME=/opt/webapp
     #    volumes:
@@ -211,7 +216,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - webapp.env
+      - .env
     environment:
       - HOME=/opt/webapp
     healthcheck:
@@ -237,7 +242,7 @@ services:
     networks:
       - backend
     env_file:
-      - webapp.env
+      - .env
     environment:
       - HOME=/opt/webapp
 #    volumes:

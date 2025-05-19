@@ -4,7 +4,7 @@ function install(){
 #set admin credentials
 KC_ADMIN_PASSWORD=$(/opt/jasypt/jdecrypt.sh "$KC_BOOTSTRAP_ADMIN_ENC_PASSWORD")
 kcadm.sh config credentials \
---server https://keycloaket:$PORT_KEYCLOAK \
+--server https://$KC_PUBLIC_ADDRESS:$KC_PUBLIC_PORT \
 --realm master \
 --user $KC_BOOTSTRAP_ADMIN_USERNAME \
 --password $KC_ADMIN_PASSWORD
@@ -212,6 +212,16 @@ fi
 
 if [ -z "$PORT_KEYCLOAK_CONF" ]; then
   echo "Variable, PORT_KEYCLOAK_CONF, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_PUBLIC_ADDRESS" ]; then
+  echo "Variable, KC_PUBLIC_ADDRESS, is unset" >&2
+  exit 1
+fi
+
+if [ -z "$KC_PUBLIC_PORT" ]; then
+  echo "Variable, KC_PUBLIC_PORT, is unset" >&2
   exit 1
 fi
 

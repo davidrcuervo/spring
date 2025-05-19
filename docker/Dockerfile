@@ -1,21 +1,23 @@
 FROM ubuntu:24.04 AS ubuntuet
-#Variables and arguments
-#ARG ADMUSER_PASSWORD=secret
-#ARG SAMSEPI0L_PASSWORD=secret
 
 #update ubuntu os
 RUN apt update
 RUN apt upgrade -y
 
 #install required packages
-RUN apt install -y openssl sudo openssh-client curl dos2unix
+RUN apt install -y openssl sudo openssh-client curl dos2unix gettext-base
 
 #copy private files
-WORKDIR /var/docker/build
+WORKDIR /opt/docker
 RUN mkdir private
 RUN chmod 700 private
 COPY private/admuser-password.txt private/
 COPY private/samsepi0l-password.txt private/
+
+#copy envrinment file
+COPY ./.env webapp.env
+RUN dos2unix webapp.env
+RUN chmod 740 webapp.env
 
 #Create administrator user
 RUN ADMUSER_CYPHERED_PASSWORD=$(cat private/admuser-password.txt | openssl passwd -1 -stdin) && \
@@ -30,21 +32,19 @@ RUN SAMSEPI0L_CYPHERED_PASSWORD=$(cat private/samsepi0l-password.txt | openssl p
 RUN rm private/admuser-password.txt
 RUN rm private/samsepi0l-password.txt
 
-#USER samsepi0l
-#ENV HOME=/home/sapsepi0l
-
 ############################################
 ## MY Java IMAGE (jdk: 21.0.6 & mvn: 3.9.9)
 ############################################
 FROM ubuntuet AS javaet
 
 #Arguments and variables
-ARG DOCKER_GID=9999
+#ARG DOCKER_GID=9999
 
 USER root
 
 #Create java user and docker group to be able to save data externally
-RUN groupadd --gid $DOCKER_GID docker
+RUN export DOCKER_GID=$(cat /opt/docker/webapp.env | grep DOCKER_GID | awk -F "=" '{print $2}') && \
+    groupadd --gid $DOCKER_GID docker
 RUN useradd -g docker -c "Java user" --shell /bin/bash --create-home --home-dir /opt/myjava javauser
 
 #install git
@@ -88,7 +88,7 @@ ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
 
 #compile jasypt decrypt
 RUN mvn clean -f /opt/jasypt/pom.xml
-RUN mvn install -f /opt/jasypt/pom.xml
+RUN mvn package -f /opt/jasypt/pom.xml
 
 ################################
 ## MY POSTGRESQL IMAGE
@@ -123,7 +123,7 @@ RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
 
 ################################
-## MY POSTGRESQL IMAGE
+## MY NGINX IMAGE
 ###############################
 FROM javaet AS etnginx
 
@@ -144,9 +144,8 @@ COPY ./private/keys/kc.private.key .
 RUN chmod 700 kc.private.key
 
 #copy sites and enable them
-COPY ./scripts/nginx/. /etc/nginx/sites-available/.
-RUN ln -s /etc/nginx/sites-available/keycloak.nginx /etc/nginx/sites-enabled/keycloak
-RUN ln -s /etc/nginx/sites-available/webapp.nginx /etc/nginx/sites-enabled/webapp
+COPY ./scripts/nginx/. .
+RUN chmod 740 nginx.entrypoint.sh
 
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
