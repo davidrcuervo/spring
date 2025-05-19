@@ -5,7 +5,7 @@ RUN apt update
 RUN apt upgrade -y
 
 #install required packages
-RUN apt install -y openssl sudo openssh-client curl dos2unix gettext-base
+RUN apt install -y openssl sudo openssh-client curl dos2unix gettext-base netcat-openbsd
 
 #copy private files
 WORKDIR /opt/docker
@@ -196,7 +196,7 @@ FROM keycloaket AS keycloaketcnf
 
 USER root
 
-RUN apt install -y vim netcat-openbsd
+RUN apt install -y vim
 
 ############################################
 ## MY webapp IMAGE
@@ -208,6 +208,7 @@ USER root
 RUN useradd -g docker -c "Usuario application user" --shell /bin/bash --create-home --home-dir /opt/webapp webappuser
 
 USER webappuser
+STOPSIGNAL SIGINT
 
 #Set application folder
 WORKDIR /opt/webapp
@@ -234,8 +235,8 @@ RUN mvn clean -f spring/pom.xml
 RUN mvn install -f spring/library/pom.xml
 RUN mvn install -f spring/model/pom.xml
 RUN mvn install -f spring/utils/pom.xml
-#RUN mvn install -f spring/userKc/pom.xml
-#RUN mvn install -f spring/frontend/pom.xml
+RUN mvn install -f spring/userKc/pom.xml
+RUN mvn install -f spring/frontend/pom.xml
 #RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################

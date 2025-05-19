@@ -66,9 +66,14 @@ HBA_CONF_PATH=/opt/mypostgres/scripts/pg_hba.conf
 /usr/lib/postgresql/16/bin/psql -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE $SCHEMA_KEYCLOAK_DB_NAME TO $SCHEMA_KEYCLOAK_USERNAME;"
 
 function close(){
-  echo "good bye!!"
+  echo "Stopping Postgres SQL...."
+  /usr/lib/postgresql/16/bin/pg_ctl -D "$DATA_PATH" -m fast -w stop
+  echo "Closed, good bye!!"
+  exit 0
 }
 
 # stop internal postgres server
-trap '/opt/mypostgres/scripts/postgres-exitpoint.sh "$LOG_PATH"' SIGTERM SIGINT SIGKILL
-exec tail -f "$LOG_PATH"
+trap close SIGTERM SIGINT SIGQUIT SIGHUP
+tail -f "$LOG_PATH" &
+CHILD_PID=$!
+wait "$CHILD_PID"

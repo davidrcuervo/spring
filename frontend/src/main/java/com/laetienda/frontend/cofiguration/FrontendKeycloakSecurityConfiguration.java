@@ -33,6 +33,8 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.net.URI;
 import java.util.*;
@@ -73,6 +75,9 @@ public class FrontendKeycloakSecurityConfiguration {
                         requestMatchers("/manage/**").hasAuthority("role_manager").
                         anyRequest().authenticated()
                 );
+        http.csrf(csrf ->
+                csrf.ignoringRequestMatchers(new AntPathRequestMatcher(actuator))
+        );
 
         http.oauth2Login(Customizer.withDefaults())
                 .logout((logout) -> {

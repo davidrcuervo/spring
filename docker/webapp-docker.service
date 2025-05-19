@@ -1,0 +1,16 @@
+[Unit]
+Description=Weapp running on docker
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/mnt/c/Users/david/IdeaProjects/spring/docker
+EnvironmentFile=/mnt/c/Users/david/IdeaProjects/spring/docker/.env
+ExecStart=/usr/bin/docker compose up -d postgreset keycloaket etnginx keycloaketcnf
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

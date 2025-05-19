@@ -9,8 +9,14 @@ function run() {
     -f "$1"
 }
 
+function start() {
+  java -jar "$1" \
+  -Djasypt.encryptor.password=$JASYPT_PASSWORD \
+  -Dspring.config.additional-location=$DIR/spring/API/,$DIR/spring/
+}
+
 if [ -f "$1" ]; then
-  run $1
+  start $1
 else
   echo "Failed to start. pom file is not valid" >&2
 fi
