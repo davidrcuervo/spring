@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.laetienda</groupId>
-    <artifactId>usuerKc</artifactId>
+    <artifactId>userKc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Keycloak User Manager</name>
     <description>Keycloak user manager module handles user and groups stored in keycloak server</description>

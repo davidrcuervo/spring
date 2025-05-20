@@ -148,9 +148,10 @@ services:
     image: etimage:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ./spring/start.sh
+    entrypoint: ["./start.sh"]
     command:
-      - spring/userKc/pom.xml
+      - ./spring/userKc/target/usuerKc-0.0.1-SNAPSHOT.jar
+      - ${PORT_USUARIO}
     secrets:
       - jasypt-password
     depends_on:
@@ -203,8 +204,10 @@ services:
     image: etimage:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ["./spring/start.sh"]
-    command: ["./spring/frontend/target/frontend-1.0-SNAPSHOT.jar"]
+    entrypoint: ["./start.sh"]
+    command:
+      - ./spring/frontend/target/frontend-1.0-SNAPSHOT.jar
+      - ${PORT_FRONTEND}
     secrets:
       - jasypt-password
     depends_on:
@@ -226,7 +229,7 @@ services:
       start_period: 2m
     volumes:
       - ./../API:/opt/webapp/spring/API
-      - ./../start.sh:/opt/webapp/spring/start.sh
+#      - ./../start.sh:/opt/webapp/spring/start.sh
 
   testcontainer:
     image: testcontainer:1.0

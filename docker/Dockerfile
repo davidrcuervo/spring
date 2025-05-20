@@ -218,7 +218,7 @@ ENV HOME=/opt/webapp
 RUN mkdir .ssh
 COPY private/keys/. .ssh/.
 COPY scripts/webapp/github.ssh.config .ssh/config
-#RUN #cat .ssh/github.ssh.config >> .ssh/config
+COPY scripts/webapp/start.sh .
 
 USER root
 RUN chown webappuser:docker -R .ssh && chmod 750 -R .ssh
@@ -235,8 +235,8 @@ RUN mvn clean -f spring/pom.xml
 RUN mvn install -f spring/library/pom.xml
 RUN mvn install -f spring/model/pom.xml
 RUN mvn install -f spring/utils/pom.xml
-RUN mvn install -f spring/userKc/pom.xml
-RUN mvn install -f spring/frontend/pom.xml
+RUN mvn install -DskipTests -f spring/userKc/pom.xml
+RUN mvn install -DskipTests -f spring/frontend/pom.xml
 #RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################

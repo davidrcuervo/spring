@@ -111,4 +111,12 @@ class UserControllerTest {
         log.trace("token: {}", result.getResponse().getContentAsString());
         return result.getResponse().getContentAsString();
     }
+
+    @Test
+    void shutdown() throws Exception {
+        String actuator = env.getProperty("api.actuator.folder", "shutdown");
+        String address = String.format("%s/shutdown", actuator);
+        mvc.perform(post(address))
+                .andExpect(status().isOk());
+    }
 }

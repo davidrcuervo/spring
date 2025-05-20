@@ -24,4 +24,11 @@ class FrontendApplicationTests {
 				.andExpect(status().isOk());
 	}
 
+	@Test
+	void shutdown() throws Exception {
+		String address = String.format("%s/shutdown", env.getProperty("api.actuator.folder", "actuator"));
+		mvc.perform(post(address))
+				.andExpect(status().isOk());
+	}
+
 }
