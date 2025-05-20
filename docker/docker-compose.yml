@@ -120,14 +120,10 @@ services:
       test: ["CMD","curl","--fail","--insecure","https://auth.webapp.com/nginx/health"]
     build:
       target: etnginx
-#    volumes:
-#      - ./scripts/nginx/nginx.entrypoint.sh:/opt/nginx/nginx.entrypoint.sh
-#      - ./scripts/nginx/keycloak.template.nginx:/opt/nginx/keycloak.template.nginx
-#      - ./scripts/nginx/webapp.template.nginx:/opt/nginx/webapp.template.nginx
 
   etimage:
     image: etimage:1.0
-    user: webappuser
+    user: webapp
     working_dir: /opt/webapp
     secrets:
       - jasypt-password
@@ -141,8 +137,8 @@ services:
       target: etapp
       args:
         - DOCKER_GID=1
-    volumes:
-      - ./../API:/opt/webapp/spring/API
+#    volumes:
+#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
 
   etuser:
     image: etimage:1.0
@@ -150,7 +146,7 @@ services:
     working_dir: /opt/webapp
     entrypoint: ["./start.sh"]
     command:
-      - ./spring/userKc/target/usuerKc-0.0.1-SNAPSHOT.jar
+      - ./spring/userKc/target/userKc-0.0.1-SNAPSHOT.jar
       - ${PORT_USUARIO}
     secrets:
       - jasypt-password

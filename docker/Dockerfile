@@ -65,8 +65,9 @@ COPY Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
 COPY Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/jasypt/jasypt-1.9.3-dist.zip /opt/jasypt
 COPY Software/jasypt-1.9.3-dist.zip /opt/jasypt/
-COPY scripts/jasypt/. /opt/jasypt/
+COPY scripts/jasypt/jdecrypt.sh /opt/jasypt/
 RUN chmod 750 .ssh
+RUN chmod 755 /opt/jasypt/jdecrypt.sh
 
 #extract files
 RUN unzip /opt/jasypt/jasypt-1.9.3-dist.zip -d /opt/jasypt
@@ -94,8 +95,8 @@ RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -s
 RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias webapp -file certs/webapp.crt
 
 #compile jasypt decrypt
-RUN mvn clean -f /opt/jasypt/pom.xml
-RUN mvn package -f /opt/jasypt/pom.xml
+#RUN mvn clean -f /opt/jasypt/pom.xml
+#RUN mvn package -f /opt/jasypt/pom.xml
 
 ################################
 ## MY POSTGRESQL IMAGE
@@ -218,17 +219,18 @@ ENV HOME=/opt/webapp
 RUN mkdir .ssh
 COPY private/keys/. .ssh/.
 COPY scripts/webapp/github.ssh.config .ssh/config
-COPY scripts/webapp/start.sh .
 
 USER root
 RUN chown webappuser:docker -R .ssh && chmod 750 -R .ssh
+
+COPY scripts/webapp/start.sh .
+RUN chmod 744 start.sh
 
 USER webappuser
 RUN chmod 700 .ssh/docker.key
 
 #Clone the application
 RUN git clone github.com:davidrcuervo/spring.git
-RUN chmod 744 spring/start.sh
 
 #Clean project through maven
 RUN mvn clean -f spring/pom.xml
