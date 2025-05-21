@@ -120,7 +120,7 @@ Download software to folder %APP_ROOT_FOLDER%/docker/private/Software
 
 #+end_src
 
-** Install key cloak
+** Install keycloak
 #+begin_src shell
   #1. Uncompress keycloak
   unzip Software/keycloak-26.1.5.zip -d /opt/keycloak
@@ -131,6 +131,18 @@ Download software to folder %APP_ROOT_FOLDER%/docker/private/Software
 #+end_src
 
 ** Encrypt passwords
+*** Encrypt by using jasypt bin script 
+#+BEGIN_SRC shell
+# ENCRYPT
+/opt/jasypt/jasypt-1.9.3/bin/encrypt.sh algorithm="PBEWITHHMACSHA512ANDAES_256" saltGeneratorClassName="org.jasypt.salt.RandomSaltGenerator" ivGeneratorClassName="org.jasypt.iv.RandomIvGenerator" \
+password="password" input="plainsecretpassword"
+
+#DECRYPT
+/opt/jasypt/jasypt-1.9.3/bin/decrypt.sh algorithm="PBEWITHHMACSHA512ANDAES_256" saltGeneratorClassName="org.jasypt.salt.RandomSaltGenerator" ivGeneratorClassName="org.jasypt.iv.RandomIvGenerator" \
+password="password" input="encryptedsecretpassword"
+
+#+END_SRC
+*** Encrypt by using maven plugin
 #+begin_src shell
   #ENCRYPT
   mvn jasypt:encrypt-value -Djasypt.encryptor.password="password" -Djasypt.plugin.value="DEC(plain)" -f pom.xml
