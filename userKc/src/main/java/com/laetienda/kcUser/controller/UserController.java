@@ -34,6 +34,12 @@ public class UserController {
         return ResponseEntity.ok(service.getToken(creds));
     }
 
+    @GetMapping("${api.kcUser.isValidUser.file}")
+    public ResponseEntity<String> isValidUser(@PathVariable String username){
+        log.debug("USER_CONTROLLER::isUserValid. $username: {}", username);
+        return ResponseEntity.ok(service.isValidUser(username));
+    }
+
     @GetMapping("${api.usuario.test.file}") //api/v0/user/test.html
     public ResponseEntity<String> test(Principal principal){
         log.trace("USER_CONTROLLER::test. $api.usuario.test.file: {}", env.getProperty("api.usuario.test.file"));

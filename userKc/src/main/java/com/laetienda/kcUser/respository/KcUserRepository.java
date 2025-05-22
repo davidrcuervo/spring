@@ -9,4 +9,5 @@ import java.util.Map;
 public interface KcUserRepository {
     KcUser find();
     KcToken getToken(MultiValueMap<String, String> creds);
+    String isValidUser(String username);
 }

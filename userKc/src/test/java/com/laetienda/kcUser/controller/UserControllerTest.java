@@ -11,6 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -113,10 +115,18 @@ class UserControllerTest {
     }
 
     @Test
-    void shutdown() throws Exception {
-        String actuator = env.getProperty("api.actuator.folder", "shutdown");
-        String address = String.format("%s/shutdown", actuator);
-        mvc.perform(post(address))
-                .andExpect(status().isOk());
+    @WithMockUser
+    void isValidUser() throws Exception {
+        String address = env.getProperty("api.kcUser.isValidUser.uri", "/find/username");
+        String username = "samsepi0l";
+
+        //Test if user exists it should reply ok and id of user
+        mvc.perform(get(address, username))
+                .andExpect(status().isOk()
+        );
+
+        //Test is user exists if should return 404 not found
+        mvc.perform(get(address, "invalidusername"))
+                .andExpect(status().isNotFound());
     }
 }

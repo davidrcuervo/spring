@@ -31,4 +31,10 @@ public class KcUserServiceImplementation implements KcUserService{
         log.debug("USER_SERVICE::getToken. $username: {}", creds.get("username"));
         return repo.getToken(creds).getAccessToken();
     }
+
+    @Override
+    public String isValidUser(String username){
+        log.debug("USER_SERVICE::isValidUser. $username: {}", username);
+        return repo.isValidUser(username);
+    }
 }
