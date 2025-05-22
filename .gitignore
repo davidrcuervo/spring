@@ -8,8 +8,10 @@
 /schema/target
 /webapp-test/target
 /.idea
+.idea/modules.xml
 /API/User/.api.output
 /API/Group/.api.output
 /docker/private
 /docker/Software
 /z.deprecated.library
+API/.api.output
