@@ -1,6 +1,7 @@
 package com.laetienda.kcUser.controller;
 
 import com.laetienda.kcUser.service.KcUserService;
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.kc.KcUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ public class UserController {
     }
 
     @GetMapping("${api.kcUser.isValidUser.file}")
-    public ResponseEntity<String> isValidUser(@PathVariable String username){
+    public ResponseEntity<String> isValidUser(@PathVariable String username) throws NotValidCustomException {
         log.debug("USER_CONTROLLER::isUserValid. $username: {}", username);
         return ResponseEntity.ok(service.isValidUser(username));
     }

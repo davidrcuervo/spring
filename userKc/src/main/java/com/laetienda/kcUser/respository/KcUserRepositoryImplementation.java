@@ -5,17 +5,17 @@ import com.laetienda.model.kc.KcUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver;
-import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-import org.springframework.http.HttpHeaders;
+import java.util.List;
+
+import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 @Repository
 public class KcUserRepositoryImplementation implements KcUserRepository {
@@ -63,20 +63,17 @@ public class KcUserRepositoryImplementation implements KcUserRepository {
     }
 
     @Override
-    public String isValidUser(String username) {
+    public List<KcUser> findByUsername(String username) {
         String address = env.getProperty("api.kc.admin.user", "/admin/master/users");
         String clientId = env.getProperty("spring.security.oauth2.client.registration.keycloak.client-id", "null");
         log.debug("USER_REPOSITORY::isValidUser. $username: {} | clientId: {} | $address: {}", username, clientId, address);
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("username", username);
-
-        String result = client.get().uri(address, username)
+        List<KcUser> result = client.get().uri(address, username)
                 .accept(MediaType.APPLICATION_JSON)
-                .attributes(RequestAttributeClientRegistrationIdResolver.clientRegistrationId(clientId))
+                .attributes(clientRegistrationId("keycloak"))
                 .retrieve()
-                .toEntity(String.class).getBody();
-
-        return null;
+                .body(new ParameterizedTypeReference<List<KcUser>>() {});
+        log.trace("USER_REPOSITORY::isValidUser. $result: {}", result != null && result.isEmpty() ? "null" : result.getFirst().getFullName());
+        return result;
     }
 }
