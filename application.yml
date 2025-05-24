@@ -1,0 +1,74 @@
+#WEBAPP GLOBAL PARAMETERS
+webapp:
+  user:
+    admin:
+      username: ${APP_USER_ADMIN_USERNAME}
+      password: ${APP_USER_ADMIN_ENC_PASSWORD}
+    test:
+      username: ${APP_USER_TEST_USERNAME}
+      password: ${APP_USER_TEST_ENC_PASSWORD}
+
+#LOGGING
+logging:
+  level:
+    com:
+      ulisesbocchio: INFO
+      laetienda: ${LOG_LEVEL}
+    org:
+      springframework: INFO
+
+#ACTUATORS
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,shutdown
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      enabled: true
+
+#OAuth2 Resource Server
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${api.kc}
+      client:
+        registration:
+          webapp:
+            authorization-grant-type: client_credentials
+            client-id: ${KC_WEBAPP_CLIENT_ID}
+            client-secret: ${KC_WEBAPP_CLIENT_ENC_PASSWORD}
+            scope: openid,profile
+            provider: keycloaket
+        provider:
+          keycloaket:
+            issuer-uri: ${api.kc}
+            user-name-attribute: preferred_username
+
+#Keycloak
+kc:
+  user:
+    client:
+      id: ${KC_USER_CLIENT_ID}
+      password: ${KC_USER_CLIENT_ENC_PASSWORD}
+
+#Session authentication
+#spring.datasource.driver-class-name=org.postgresql.Driver
+#spring.datasource.url=${SESSION_DATASOURCE_URL}
+#spring.datasource.username=${SESSION_DATASOURCE_USERNAME}
+#spring.datasource.password=${SESSION_DATASOURCE_PASSWORD}
+#spring.session.store-type=jdbc
+#spring.session.jdbc.initialize-schema=never
+#spring.datasource.url=jdbc:postgresql://mypostgres:5432/springsession
+#spring.datasource.username=springsession
+#spring.datasource.password=secret
+
+#LDAP
+#spring.ldap.base=${LDAP_BASE}
+#spring.ldap.urls=${LDAP_URL}
+#spring.ldap.username=${LDAP_USERNAME}
+#spring.ldap.password=${LDAP_PASSWORD}

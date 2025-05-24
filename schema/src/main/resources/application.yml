@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: schema
+  datasource: #DATABASE
+    url: ${SCHEMA_DATASOURCE_URL}
+    username: ${SCHEMA_DATASOURCE_USERNAME}
+    password: ${SCHEMA_DATASOURCE_ENC_PASSWORD}
+    driverClassName: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+server:
+  port: 8083
+
+schema-generation:
+  database:
+    action: drop-and-create

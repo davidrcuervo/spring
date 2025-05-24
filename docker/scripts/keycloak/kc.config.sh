@@ -87,6 +87,24 @@ CLIENT_ID=$(kcadm.sh get clients -r etrealm -q clientId="$KC_USER_CLIENT_ID" -F 
 SERVICE_USER_USERNAME=$(kcadm.sh get clients/"$CLIENT_ID"/service-account-user -r etrealm -F username --format csv --noquotes)
 kcadm.sh add-roles -r etrealm --uusername "$SERVICE_USER_USERNAME" --cclientid realm-management --rolename view-users
 
+#create client for webapp microservices
+echo "Create webapp client"
+KC_WEBAPP_CLIENT_ID_SECRET=$(/opt/jasypt/jdecrypt.sh "$KC_WEBAPP_CLIENT_ENC_PASSWORD")
+kcadm.sh create clients -r etrealm -f - << EOF
+{
+  "clientId":"$KC_WEBAPP_CLIENT_ID",
+  "name":"Et. Webapp KC Client",
+  "enabled":"true",
+  "clientAuthenticatorType":"client-secret",
+  "secret":"$KC_WEBAPP_CLIENT_ID_SECRET",
+  "serviceAccountsEnabled":"true"
+}
+EOF
+#add view-role to user client in order to microservice be able to find user info
+CLIENT_ID=$(kcadm.sh get clients -r etrealm -q clientId="$KC_WEBAPP_CLIENT_ID" -F id --format csv --noquotes)
+SERVICE_USER_USERNAME=$(kcadm.sh get clients/"$CLIENT_ID"/service-account-user -r etrealm -F username --format csv --noquotes)
+kcadm.sh add-roles -r etrealm --uusername "$SERVICE_USER_USERNAME" --cclientid realm-management --rolename view-users
+
 #create realm-roles
 echo "create role role_manager"
 kcadm.sh create roles -r etrealm -s name=role_manager -s 'description=Manager of the application.'

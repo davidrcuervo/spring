@@ -24,15 +24,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
-@Configuration
-@EnableTransactionManagement
-@EnableJpaRepositories(
-        entityManagerFactoryRef = "getSchemaEntityManagerFactory",
-        transactionManagerRef = "getSchemaTransactionManager",
-        basePackages = {"com.laetienda.schema.repository"}
-)
-@EntityScan(basePackages={"com.laetienda.model.schema"})
-@ComponentScan(basePackages={"com.laetienda.model.schema"})
+//@Configuration
+//@EnableTransactionManagement
+//@EnableJpaRepositories(
+//        entityManagerFactoryRef = "getSchemaEntityManagerFactory",
+//        transactionManagerRef = "getSchemaTransactionManager",
+//        basePackages = {"com.laetienda.schema.repository"}
+//)
+//@EntityScan(basePackages={"com.laetienda.model.schema"})
+//@ComponentScan(basePackages={"com.laetienda.model.schema"})
+@Deprecated
 public class SchemaDatasourceConfiguration {
 
     @Autowired Environment env;

@@ -30,33 +30,34 @@ public class ItemServiceImplementation implements ItemService{
 
     @Autowired private ItemRepository itemRepo;
     @Autowired private HttpServletRequest request;
-    @Autowired private UserApi userApi;
+//    @Autowired private UserApi userApi;
     @Autowired private ObjectMapper jsonMapper;
     @Autowired private SchemaRepository schemaRepo;
 
-    @Value("${admuser.username}")
-    private String admUser;
-
-    @Value("${admuser.password}")
-    private String admUserPassword;
-
-    @Value("${backend.username}")
-    private String backendUsername;
-
-    @Value("${backend.password}")
-    private String backendPassword;
+//    @Value("${admuser.username}")
+//    private String admUser;
+//
+//    @Value("${admuser.password}")
+//    private String admUserPassword;
+//
+//    @Value("${backend.username}")
+//    private String backendUsername;
+//
+//    @Value("${backend.password}")
+//    private String backendPassword;
 
     @Override
     public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
             log.debug("ITEM_SERVICE::create $clazzName: {}", clazz.getName());
             String username = request.getUserPrincipal().getName();
+            log.trace("ITEM_SERVICE::create. $loggedUser: {}", username);
 
             //Build object
             DbItem item = (DbItem) jsonMapper.readValue(data, clazz);
 
-            //Check if object is valid
-            readersAndEditorsExists(item);
+            //TODO Check if object is valid
+//            readersAndEditorsExists(item);
             item.setOwner(username);
 
             //Persist
@@ -151,7 +152,8 @@ public class ItemServiceImplementation implements ItemService{
             }
 
             if(canEdit(oldItem)){
-                readersAndEditorsExists(newItem);
+//                check if editors a readers exist
+//                readersAndEditorsExists(newItem);
 
                 //test if owner is modified, if so, check that principal is old owner
                 if(!newItem.getOwner().equals(oldItem.getOwner()) && !oldItem.getOwner().equals(request.getUserPrincipal().getName())){
@@ -173,28 +175,28 @@ public class ItemServiceImplementation implements ItemService{
 
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
-        try {
-            ((UserApi)userApi.setCredentials(backendUsername, backendPassword)).startSession();
-
-            if(item.getEditors() != null) {
-                item.getEditors().forEach((editor) -> {
-                    userApi.findByUsername(editor);
-                });
-            }
-
-            if(item.getReaders() != null) {
-                item.getReaders().forEach((reader) -> {
-                    userApi.findByUsername(reader);
-                });
-            }
-
-        }catch(HttpClientErrorException ex){
-            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
-            throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
-
-        }finally{
-            userApi.endSession();
-        }
+//        try {
+//            ((UserApi)userApi.setCredentials(backendUsername, backendPassword)).startSession();
+//
+//            if(item.getEditors() != null) {
+//                item.getEditors().forEach((editor) -> {
+//                    userApi.findByUsername(editor);
+//                });
+//            }
+//
+//            if(item.getReaders() != null) {
+//                item.getReaders().forEach((reader) -> {
+//                    userApi.findByUsername(reader);
+//                });
+//            }
+//
+//        }catch(HttpClientErrorException ex){
+//            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
+//            throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
+//
+//        }finally{
+//            userApi.endSession();
+//        }
     }
 
     private Boolean canEdit(DbItem item){
