@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -49,9 +50,9 @@ class UserControllerTest {
 
     @Test
     void authentication() throws Exception {
-        String address = env.getProperty("api.usuario.login.path"); //api/v0/user/login.html
+        String address = env.getProperty("api.kcUser.login.uri"); //api/v0/user/login.html
         assertNotNull(address);
-        mvc.perform(get(address).with(oidcLogin()))
+        mvc.perform(get(address).with(jwt()))
                 .andExpect(status().isOk());
     }
 
@@ -59,7 +60,7 @@ class UserControllerTest {
     void authorization() throws Exception {
         String address = env.getProperty("api.usuario.testAuthorization.path"); //api/v0/user/testAuthorization.html
         assertNotNull(address);
-        mvc.perform(get(address).with(oidcLogin()
+        mvc.perform(get(address).with(jwt()
                         .authorities(new SimpleGrantedAuthority("role_manager"))))
                 .andExpect(status().isOk());
     }
@@ -68,6 +69,23 @@ class UserControllerTest {
     void health() throws Exception {
         String address = env.getProperty("api.kcUser.actuator.health.uri", "health");
         mvc.perform(get(address))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void login() throws Exception{
+        String username = env.getProperty("webapp.user.test.username", "");
+        String secret = env.getProperty("webapp.user.test.password", "");
+        String address = env.getProperty("api.kcUser.login.uri", "login"); //http://127.0.0.1:$8001/api/v0/user/login
+        String token = getToken(username,secret);
+
+        mvc.perform(get(address)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mvc.perform(get(address).with(jwt()
+                        .jwt(jwt -> jwt.claim("preferred_username", "testuser"))
+                        .authorities(new SimpleGrantedAuthority("role_test"))))
                 .andExpect(status().isOk());
     }
 
@@ -117,16 +135,23 @@ class UserControllerTest {
     @Test
     @WithMockUser
     void isValidUser() throws Exception {
-        String address = env.getProperty("api.kcUser.isValidUser.uri", "/find/username");
-        String username = "samsepi0l";
+        String address = env.getProperty("api.kcUser.isValidUser.uri");
+        assertNotNull(address);
+        String service = env.getProperty("spring.security.oauth2.client.registration.webapp.client-id");
+        assertNotNull(service);
+        service = String.format("service-account-%s", service);
 
         //Test if user exists it should reply ok and id of user
-        mvc.perform(get(address, username))
+        mvc.perform(get(address, "samsepi0l"))
                 .andExpect(status().isOk()
-        );
+                );
 
         //Test is user exists if should return 404 not found
         mvc.perform(get(address, "invalidusername"))
                 .andExpect(status().isNotFound());
+
+        //Test service account. Should return 404 not found
+        mvc.perform(get(address, service))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -3,25 +3,21 @@ package com.laetienda.schema.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
-import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.schema.repository.SchemaRepository;
-import com.laetienda.utils.service.api.UserApi;
+import com.laetienda.utils.service.api.ApiUser;
+import com.laetienda.utils.service.api.UserApiDeprecated;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
-import java.lang.reflect.Constructor;
-import java.nio.charset.StandardCharsets;
-import java.security.Principal;
 import java.util.Map;
 
 @Service
@@ -30,9 +26,10 @@ public class ItemServiceImplementation implements ItemService{
 
     @Autowired private ItemRepository itemRepo;
     @Autowired private HttpServletRequest request;
-//    @Autowired private UserApi userApi;
+    @Autowired private ApiUser apiUser;
     @Autowired private ObjectMapper jsonMapper;
     @Autowired private SchemaRepository schemaRepo;
+    @Autowired private ToolBoxService tb;
 
 //    @Value("${admuser.username}")
 //    private String admUser;
@@ -50,15 +47,15 @@ public class ItemServiceImplementation implements ItemService{
     public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
             log.debug("ITEM_SERVICE::create $clazzName: {}", clazz.getName());
-            String username = request.getUserPrincipal().getName();
+            String username = tb.getCurrentUsername();
             log.trace("ITEM_SERVICE::create. $loggedUser: {}", username);
 
             //Build object
             DbItem item = (DbItem) jsonMapper.readValue(data, clazz);
 
-            //TODO Check if object is valid
-//            readersAndEditorsExists(item);
+            //Check if object is valid
             item.setOwner(username);
+            readersAndEditorsExists(item);
 
             //Persist
             schemaRepo.create(clazz, item);
@@ -175,27 +172,29 @@ public class ItemServiceImplementation implements ItemService{
 
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
-//        try {
-//            ((UserApi)userApi.setCredentials(backendUsername, backendPassword)).startSession();
-//
-//            if(item.getEditors() != null) {
-//                item.getEditors().forEach((editor) -> {
-//                    userApi.findByUsername(editor);
-//                });
-//            }
-//
-//            if(item.getReaders() != null) {
-//                item.getReaders().forEach((reader) -> {
-//                    userApi.findByUsername(reader);
-//                });
-//            }
-//
-//        }catch(HttpClientErrorException ex){
-//            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
-//            throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
-//
-//        }finally{
-//            userApi.endSession();
+        try {
+//            ((UserApiDeprecated)userApiDeprecated.setCredentials(backendUsername, backendPassword)).startSession();
+            apiUser.isValidUser(item.getOwner());
+
+            if(item.getEditors() != null) {
+                item.getEditors().forEach((editor) -> {
+                    apiUser.isValidUser(editor);
+                });
+            }
+
+            if(item.getReaders() != null) {
+                item.getReaders().forEach((reader) -> {
+                    apiUser.isValidUser(reader);
+                });
+            }
+
+        }catch(HttpClientErrorException | HttpServerErrorException ex){
+            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
+            throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
+
+        }
+//        finally{
+//            userApiDeprecated.endSession();
 //        }
     }
 

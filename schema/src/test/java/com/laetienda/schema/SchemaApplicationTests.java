@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -57,18 +58,22 @@ class SchemaApplicationTests {
 
 	@Test
 	void health() throws Exception {
-		String address = env.getProperty("api.actuator.health.path", "/health");
+		String address = env.getProperty("api.actuator.health.path");
+		assertNotNull(address);
 		mvc.perform(get(address))
 				.andExpect(status().isOk());
 	}
 
-	@Test void login(){
+	@Test
+	void login() throws Exception {
 //		schemaTest.login();
-		fail();
+		String address = env.getProperty("api.schema.login.uri");
+		assertNotNull(address);
+		mvc.perform(post(address).with(jwt()))
+				.andExpect(status().isOk());
 	}
 
 	@Test
-	@WithMockUser
 	void cycle() throws Exception {
 //		schemaTest.cycle();
 		String clazzName = Base64.getUrlEncoder().encodeToString(ItemTypeA.class.getName().getBytes(StandardCharsets.UTF_8));
@@ -78,9 +83,12 @@ class SchemaApplicationTests {
         item.setUsername("myself");
 
 		//create
-		String address = env.getProperty("api.schema.create.uri", "create");
+		String address = env.getProperty("api.schema.create.uri");
+		assertNotNull(address);
+		String testUseranme = env.getProperty("webapp.user.test.username");
+		assertNotNull(testUseranme);
 		log.trace("TEST::cycle. $address: {}", address);
-		mvc.perform(post(address, clazzName)
+		mvc.perform(post(address, clazzName).with(jwt().jwt(jwt -> jwt.claim("preferred_username", testUseranme)))
 				.content(mapper.writeValueAsBytes(item)))
 				.andExpect(status().isOk());
 	}
@@ -103,6 +111,12 @@ class SchemaApplicationTests {
 	@Test void removeReader(){
 //		schemaTest.removeReader();
 		fail();
+	}
+
+	@Test
+	void simpleTest() throws Exception {
+		mvc.perform(get("/api/v0/schema/simple/test"))
+				.andExpect(status().isOk());
 	}
 
 	@Test void removeEditor(){fail();}

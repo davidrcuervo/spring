@@ -3,7 +3,7 @@ package com.laetienda.messenger;
 import com.laetienda.model.messager.EmailMessage;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.utils.service.api.MessengerApi;
-import com.laetienda.utils.service.api.UserApi;
+import com.laetienda.utils.service.api.UserApiDeprecated;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +30,11 @@ class MessengerApplicationTests {
 	private MessengerApi messengerApi;
 
 	@Autowired
-	private UserApi userApi;
+	private UserApiDeprecated userApiDeprecated;
 
 	@BeforeEach
 	public void setPorts(){
-		userApi.setPort(apiUserPort);
+		userApiDeprecated.setPort(apiUserPort);
 	}
 
 	@Test

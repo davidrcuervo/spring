@@ -38,18 +38,30 @@ public class KcUserServiceImplementation implements KcUserService{
     @Override
     public String isValidUser(String username) throws NotValidCustomException {
         log.debug("USER_SERVICE::isValidUser. $username: {}", username);
+        return findByUsername(username).getId();
+    }
+
+    private KcUser findByUsername(String username) throws NotValidCustomException{
+        log.debug("USER_SERVICE::findByUsername. $username: {}", username);
         List<KcUser> result = repo.findByUsername(username);
 
         if (result == null || result.isEmpty()) {
             String message = String.format("User, %s, does not exist.", username);
-            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "Username");
-
-        } else if (result.size() > 1){
-            String message = String.format("Username, %s, exists more than once", username);
-            log.error(message);
-            throw new NotValidCustomException(message, HttpStatus.CONFLICT, username);
+            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "username");
         }
 
-        return result.getFirst().getId();
+        if (result.size() > 1){
+            String message = String.format("Username, %s, exists more than once", "username");
+            log.error(message);
+            throw new NotValidCustomException(message, HttpStatus.CONFLICT, "username");
+        }
+
+        if(!result.getFirst().isEmailVerified() || result.getFirst().getEmail() == null || result.getFirst().getEmail().isBlank()){
+            String message = String.format("Username, %s, does not have a verified email address", username);
+            log.error(message);
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "username");
+        }
+
+        return result.getFirst();
     }
 }

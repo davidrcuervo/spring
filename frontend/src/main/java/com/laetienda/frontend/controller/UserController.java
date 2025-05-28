@@ -124,7 +124,7 @@ public class UserController {
 
         //Send request to User Resource server
 //        String address = env.getProperty("api.usuario.test.uri"); //http://usuarioet:{port}/api/v0/user/test.html
-        String address = env.getProperty("api.usuario.login.uri"); //http://usuarioet:{port}login.html/login.html
+        String address = env.getProperty("api.kcUser.login.uri"); //http://usuarioet:{port}login.html/login.html
         log.trace("USER_CONTROLLER::test $address: {}", address);
         String result = client.get()
                 .uri(address, usuarioPort, username)

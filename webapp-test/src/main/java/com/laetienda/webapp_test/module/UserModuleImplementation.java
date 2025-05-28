@@ -8,8 +8,8 @@ import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
 import com.laetienda.model.user.UsuarioList;
 
+import com.laetienda.utils.service.api.UserApiDeprecated;
 import com.laetienda.webapp_test.service.GroupTestService;
-import com.laetienda.utils.service.api.UserApi;
 import com.laetienda.webapp_test.service.UserTestService;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.jasypt.encryption.StringEncryptor;
@@ -47,7 +47,7 @@ public class UserModuleImplementation implements UserModule {
     @Autowired private TestRestClient testRestTemplate;
     @Autowired private StringEncryptor jasypte;
     @Autowired private ToolBoxService tb;
-    @Autowired private UserApi userApi;
+    @Autowired private UserApiDeprecated userApiDeprecated;
     @Autowired private UserTestService userTest;
     @Autowired private GroupTestService groupTest;
 
@@ -94,7 +94,7 @@ public class UserModuleImplementation implements UserModule {
 @Override
 public void setPort(int port){
         this.port=port;
-        userApi.setPort(port);
+        userApiDeprecated.setPort(port);
         userTest.setPort(port);
         groupTest.setPort(port);
     }
@@ -223,13 +223,13 @@ public void setPort(int port){
                 "secretpassword",
                 "secretpassword");
 
-        ResponseEntity<Usuario> resp1 = userApi.create(user);
+        ResponseEntity<Usuario> resp1 = userApiDeprecated.create(user);
         assertEquals(HttpStatus.OK, resp1.getStatusCode());
         assertNotNull(resp1.getBody());
         assertNotNull(resp1.getBody().getEncToken());
         assertFalse(resp1.getBody().getEncToken().isBlank());
 
-        ResponseEntity<Usuario> resp2 = ((UserApi)userApi.setCredentials(ADMUSER, ADMUSER_PASSWORD)).findByUsername(user.getUsername());
+        ResponseEntity<Usuario> resp2 = ((UserApiDeprecated) userApiDeprecated.setCredentials(ADMUSER, ADMUSER_PASSWORD)).findByUsername(user.getUsername());
         assertEquals(HttpStatus.OK, resp2.getStatusCode());
         assertNotNull(resp2.getBody());
         assertNotNull(resp2.getBody().getEmail());
@@ -504,7 +504,7 @@ public void setPort(int port){
 
         //Try to delete unauthorized
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
-            ((UserApi)userApi.setCredentials(user2.getUsername(), user2.getPassword())).delete(user1.getUsername());
+            ((UserApiDeprecated) userApiDeprecated.setCredentials(user2.getUsername(), user2.getPassword())).delete(user1.getUsername());
         });
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 
@@ -519,7 +519,7 @@ public void setPort(int port){
     @Override
     public void testDeleteAdmuser(){
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
-            ((UserApi)userApi.setCredentials( ADMUSER, ADMUSER_PASSWORD)).delete(ADMUSER);
+            ((UserApiDeprecated) userApiDeprecated.setCredentials( ADMUSER, ADMUSER_PASSWORD)).delete(ADMUSER);
         });
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
     }
@@ -649,7 +649,7 @@ public void setPort(int port){
     }
 
     public ResponseEntity<Usuario> create(Usuario user){
-        ResponseEntity<Usuario> response = userApi.create(user);
+        ResponseEntity<Usuario> response = userApiDeprecated.create(user);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -683,7 +683,7 @@ public void setPort(int port){
         testUserExists(username);
 
         //Delete user
-        ResponseEntity<String> response = ((UserApi)userApi.setCredentials(loginUsername,password)).delete(username);
+        ResponseEntity<String> response = ((UserApiDeprecated) userApiDeprecated.setCredentials(loginUsername,password)).delete(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("true", response.getBody());
@@ -693,7 +693,7 @@ public void setPort(int port){
 
     private void testUserExists(String username){
         ResponseEntity<Usuario> response =
-                ((UserApi)userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)))
+                ((UserApiDeprecated) userApiDeprecated.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)))
                         .findByUsername(username);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -702,7 +702,7 @@ public void setPort(int port){
 
     private void testUserDoesNotExists(String username){
         HttpClientErrorException exception = assertThrows( HttpClientErrorException.class, () -> {
-            ((UserApi)userApi.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)))
+            ((UserApiDeprecated) userApiDeprecated.setCredentials(admuser, jasypte.decrypt(admuserHashedPassword)))
                     .findByUsername(username);
         });
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -719,13 +719,13 @@ public void setPort(int port){
         );
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-            ((UserApi)userApi.setPort(port).setCredentials(admuser, admuserpassword))
+            ((UserApiDeprecated) userApiDeprecated.setPort(port).setCredentials(admuser, admuserpassword))
                     .create(user);
         });
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
 
         ex = assertThrows(HttpClientErrorException.class, () -> {
-            ((UserApi)userApi.setCredentials(admuser, admuserpassword))
+            ((UserApiDeprecated) userApiDeprecated.setCredentials(admuser, admuserpassword))
                     .findByUsername(user.getUsername());
         });
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());

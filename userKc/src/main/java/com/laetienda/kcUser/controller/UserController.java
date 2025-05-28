@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,16 +62,23 @@ public class UserController {
         return ResponseEntity.ok("Successful test.");
     }
 
-    @GetMapping("${api.usuario.login.file}") //api/v0/user/login.html
+    @GetMapping("${api.kcUser.login.file}") //api/v0/user/login
     public ResponseEntity<String> login(Principal principal){
         log.trace("USER_CONTROLLER::login");
         log.trace("USER_CONTROLLER::login $user: {}", principal.getName());
 
-        if(principal instanceof OAuth2AuthenticationToken authentication){
-            authentication.getPrincipal().getAttribute("email");
+        if(principal instanceof OAuth2AuthenticationToken authentication) {
+            authentication.getPrincipal().getAttributes().forEach((key,value) -> {
+                log.trace("USER_CONTROLLER::login. OAuth2AuthenticationToken. $attribute: {}, $value: {}", key, value);
+            });
 
-        }else if(principal != null){
-            log.trace("USER_CONTROLLER::login (non-OAuth2): {}", principal.toString());
+        }else if(principal instanceof JwtAuthenticationToken jwt){
+            jwt.getTokenAttributes().forEach((key, value) -> {
+                log.trace("USER_CONTROLLER::login. JwtAuthenticationToken. $attribute: {}, value: {}", key, value);
+            });
+            jwt.getAuthorities().forEach(authority -> {
+                log.trace("USER_CONTROLLER::login. $authority: {}", authority.getAuthority());
+            });
 
         }else{
             log.trace("USER_CONTROLLER::login No authenticated user found");

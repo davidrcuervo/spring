@@ -12,8 +12,17 @@ public class KcUser {
     @Email
     @NotNull private String email;
 
+    private boolean emailVerified;
     private String firstName;
     private String lastName;
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
 
     public String getUsername() {
         return username;

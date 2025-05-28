@@ -11,4 +11,5 @@ public interface ToolBoxService {
     public String getEncode64(String username, String password);
     public RestClient getHttpClient();
     public RestClient getHttpClient(String username, String password);
+    public String getCurrentUsername();
 }

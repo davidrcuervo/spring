@@ -5,13 +5,12 @@ import com.laetienda.utils.service.RestClientService;
 import com.laetienda.utils.service.RestClientServiceImpl;
 import com.laetienda.utils.service.api.MessengerApi;
 import com.laetienda.utils.service.api.MessengerApiImplementation;
-import com.laetienda.utils.service.api.UserApi;
-import com.laetienda.utils.service.api.UserApiImplementation;
+import com.laetienda.utils.service.api.UserApiDeprecated;
+import com.laetienda.utils.service.api.UserApiDeprecatedImplementation;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -28,8 +27,8 @@ public class MessengerApplication {
 	}
 
 	@Bean
-	public UserApi getUserApi(){
-		return new UserApiImplementation();
+	public UserApiDeprecated getUserApi(){
+		return new UserApiDeprecatedImplementation();
 	}
 
 	@Bean

@@ -55,6 +55,7 @@ kc:
     client:
       id: ${KC_USER_CLIENT_ID}
       password: ${KC_USER_CLIENT_ENC_PASSWORD}
+  client-id: webapp
 
 #Session authentication
 #spring.datasource.driver-class-name=org.postgresql.Driver

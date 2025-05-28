@@ -2,14 +2,12 @@ package com.laetienda.webapp_test.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.DbItem;
-import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.utils.service.api.SchemaApi;
-import com.laetienda.utils.service.api.UserApi;
+import com.laetienda.utils.service.api.UserApiDeprecated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,7 +21,7 @@ public class SchemaTestImplementation implements SchemaTest {
     private final static Logger log = LoggerFactory.getLogger(SchemaTestImplementation.class);
 
     @Autowired private SchemaApi schemaApi;
-    @Autowired private UserApi userApi;
+    @Autowired private UserApiDeprecated userApiDeprecated;
     @Autowired private ObjectMapper jsonMapper;
 
     @Value("${admuser.username}")
@@ -59,7 +57,7 @@ public class SchemaTestImplementation implements SchemaTest {
 //        assertNotNull(response.getBody());
 //        assertEquals("Hello " + username, response.getBody());
 //
-//        response = ((UserApi)userApi.setSessionId(session)).logout();
+//        response = ((UserApiDeprecated)userApiDeprecated.setSessionId(session)).logout();
 //        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 //
 //        ex = assertThrows(HttpClientErrorException.class, () -> {
@@ -76,7 +74,7 @@ public class SchemaTestImplementation implements SchemaTest {
 //
 //        ResponseEntity<String> response;
 //
-//        response = ((UserApi)userApi.setCredentials(username, password)).login();
+//        response = ((UserApiDeprecated)userApiDeprecated.setCredentials(username, password)).login();
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //
@@ -87,7 +85,7 @@ public class SchemaTestImplementation implements SchemaTest {
 //        assertNotNull(response.getBody());
 //        assertEquals("Hello " + username, response.getBody());
 //
-//        ((UserApi)userApi.setSessionId(session)).logout();
+//        ((UserApiDeprecated)userApiDeprecated.setSessionId(session)).logout();
 //
 //        return response;
 //    }
@@ -259,7 +257,7 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
 //    private String loginSession (String username, String password){
-//        ResponseEntity<String> response = ((UserApi)userApi.setCredentials(username, password)).login();
+//        ResponseEntity<String> response = ((UserApiDeprecated)userApiDeprecated.setCredentials(username, password)).login();
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //
@@ -269,6 +267,6 @@ public class SchemaTestImplementation implements SchemaTest {
 //    }
 //
 //    private void endSession(String session){
-//        userApi.endSession();userApi.startSession();
+//        userApiDeprecated.endSession();userApiDeprecated.startSession();
 //    }
 }

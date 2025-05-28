@@ -2,13 +2,13 @@ package com.laetienda.schema.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.schema.service.ItemService;
+import com.laetienda.utils.service.api.UserApiDeprecated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -34,7 +34,7 @@ public class SchemaController {
         return ResponseEntity.ok("Hello " + principal.getName());
     }
 
-    @PostMapping("${api.schema.login}")
+    @PostMapping("${api.schema.login.file}")
     public ResponseEntity<String> login(Principal principal){
         log.debug("SCHEMA_CONTROLLER::login: {}", principal.getName());
         return ResponseEntity.ok("Succesfull log in by " + principal.getName());

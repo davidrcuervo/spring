@@ -5,6 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import javax.crypto.BadPaddingException;
@@ -20,6 +25,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 
+@Component
 public class ToolBoxServiceImpl implements ToolBoxService {
     final private static Logger log = LoggerFactory.getLogger(ToolBoxServiceImpl.class);
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
@@ -105,6 +111,26 @@ public class ToolBoxServiceImpl implements ToolBoxService {
         }
 
         return secretKeySpec;
+    }
+
+    @Override
+    public String getCurrentUsername(){
+        log.debug("TOOLBOX::getCurrentUsername");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String result = null;
+        if(auth instanceof OAuth2AuthenticationToken oauth2Token){
+            result = oauth2Token.getName();
+
+        } else if(auth instanceof JwtAuthenticationToken jwtToken){
+            if(jwtToken.getTokenAttributes().get("preferred_username") instanceof String preferredUsername){
+                result = preferredUsername;
+            }
+
+        } else {
+            return auth.getName();
+        }
+        log.trace("TOOLBOX::getCurrentUsername. $result: {}", result);
+        return result;
     }
 
     public static void main(String args[]){

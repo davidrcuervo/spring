@@ -1,11 +1,10 @@
 package com.laetienda.utils.lib;
 
 import com.laetienda.lib.exception.CustomRestClientException;
-import com.laetienda.lib.model.AuthCredentials;
 
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
-import com.laetienda.utils.service.api.UserApi;
+import com.laetienda.utils.service.api.UserApiDeprecated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ public class CustomRestAuthenticationProvider implements AuthenticationProvider 
     final private static Logger log = LoggerFactory.getLogger(CustomRestAuthenticationProvider.class);
 
     @Autowired
-    private UserApi userApi;
+    private UserApiDeprecated userApiDeprecated;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -35,7 +34,7 @@ public class CustomRestAuthenticationProvider implements AuthenticationProvider 
         log.trace("AUTHENTICATION_PROVIDER::authenticate. $username: {}", creds.getUsername());
 
         try {
-            GroupList response = userApi.authenticateUser(creds).getBody();
+            GroupList response = userApiDeprecated.authenticateUser(creds).getBody();
             List<GrantedAuthority> authorities = new ArrayList<>();
 
             if(response != null){

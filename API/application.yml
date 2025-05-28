@@ -1,0 +1,5 @@
+api:
+  kcUser:
+    login:
+      file: login
+      uri: ${api.kcUser}/${api.kcUser.login.file}

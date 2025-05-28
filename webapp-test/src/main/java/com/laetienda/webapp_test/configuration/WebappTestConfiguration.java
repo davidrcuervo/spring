@@ -2,8 +2,8 @@ package com.laetienda.webapp_test.configuration;
 
 import com.laetienda.utils.service.api.SchemaApi;
 import com.laetienda.utils.service.api.SchemaApiImplementation;
-import com.laetienda.utils.service.api.UserApi;
-import com.laetienda.utils.service.api.UserApiImplementation;
+import com.laetienda.utils.service.api.UserApiDeprecated;
+import com.laetienda.utils.service.api.UserApiDeprecatedImplementation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 public class WebappTestConfiguration {
 
     @Bean
-    public UserApi getUserApi(){
-        return new UserApiImplementation();
+    public UserApiDeprecated getUserApi(){
+        return new UserApiDeprecatedImplementation();
     }
 
     @Bean
