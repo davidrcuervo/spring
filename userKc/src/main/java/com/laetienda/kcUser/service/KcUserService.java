@@ -4,10 +4,9 @@ import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.kc.KcUser;
 import org.springframework.util.MultiValueMap;
 
-import java.util.Map;
-
 public interface KcUserService {
     KcUser find();
     String getToken(MultiValueMap<String, String> creds);
-    String isValidUser(String username) throws NotValidCustomException;
+    String isUsernameValid(String username) throws NotValidCustomException;
+    String isUserIdValid(String userId) throws NotValidCustomException;
 }

@@ -1,5 +1,6 @@
 package com.laetienda.utils.service.api;
 
+import com.laetienda.lib.exception.CustomRestClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,25 @@ public class ApiUserImplementation implements ApiUser{
     }
 
     @Override
-    public String isValidUser(String username) throws HttpClientErrorException, HttpServerErrorException {
-        String address = env.getProperty("api.kcUser.isValidUser.uri", "#");
+    public String isUsernameValid(String username) throws HttpClientErrorException, HttpServerErrorException {
+        String address = env.getProperty("api.kcUser.isUsernameValid.uri", "#");
         log.debug("API_USER::isValidUser. $username: {} | $address: {}", username, address);
         return client.get().uri(address, username)
                 .attributes(clientRegistrationId(webappClientId))
                 .retrieve().toEntity(String.class).getBody();
+    }
+
+    @Override
+    public String isUserIdValid(String userId) throws CustomRestClientException{
+        String address = env.getProperty("api.kcUser.isUserIdValid.uri", "#");
+        log.debug("API_USER::isUserIdValid. $userId: {} | $address: {}", userId, address);
+
+        try{
+            return client.get().uri(address, userId)
+                    .attributes(clientRegistrationId(webappClientId))
+                    .retrieve().toEntity(String.class).getBody();
+        }catch(HttpClientErrorException | HttpServerErrorException e){
+            throw new CustomRestClientException(e);
+        }
     }
 }

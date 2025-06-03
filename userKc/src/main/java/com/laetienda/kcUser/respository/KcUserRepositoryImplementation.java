@@ -5,12 +5,15 @@ import com.laetienda.model.kc.KcUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -23,6 +26,9 @@ public class KcUserRepositoryImplementation implements KcUserRepository {
 
     final private RestClient client;
     @Autowired private Environment env;
+
+    @Value("${kc.client-id}")
+    private String clientId;
 
     KcUserRepositoryImplementation(RestClient restClient){
         this.client = restClient;
@@ -64,16 +70,32 @@ public class KcUserRepositoryImplementation implements KcUserRepository {
 
     @Override
     public List<KcUser> findByUsername(String username) {
-        String address = env.getProperty("api.kc.admin.user", "/admin/master/users");
-        String clientId = env.getProperty("spring.security.oauth2.client.registration.keycloak.client-id", "null");
-        log.debug("USER_REPOSITORY::isValidUser. $username: {} | clientId: {} | $address: {}", username, clientId, address);
+        String address = env.getProperty("api.kc.admin.user.byUsername", "/admin/master/users");
+        log.debug("USER_REPOSITORY::findByUsername. $username: {} | clientId: {} | $address: {}", username, clientId, address);
 
         List<KcUser> result = client.get().uri(address, username)
                 .accept(MediaType.APPLICATION_JSON)
-                .attributes(clientRegistrationId("keycloak"))
+                .attributes(clientRegistrationId(clientId))
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<KcUser>>() {});
         log.trace("USER_REPOSITORY::isValidUser. $result: {}", result != null && result.isEmpty() ? "null" : result.getFirst().getFullName());
         return result;
+    }
+
+    @Override
+    public KcUser findByUserId(String userId) {
+        String address = env.getProperty("api.kc.admin.user.byUserId", "/admin/master/users/{userId}");
+        log.debug("USER_REPOSITORY::isUserIdValid $userId: {} | $clientId: {} | $address: {}", userId, clientId, address);
+
+        try {
+            return client.get().uri(address, userId)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .attributes(clientRegistrationId(clientId))
+                    .retrieve().toEntity(KcUser.class).getBody();
+        }catch (HttpClientErrorException | HttpServerErrorException e){
+            log.warn(e.getMessage());
+            log.trace(e.getMessage(), e);
+            return null;
+        }
     }
 }

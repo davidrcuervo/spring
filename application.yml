@@ -7,6 +7,9 @@ webapp:
     test:
       username: ${APP_USER_TEST_USERNAME}
       password: ${APP_USER_TEST_ENC_PASSWORD}
+      userId: f5a87a0d-907f-4dbf-8304-2be960e36915
+    service:
+      userId: 04e7b011-c260-4045-b8d3-63df663c2a93
 
 #LOGGING
 logging:

@@ -1,12 +1,7 @@
 package com.laetienda.schema;
 
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.laetienda.webapp_test.service.UserTestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.ItemTypeA;
-import com.laetienda.webapp_test.module.SchemaModule;
-//import org.jasypt.encryption.StringEncryptor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -18,13 +13,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.core.env.Environment;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -42,19 +39,14 @@ class SchemaApplicationTests {
 	@Autowired private MockMvc mvc;
 	@Autowired private ObjectMapper mapper;
 
+	@Value("${webapp.user.test.username}")
+	private String testUsername;
+
+	@Value("${webapp.user.test.userId}")
+	private String testUserId;
+
 //	@LocalServerPort
 //	private int port;
-
-//	@Value("${admuser.username}")
-//	private String admuser;
-//
-//	@Value("${admuser.password}")
-//	private String admuserPassword;
-
-//	@BeforeEach
-//	void setTest(){
-//		schemaTest.setPort(port);
-//	}
 
 	@Test
 	void health() throws Exception {
@@ -82,15 +74,86 @@ class SchemaApplicationTests {
         item.setAge(44);
         item.setUsername("myself");
 
-		//create
+		create(item, clazzName);
+		item = find(item, clazzName);
+		assertEquals("1453 Villeray", item.getAddress());
+		item = update(item, clazzName);
+		assertNotEquals("1453 Villeray", item.getAddress());
+		delete(item, clazzName);
+
+	}
+
+	private void create(ItemTypeA item, String clazzName) throws Exception{
 		String address = env.getProperty("api.schema.create.uri");
 		assertNotNull(address);
-		String testUseranme = env.getProperty("webapp.user.test.username");
-		assertNotNull(testUseranme);
-		log.trace("TEST::cycle. $address: {}", address);
-		mvc.perform(post(address, clazzName).with(jwt().jwt(jwt -> jwt.claim("preferred_username", testUseranme)))
-				.content(mapper.writeValueAsBytes(item)))
+
+		mvc.perform(post(address, clazzName)
+						.with(jwt()
+								.jwt(jwt -> jwt
+										.claim("preferred_username", testUsername)
+										.claim("sub", testUserId)))
+						.content(mapper.writeValueAsBytes(item)))
 				.andExpect(status().isOk());
+	}
+
+	private ItemTypeA find(ItemTypeA item, String clazzName) throws Exception {
+		String address = env.getProperty("api.schema.find.uri");
+		assertNotNull(address);
+
+		Map<String, String> body = new HashMap<String, String>();
+		body.put("username", item.getUsername());
+
+		MvcResult result = mvc.perform(post(address, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.content(mapper.writeValueAsBytes(body))
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.address").value(item.getAddress()))
+				.andReturn();
+
+		return mapper.readValue(result.getResponse().getContentAsString(), ItemTypeA.class);
+	}
+
+	private ItemTypeA update(ItemTypeA item, String clazzName) throws Exception {
+		String address = env.getProperty("api.schema.update.uri");
+		assertNotNull(address);
+
+		item.setAddress("5 Place Ville Marie");
+		MvcResult response = mvc.perform(put(address, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.address").value("5 Place Ville Marie"))
+				.andReturn();
+
+		return mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+	}
+
+	private void delete(ItemTypeA item, String clazzName) throws Exception {
+		String address = env.getProperty("api.schema.delete.uri");
+		assertNotNull(address);
+
+		Map<String, String> body = new HashMap<String, String>();
+		body.put("username", item.getUsername());
+
+		MvcResult response = mvc.perform(post(address, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(body)))
+				.andExpect(status().isOk())
+				.andReturn();
+
+		assertTrue(Boolean.parseBoolean(response.getResponse().getContentAsString()));
+
+		String findAddress = env.getProperty("api.schema.find.uri");
+		assertNotNull(address);
+
+		mvc.perform(post(address, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(body)))
+				.andExpect(status().isNotFound());
 	}
 
 	@Test void createBadEditor(){

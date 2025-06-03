@@ -8,12 +8,12 @@ import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.schema.repository.SchemaRepository;
 import com.laetienda.utils.service.api.ApiUser;
-import com.laetienda.utils.service.api.UserApiDeprecated;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -47,14 +47,15 @@ public class ItemServiceImplementation implements ItemService{
     public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
             log.debug("ITEM_SERVICE::create $clazzName: {}", clazz.getName());
-            String username = tb.getCurrentUsername();
-            log.trace("ITEM_SERVICE::create. $loggedUser: {}", username);
+            String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            log.trace("ITEM_SERVICE::create. $loggedUser: {}", userId);
 
             //Build object
             DbItem item = (DbItem) jsonMapper.readValue(data, clazz);
 
             //Check if object is valid
-            item.setOwner(username);
+            item.setOwner(userId);
             readersAndEditorsExists(item);
 
             //Persist
@@ -173,18 +174,17 @@ public class ItemServiceImplementation implements ItemService{
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
         try {
-//            ((UserApiDeprecated)userApiDeprecated.setCredentials(backendUsername, backendPassword)).startSession();
-            apiUser.isValidUser(item.getOwner());
+            apiUser.isUserIdValid(item.getOwner());
 
             if(item.getEditors() != null) {
                 item.getEditors().forEach((editor) -> {
-                    apiUser.isValidUser(editor);
+                    apiUser.isUserIdValid(editor);
                 });
             }
 
             if(item.getReaders() != null) {
                 item.getReaders().forEach((reader) -> {
-                    apiUser.isValidUser(reader);
+                    apiUser.isUserIdValid(reader);
                 });
             }
 
@@ -193,9 +193,6 @@ public class ItemServiceImplementation implements ItemService{
             throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
 
         }
-//        finally{
-//            userApiDeprecated.endSession();
-//        }
     }
 
     private Boolean canEdit(DbItem item){

@@ -4,5 +4,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 public interface ApiUser {
-    String isValidUser(String username) throws HttpClientErrorException, HttpServerErrorException;
+    String isUsernameValid(String username) throws HttpClientErrorException, HttpServerErrorException;
+    String isUserIdValid(String userId);
 }

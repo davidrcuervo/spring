@@ -11,4 +11,5 @@ public interface KcUserRepository {
     KcUser find();
     KcToken getToken(MultiValueMap<String, String> creds);
     List<KcUser> findByUsername(String username);
+    KcUser findByUserId(String userId);
 }

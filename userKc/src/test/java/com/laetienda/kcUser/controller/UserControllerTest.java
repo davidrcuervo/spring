@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,7 +19,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -134,15 +132,17 @@ class UserControllerTest {
 
     @Test
     @WithMockUser
-    void isValidUser() throws Exception {
-        String address = env.getProperty("api.kcUser.isValidUser.uri");
+    void isUsernameValid() throws Exception {
+        String address = env.getProperty("api.kcUser.isUsernameValid.uri");
         assertNotNull(address);
         String service = env.getProperty("spring.security.oauth2.client.registration.webapp.client-id");
         assertNotNull(service);
         service = String.format("service-account-%s", service);
+        String username = env.getProperty("webapp.user.test.username");
+        assertNotNull(username);
 
         //Test if user exists it should reply ok and id of user
-        mvc.perform(get(address, "samsepi0l"))
+        mvc.perform(get(address, username))
                 .andExpect(status().isOk()
                 );
 
@@ -153,5 +153,30 @@ class UserControllerTest {
         //Test service account. Should return 404 not found
         mvc.perform(get(address, service))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void isUserIdValid() throws Exception {
+        String address = env.getProperty("api.kcUser.isUserIdValid.uri");
+        assertNotNull(address);
+        String userId = env.getProperty("webapp.user.test.userId");
+        assertNotNull(userId);
+
+        mvc.perform(get(address,userId).with(jwt()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void isUserIdValidError() throws Exception {
+        String address = env.getProperty("api.kcUser.isUserIdValid.uri");
+        assertNotNull(address);
+        String serviceUserId = env.getProperty("webapp.user.service.userId");
+        assertNotNull(serviceUserId);
+
+        mvc.perform(get(address, serviceUserId).with(jwt()))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(get(address, "invalid-service-id").with(jwt()))
+                .andExpect(status().isNotFound());
     }
 }

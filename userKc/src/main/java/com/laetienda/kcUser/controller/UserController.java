@@ -8,15 +8,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Map;
 
 @RestController
 @RequestMapping("${api.kcUser.folder}") // api/v0/user
@@ -38,10 +35,16 @@ public class UserController {
         return ResponseEntity.ok(service.getToken(creds));
     }
 
-    @GetMapping("${api.kcUser.isValidUser.file}")
-    public ResponseEntity<String> isValidUser(@PathVariable String username) throws NotValidCustomException {
-        log.debug("USER_CONTROLLER::isUserValid. $username: {}", username);
-        return ResponseEntity.ok(service.isValidUser(username));
+    @GetMapping("${api.kcUser.isUsernameValid.file}")
+    public ResponseEntity<String> isUsernameValid(@PathVariable String username) throws NotValidCustomException {
+        log.debug("USER_CONTROLLER::isUsernameValid. $username: {}", username);
+        return ResponseEntity.ok(service.isUsernameValid(username));
+    }
+
+    @GetMapping("${api.kcUser.isUserIdValid.file}")
+    public ResponseEntity<String> isUserIdValid(@PathVariable String userId) throws NotValidCustomException {
+        log.debug("USER_CONTROLLER::isUserIdValid. $userId: {}", userId);
+        return ResponseEntity.ok(service.isUserIdValid(userId));
     }
 
     @GetMapping("${api.usuario.test.file}") //api/v0/user/test.html

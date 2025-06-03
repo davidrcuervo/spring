@@ -1,5 +1,16 @@
 api:
+  kc:
+    admin:
+      user:
+        byUsername: ${api.kc.admin}/users?username={username}&exact=true
+        byUserId: ${api.kc.admin}/users/{userId}
   kcUser:
     login:
       file: login
       uri: ${api.kcUser}/${api.kcUser.login.file}
+    isUsernameValid:
+      file: /isUsernameValid/{username}
+      uri: ${api.kcUser}${api.kcUser.isUsernameValid.file}
+    isUserIdValid:
+      file: /isUserIdValid/{userId}
+      uri: ${api.kcUser}${api.kcUser.isUserIdValid.file}
