@@ -2,6 +2,7 @@ package com.laetienda.schema.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
@@ -97,14 +98,15 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     private <T> T find(Class<T> clazz, T item) throws NotValidCustomException{
-        String username = request.getUserPrincipal().getName();
+        String userId = request.getUserPrincipal().getName();
         if (item == null) {
-            String message = String.format("Item does not exist.");
+            String message = "Item does not exist.";
             throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
         } else if (canRead((DbItem) item)) {
             return item;
         } else {
-            String message = String.format("User, %s, doesn't have privileges to read the item.", username);
+            String message = String.format("User, %s, doesn't have privileges to read the item.", userId);
+            log.info(message);
             throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
         }
     }
@@ -131,7 +133,7 @@ public class ItemServiceImplementation implements ItemService{
             schemaRepo.delete(clazz, item);
             log.trace("ITEM_SERVICE::delete. $item.id: {}", id);
         }else{
-            String message = String.format("User, %s, doesn't have privileges to remove the item. $item.id: %d, $username: %s", ((DbItem) item).getId(), username);
+            String message = String.format("User, %s, doesn't have privileges to remove the item. $item.id: %d", username, ((DbItem) item).getId());
             throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
         }
     }
@@ -188,7 +190,13 @@ public class ItemServiceImplementation implements ItemService{
                 });
             }
 
-        }catch(HttpClientErrorException | HttpServerErrorException ex){
+        }catch(CustomRestClientException ex){
+            if(ex.getStatusCode() == HttpStatus.NOT_FOUND){
+                String message = "ITEM_SERVICE::verifyReadersAndEditors. Owner, reader or editor does not exist.";
+                log.info(message);
+                throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+            }
+
             log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
             throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
 

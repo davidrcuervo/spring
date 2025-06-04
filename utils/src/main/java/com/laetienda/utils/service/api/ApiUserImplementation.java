@@ -43,7 +43,7 @@ public class ApiUserImplementation implements ApiUser{
             return client.get().uri(address, userId)
                     .attributes(clientRegistrationId(webappClientId))
                     .retrieve().toEntity(String.class).getBody();
-        }catch(HttpClientErrorException | HttpServerErrorException e){
+        }catch(HttpClientErrorException e){
             throw new CustomRestClientException(e);
         }
     }

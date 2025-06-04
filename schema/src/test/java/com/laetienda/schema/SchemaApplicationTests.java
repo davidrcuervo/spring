@@ -10,13 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class SchemaApplicationTests {
 	private final static Logger log = LoggerFactory.getLogger(SchemaApplicationTests.class);
+	private final String clazzName = Base64.getUrlEncoder().encodeToString(ItemTypeA.class.getName().getBytes(StandardCharsets.UTF_8));
 
 	@Autowired private Environment env;
 	@Autowired private MockMvc mvc;
@@ -44,6 +45,15 @@ class SchemaApplicationTests {
 
 	@Value("${webapp.user.test.userId}")
 	private String testUserId;
+
+	@Value("${webapp.user.admin.userId}")
+	private String adminUserId;
+
+	@Value("${api.schema.update.uri}")
+	private String updateAddress;
+
+	@Value("${api.schema.deleteById.uri}")
+	private String deleteAddress;
 
 //	@LocalServerPort
 //	private int port;
@@ -68,7 +78,7 @@ class SchemaApplicationTests {
 	@Test
 	void cycle() throws Exception {
 //		schemaTest.cycle();
-		String clazzName = Base64.getUrlEncoder().encodeToString(ItemTypeA.class.getName().getBytes(StandardCharsets.UTF_8));
+//		String clazzName = Base64.getUrlEncoder().encodeToString(ItemTypeA.class.getName().getBytes(StandardCharsets.UTF_8));
 		ItemTypeA item = new ItemTypeA();
         item.setAddress("1453 Villeray");
         item.setAge(44);
@@ -156,33 +166,143 @@ class SchemaApplicationTests {
 				.andExpect(status().isNotFound());
 	}
 
-	@Test void createBadEditor(){
+	@Test void setEditor() throws Exception{
 //		schemaTest.createBadEditor();
-		fail();
-	}
-
-	@Test void addReader(){
-//		schemaTest.addReader();
-		fail();
-	}
-
-	@Test void addEditor(){
 //		schemaTest.addEditor();
-		fail();
-	}
 
-	@Test void removeReader(){
-//		schemaTest.removeReader();
-		fail();
-	}
+		String address = env.getProperty("api.schema.create.uri");
+		assertNotNull(address);
 
-	@Test
-	void simpleTest() throws Exception {
-		mvc.perform(get("/api/v0/schema/simple/test"))
+		ItemTypeA item = new ItemTypeA("createBadEditor", 22, "7775 Des Erables");
+		item.addReader(testUserId);
+
+		Map<String, String> body = new HashMap<>();
+		body.put("username", "createBadEditor");
+
+		//create item
+		MvcResult response = mvc.perform(post(address, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andReturn();
+		item = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+
+		//try to edit by not valid editor
+		item.setAge(44);
+		mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isUnauthorized());
+
+		//add editor
+		item.addEditor(testUserId);
+		item.setAge(22);
+		MvcResult response2 = mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andReturn();
+		item = mapper.readValue(response2.getResponse().getContentAsString(), ItemTypeA.class);
+
+		//try to edit by valid editor
+		item.setAge(42);
+		mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.age").value(42));
+
+		//remove editor
+		item.removeEditor(testUserId);
+		mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk());
+
+		//delete by using removed editor
+		mvc.perform(MockMvcRequestBuilders.delete(deleteAddress, item.getId(), clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+				.andExpect(status().isUnauthorized());
+
+		//delete by using owner editor
+		mvc.perform(MockMvcRequestBuilders.delete(deleteAddress, item.getId(), clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
 				.andExpect(status().isOk());
 	}
 
-	@Test void removeEditor(){fail();}
+	@Test void setReader() throws Exception{
+//		schemaTest.addReader();
+		ItemTypeA item = new ItemTypeA("schemaAddReader", 22, "Calle 70B # 87B - 24");
+		Map<String, String> body = new HashMap<>();
+		body.put("username", item.getUsername());
+
+		//Create item
+		String createAddress = env.getProperty("api.schema.create.uri");
+		assertNotNull(createAddress);
+		MvcResult response = mvc.perform(post(createAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andReturn();
+		item = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+
+		//Read item as test user. it should fail
+		String findAddress = env.getProperty("api.schema.find.uri");
+		assertNotNull(findAddress);
+		mvc.perform(post(findAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(body)))
+				.andExpect(status().isUnauthorized());
+
+		//Add reader and try again
+		item.addReader(testUserId);
+		String updateAddress = env.getProperty("api.schema.update.uri");
+		assertNotNull(updateAddress);
+		mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk());
+
+		//Read item as test user again. It should work now
+		mvc.perform(post(findAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(body)))
+				.andExpect(status().isOk());
+
+		//Remove reader
+		//schemaTest.removeReader();
+		item.removeReader(testUserId);
+		mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk());
+
+		mvc.perform(post(findAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(body)))
+				.andExpect(status().isUnauthorized());
+
+		//delete item from database to clean up
+		String deleteAddress = env.getProperty("api.schema.delete.uri");
+		assertNotNull(deleteAddress);
+		mvc.perform(post(deleteAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(body)))
+				.andExpect(status().isOk());
+	}
+
 	@Test void readByBackend(){fail();}
 	@Test void updateOwnerBadUnauthorized(){fail();}
 	@Test void modifyOwner(){fail();}
