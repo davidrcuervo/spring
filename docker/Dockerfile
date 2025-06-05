@@ -239,7 +239,7 @@ RUN mvn install -f spring/model/pom.xml
 RUN mvn install -f spring/utils/pom.xml
 RUN mvn install -DskipTests -f spring/userKc/pom.xml
 RUN mvn install -DskipTests -f spring/frontend/pom.xml
-#RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
+RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################
 ## MY usuarioapp IMAGE

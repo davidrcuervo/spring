@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 
-@Service
+//@Service
 public class SchemaTestImplementation implements SchemaTest {
     private final static Logger log = LoggerFactory.getLogger(SchemaTestImplementation.class);
 

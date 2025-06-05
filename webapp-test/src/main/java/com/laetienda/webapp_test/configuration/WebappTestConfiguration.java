@@ -10,13 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class WebappTestConfiguration {
 
-    @Bean
-    public UserApiDeprecated getUserApi(){
-        return new UserApiDeprecatedImplementation();
-    }
-
-    @Bean
-    public SchemaApi getSchemaApi(){
-        return new SchemaApiImplementation();
-    }
+//    @Bean
+//    public UserApiDeprecated getUserApi(){
+//        return new UserApiDeprecatedImplementation();
+//    }
+//
+//    @Bean
+//    public SchemaApi getSchemaApi(){
+//        return new SchemaApiImplementation();
+//    }
 }

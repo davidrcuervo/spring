@@ -19,8 +19,8 @@ logging:
       ulisesbocchio: INFO
       laetienda: ${LOG_LEVEL}
     org:
-      springframework: INFO
-
+      springframework:
+        security: DEBUG
 #ACTUATORS
 management:
   endpoints:

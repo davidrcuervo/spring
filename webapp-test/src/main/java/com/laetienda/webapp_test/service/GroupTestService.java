@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-@Service
+//@Service
 public interface GroupTestService {
     public GroupTestService setPort(String port);
     public GroupTestService setPort(Integer port);
