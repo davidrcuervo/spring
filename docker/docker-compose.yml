@@ -123,7 +123,7 @@ services:
 
   etimage:
     image: etimage:1.0
-    user: webapp
+    user: webappuser
     working_dir: /opt/webapp
     secrets:
       - jasypt-password

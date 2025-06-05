@@ -224,7 +224,8 @@ USER root
 RUN chown webappuser:docker -R .ssh && chmod 750 -R .ssh
 
 COPY scripts/webapp/start.sh .
-RUN chmod 744 start.sh
+RUN chmod 750 start.sh
+RUN chown webappuser:docker start.sh
 
 USER webappuser
 RUN chmod 700 .ssh/docker.key
