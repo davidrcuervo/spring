@@ -14,7 +14,7 @@
         <module>model</module>
         <module>utils</module>
         <module>messenger</module>
-        <module>usuarioLdap</module>
+<!--        <module>usuarioLdap</module>-->
         <module>frontend</module>
         <module>schema</module>
         <module>webapp-test</module>

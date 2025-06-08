@@ -160,6 +160,7 @@ WORKDIR /opt/nginx
 
 #copy sites and enable them
 COPY ./scripts/nginx/. .
+RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
 RUN chmod 740 nginx.entrypoint.sh
 
 ############################################

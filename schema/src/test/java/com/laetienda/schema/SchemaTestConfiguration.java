@@ -1,9 +1,6 @@
 package com.laetienda.schema;
 
-import com.laetienda.webapp_test.module.SchemaModule;
-import com.laetienda.webapp_test.module.SchemaModuleImplementation;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 
 @TestConfiguration
 public class SchemaTestConfiguration {

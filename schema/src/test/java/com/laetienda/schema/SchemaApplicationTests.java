@@ -49,11 +49,17 @@ class SchemaApplicationTests {
 	@Value("${webapp.user.admin.userId}")
 	private String adminUserId;
 
+    @Value("${webapp.user.service.userId}")
+    private String serviceUserId;
+
 	@Value("${api.schema.update.uri}")
 	private String updateAddress;
 
 	@Value("${api.schema.deleteById.uri}")
 	private String deleteAddress;
+
+    @Value("${api.schema.create.uri}")
+    private String createAddress;
 
 //	@LocalServerPort
 //	private int port;
@@ -94,10 +100,8 @@ class SchemaApplicationTests {
 	}
 
 	private void create(ItemTypeA item, String clazzName) throws Exception{
-		String address = env.getProperty("api.schema.create.uri");
-		assertNotNull(address);
 
-		mvc.perform(post(address, clazzName)
+		mvc.perform(post(createAddress, clazzName)
 						.with(jwt()
 								.jwt(jwt -> jwt
 										.claim("preferred_username", testUsername)
@@ -175,9 +179,6 @@ class SchemaApplicationTests {
 
 		ItemTypeA item = new ItemTypeA("createBadEditor", 22, "7775 Des Erables");
 		item.addReader(testUserId);
-
-		Map<String, String> body = new HashMap<>();
-		body.put("username", "createBadEditor");
 
 		//create item
 		MvcResult response = mvc.perform(post(address, clazzName)
@@ -303,8 +304,81 @@ class SchemaApplicationTests {
 				.andExpect(status().isOk());
 	}
 
-	@Test void readByBackend(){fail();}
-	@Test void updateOwnerBadUnauthorized(){fail();}
-	@Test void modifyOwner(){fail();}
+	@Test void readByBackend() throws Exception {
+        ItemTypeA item = new ItemTypeA("readByBackend", 37, "1140 St. Catherine");
+        mvc.perform(post(createAddress, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", serviceUserId)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(item)))
+                .andExpect(status().isUnauthorized());
+
+        //create test item by using test user
+        MvcResult response = mvc.perform(post(createAddress, clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(item)))
+                .andExpect(status().isOk())
+                .andReturn();
+        ItemTypeA itemResponse = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+
+        //try to add service user as reader
+        itemResponse.addEditor(serviceUserId);
+        mvc.perform(MockMvcRequestBuilders.put(updateAddress, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(itemResponse)))
+                .andExpect(status().isBadRequest());
+
+        //remove test item
+        mvc.perform(MockMvcRequestBuilders.delete(deleteAddress, itemResponse.getId(), clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+                .andExpect(status().isOk());
+    }
+
+	@Test void modifyOwner() throws Exception {
+		ItemTypeA item = new ItemTypeA("modifyOwner", 19, "17 Villaluz");
+
+		//create a test item
+		MvcResult response = mvc.perform(post(createAddress, clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andReturn();
+		ItemTypeA itemResponse = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+
+		//test by setting wrong owner
+		itemResponse.setOwner(serviceUserId);
+		mvc.perform(put(updateAddress, clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsBytes(itemResponse)))
+				.andExpect(status().isBadRequest());
+
+		//test by updating owner by not current owner
+		itemResponse.setOwner(testUserId);
+		mvc.perform(put(updateAddress, clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsBytes(itemResponse)))
+				.andExpect(status().isUnauthorized());
+
+		//update owner successfully
+		mvc.perform(put(updateAddress, clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsBytes(itemResponse)))
+				.andExpect(status().isOk());
+
+		//remove test item
+		mvc.perform(MockMvcRequestBuilders.delete(deleteAddress, itemResponse.getId(), clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
+				.andExpect(status().isUnauthorized());
+
+		mvc.perform(MockMvcRequestBuilders.delete(deleteAddress, itemResponse.getId(), clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+				.andExpect(status().isOk());
+	}
+
 	@Test void deleteUser(){fail();}
 }

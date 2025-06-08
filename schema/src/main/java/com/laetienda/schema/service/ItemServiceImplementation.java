@@ -10,6 +10,7 @@ import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.schema.repository.SchemaRepository;
 import com.laetienda.utils.service.api.ApiUser;
 import jakarta.servlet.http.HttpServletRequest;
+import org.aspectj.weaver.ast.Not;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,15 +49,14 @@ public class ItemServiceImplementation implements ItemService{
     public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
             log.debug("ITEM_SERVICE::create $clazzName: {}", clazz.getName());
-            String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-
-            log.trace("ITEM_SERVICE::create. $loggedUser: {}", userId);
 
             //Build object
             DbItem item = (DbItem) jsonMapper.readValue(data, clazz);
 
+            //check if owner is valid
+            setOwner(item);
+
             //Check if object is valid
-            item.setOwner(userId);
             readersAndEditorsExists(item);
 
             //Persist
@@ -77,6 +77,20 @@ public class ItemServiceImplementation implements ItemService{
         }
     }
 
+    private void setOwner(DbItem item) throws NotValidCustomException {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.trace("ITEM_SERVICE::setOwner. $loggedUser: {}", userId);
+
+        try{
+            apiUser.isUserIdValid(userId);
+            item.setOwner(userId);
+        }catch(HttpClientErrorException ex) {
+            String message = "ITEM_SERVICE::setOwner. Owner does not exist.";
+            log.info(message);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+        }
+    }
+
     @Override
     public <T> T find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("ITEM_SERVICE::find $clazzName: {}", clazz.getName());
@@ -85,7 +99,7 @@ public class ItemServiceImplementation implements ItemService{
             T item = schemaRepo.find(clazz, body);
             return find(clazz, item);
         }else{
-            String message = String.format("Request body has more paramenters than expected");
+            String message = "Request body has more parameters than expected";
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
         }
     }
@@ -152,14 +166,23 @@ public class ItemServiceImplementation implements ItemService{
             }
 
             if(canEdit(oldItem)){
-//                check if editors a readers exist
-//                readersAndEditorsExists(newItem);
+//              check if editors a readers exist
+                readersAndEditorsExists(newItem);
 
                 //test if owner is modified, if so, check that principal is old owner
                 if(!newItem.getOwner().equals(oldItem.getOwner()) && !oldItem.getOwner().equals(request.getUserPrincipal().getName())){
                     String message = String.format("%s can't modify the owner of item with id %d", request.getUserPrincipal().getName(), oldItem.getId());
                     throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+                }else{
+                    try{
+                        apiUser.isUserIdValid(newItem.getOwner());
+                    }catch(HttpClientErrorException e){
+                        String message = String.format("New owner, %s, is not valid user.", newItem.getOwner());
+                        log.warn("ITEM_SERVICE::update. {}", message);
+                        throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST);
+                    }
                 }
+
                 schemaRepo.update(clazz, newItem);
                 return clazz.cast(newItem);
             }else{
@@ -167,7 +190,7 @@ public class ItemServiceImplementation implements ItemService{
                 throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
             }
         } catch (JsonProcessingException ex1) {
-            log.error("SCHEMA_REPO::create $error: {}", ex1.getMessage());
+            log.error("SCHEMA_REPO::update $error: {}", ex1.getMessage());
             log.trace(ex1.getMessage(), ex1);
             throw new NotValidCustomException(ex1.getMessage(), HttpStatus.BAD_REQUEST, "item");
         }
@@ -176,7 +199,6 @@ public class ItemServiceImplementation implements ItemService{
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
         try {
-            apiUser.isUserIdValid(item.getOwner());
 
             if(item.getEditors() != null) {
                 item.getEditors().forEach((editor) -> {
