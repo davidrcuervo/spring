@@ -13,20 +13,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,6 +60,9 @@ class SchemaApplicationTests {
 
     @Value("${api.schema.create.uri}")
     private String createAddress;
+
+	@Value("${api.schema.findById.uri}")
+	private String findByIdAddress;
 
 //	@LocalServerPort
 //	private int port;
@@ -95,7 +98,7 @@ class SchemaApplicationTests {
 		assertEquals("1453 Villeray", item.getAddress());
 		item = update(item, clazzName);
 		assertNotEquals("1453 Villeray", item.getAddress());
-		delete(item, clazzName);
+		deleteItem(item, clazzName);
 
 	}
 
@@ -144,7 +147,7 @@ class SchemaApplicationTests {
 		return mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
 	}
 
-	private void delete(ItemTypeA item, String clazzName) throws Exception {
+	private void deleteItem(ItemTypeA item, String clazzName) throws Exception {
 		String address = env.getProperty("api.schema.delete.uri");
 		assertNotNull(address);
 
@@ -380,5 +383,60 @@ class SchemaApplicationTests {
 				.andExpect(status().isOk());
 	}
 
-	@Test void deleteUser(){fail();}
+	@Test void deleteUser() throws Exception {
+		String address = env.getProperty("api.schema.deleteUserById.uri");
+		assertNotNull(address);
+		ItemTypeA item = new ItemTypeA("deleteUser", 30, "63 St. Laurent");
+		item.addEditor(testUserId);
+		item.addReader(testUserId);
+
+		MvcResult response = mvc.perform(post(createAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(item)))
+				.andExpect(status().isOk())
+				.andReturn();
+		ItemTypeA itemResponse = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+
+		mvc.perform(delete(address, adminUserId)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+				.andExpect(status().isUnauthorized());
+
+		mvc.perform(delete(address, testUserId)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+				.andExpect(status().isForbidden());
+
+		itemResponse.setOwner(adminUserId);
+		mvc.perform(put(updateAddress, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(itemResponse)))
+				.andExpect(status().isOk());
+
+		mvc.perform(get(findByIdAddress, itemResponse.getId(), clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.readers").value(testUserId));
+
+		mvc.perform(delete(address, testUserId)
+				.with(jwt()
+						.authorities(new SimpleGrantedAuthority("role_manager"))
+						.jwt(jwt -> jwt
+						.claim("sub", adminUserId))))
+				.andExpect(status().isOk());
+
+		mvc.perform(get(findByIdAddress, itemResponse.getId(), clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+				.andExpect(status().isUnauthorized());
+
+		mvc.perform(get(findByIdAddress, itemResponse.getId(), clazzName)
+						.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.readers").isArray())
+				.andExpect(jsonPath("$.readers", hasSize(0)));
+
+		mvc.perform(delete(deleteAddress, itemResponse.getId(), clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
+				.andExpect(status().isOk());
+	}
 }

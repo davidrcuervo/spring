@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
+import com.laetienda.schema.repository.ItemRepository;
+import com.laetienda.schema.repository.SchemaRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -15,14 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 
 @Repository
 public class SchemaRepositoryImplementation implements SchemaRepository{
     private final static Logger log = LoggerFactory.getLogger(SchemaRepositoryImplementation.class);
 
-    @Autowired
-    private ObjectMapper jsonMapper;
+    @Autowired private ObjectMapper jsonMapper;
+    @Autowired private ItemRepository repo;
 
     @PersistenceContext
     private EntityManager em;
@@ -92,5 +95,24 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
             log.debug("SCHEMA_REPO::findById. $error: {}", ex.getMessage());
             return null;
         }
+    }
+
+    @Transactional
+    public boolean deleteUserById(String userId){
+        log.debug("SCHEMA_REPO::deleteUserById. $userId: {}", userId);
+
+        List<DbItem> readers =  repo.findByEditors(userId);
+        readers.stream().map(item -> {
+            item.removeEditor(userId);
+            return item;
+        }).forEach(item -> em.merge(item));
+
+        List<DbItem> editors = repo.findByReaders(userId);
+        editors.stream().map(item -> {
+            item.removeReader(userId);
+            return item;
+        }).forEach(item -> em.merge(item));
+
+        return true;
     }
 }

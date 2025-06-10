@@ -15,11 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -193,6 +195,32 @@ public class ItemServiceImplementation implements ItemService{
             log.error("SCHEMA_REPO::update $error: {}", ex1.getMessage());
             log.trace(ex1.getMessage(), ex1);
             throw new NotValidCustomException(ex1.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @Override
+    public Boolean deleteUserById(String userId) throws NotValidCustomException {
+        log.debug("ITEM_SERVICE::deleteUserById. $userId: {}", userId);
+        String loggedUserId = request.getUserPrincipal().getName();
+
+        if(loggedUserId.equals(userId) || tb.hasAuthority("role_manager")){
+
+            List<DbItem> itemsByOwner = itemRepo.findByOwner(userId);
+            if(itemsByOwner.isEmpty()){
+
+                //It is allowed to remove user from editors and readers
+                return schemaRepo.deleteUserById(userId);
+
+            }else{
+                String message = String.format("User, %s, is owner if database items and can't be removed", userId);
+                log.warn(message);
+                throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "Item");
+            }
+
+        }else{
+            String message = String.format("User, %s, does not have authorization to remove user, %s", loggedUserId, userId);
+            log.warn(message);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
         }
     }
 

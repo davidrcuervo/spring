@@ -12,4 +12,5 @@ public interface ToolBoxService {
     public RestClient getHttpClient();
     public RestClient getHttpClient(String username, String password);
     public String getCurrentUsername();
+    boolean hasAuthority(String authority);
 }

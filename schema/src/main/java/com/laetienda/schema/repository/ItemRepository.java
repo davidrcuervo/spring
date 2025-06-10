@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends CrudRepository<DbItem, Long> {
     List<DbItem> findByOwner(String username);
+    List<DbItem> findByEditors(String editorUserId);
+    List<DbItem> findByReaders(String readerUserId);
 }

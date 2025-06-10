@@ -13,4 +13,6 @@ public interface ItemService {
     <T> void delete(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
     <T> void deleteById(Class<T> clazz, Long id) throws NotValidCustomException;
     <T> T update(Class<T> clazz, String data) throws NotValidCustomException;
+
+    Boolean deleteUserById(String userId) throws NotValidCustomException;
 }
