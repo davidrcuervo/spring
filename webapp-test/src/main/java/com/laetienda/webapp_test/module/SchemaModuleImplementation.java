@@ -228,14 +228,14 @@ public class SchemaModuleImplementation implements SchemaModule {
         return itemResp;
     }
 
-	private void find(ItemTypeA item) {
+	private void find(ItemTypeA item) throws NotValidCustomException {
 		Map<String, String> body = new HashMap<String, String>();
 		body.put("username", item.getUsername());
 		ResponseEntity<ItemTypeA> resp = schemaTest.find(ItemTypeA.class, body);
 		assertEquals(item.getId(), resp.getBody().getId());
 	}
 
-    private void update(ItemTypeA item){
+    private void update(ItemTypeA item) throws NotValidCustomException {
         assertNotNull(item.getId());
         assertTrue(item.getId() > 0);
         item.setAddress("5 Place Ville Marie");

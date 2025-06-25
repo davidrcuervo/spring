@@ -154,7 +154,7 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
-    public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
+    public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("SCHEMA_TEST::find. $class: {}, $key: {}, $value: {}", clazz.getName());
 
 //        ResponseEntity<T> response = ((ApiSchema)apiSchema.setCredentials(admuser, admuserPassword))
@@ -166,7 +166,7 @@ public class SchemaTestImplementation implements SchemaTest {
     }
 
     @Override
-    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws HttpClientErrorException {
+    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws NotValidCustomException {
         log.debug("SCHEMA_TEST::findById. $class: {}, $id: {}", clazz.getName(), id);
         ResponseEntity<T> response = apiSchema.findById(clazz, id);
 
