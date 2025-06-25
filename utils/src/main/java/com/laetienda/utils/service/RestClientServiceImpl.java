@@ -1,6 +1,6 @@
 package com.laetienda.utils.service;
 
-import com.laetienda.lib.exception.CustomRestClientException;
+import com.laetienda.lib.exception.CustomRestClientExceptionDeprecated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,16 +35,16 @@ public class RestClientServiceImpl implements RestClientService {
             }
 
         }catch(HttpClientErrorException e){
-            throw new CustomRestClientException(e);
+            throw new CustomRestClientExceptionDeprecated(e);
         }catch (Exception e){
-            throw new CustomRestClientException(e);
+            throw new CustomRestClientExceptionDeprecated(e);
         }
 
         return result;
     }
 
     @Override
-    public <T> T find(String apiurl, Class<T> clazz, Map<String, String> params) throws CustomRestClientException{
+    public <T> T find(String apiurl, Class<T> clazz, Map<String, String> params) throws CustomRestClientExceptionDeprecated {
         return send(apiurl, HttpMethod.GET, null, clazz, params);
     }
 
@@ -54,12 +54,12 @@ public class RestClientServiceImpl implements RestClientService {
     }
 
     @Override
-    public <T> T delete(String apiurl, Class<T> clazz, Map<String, String> params) throws CustomRestClientException {
+    public <T> T delete(String apiurl, Class<T> clazz, Map<String, String> params) throws CustomRestClientExceptionDeprecated {
         return send(apiurl, HttpMethod.DELETE, null, clazz, params);
     }
 
     @Override
-    public <T> T delete(String apiurl, Class<T> clazz) throws CustomRestClientException{
+    public <T> T delete(String apiurl, Class<T> clazz) throws CustomRestClientExceptionDeprecated {
         return send(apiurl, HttpMethod.DELETE, null, clazz, null);
     }
 
@@ -79,7 +79,7 @@ public class RestClientServiceImpl implements RestClientService {
      * @param <T>
      */
     @Override
-    public <T> T send(String apiurl, HttpMethod httpMethod, Object data, Class<T> clazz, Map<String, String> params) throws CustomRestClientException{
+    public <T> T send(String apiurl, HttpMethod httpMethod, Object data, Class<T> clazz, Map<String, String> params) throws CustomRestClientExceptionDeprecated {
         T result = null;
 
         HttpHeaders headers = new HttpHeaders();
@@ -105,12 +105,12 @@ public class RestClientServiceImpl implements RestClientService {
                 result = response.getBody();
             }else{
                 log.debug("response code: {}", response.getStatusCode());
-                throw new CustomRestClientException(new IOException("Wrong response status"));
+                throw new CustomRestClientExceptionDeprecated(new IOException("Wrong response status"));
             }
         }catch(HttpClientErrorException e){
-            throw new CustomRestClientException(e);
+            throw new CustomRestClientExceptionDeprecated(e);
         }catch (Exception e){
-            throw new CustomRestClientException(e);
+            throw new CustomRestClientExceptionDeprecated(e);
         }
 
         return result;

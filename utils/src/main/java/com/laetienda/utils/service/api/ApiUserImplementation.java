@@ -1,14 +1,18 @@
 package com.laetienda.utils.service.api;
 
-import com.laetienda.lib.exception.CustomRestClientException;
+import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.model.kc.KcToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
@@ -26,16 +30,20 @@ public class ApiUserImplementation implements ApiUser{
     }
 
     @Override
-    public String isUsernameValid(String username) throws HttpClientErrorException, HttpServerErrorException {
+    public String isUsernameValid(String username) throws NotValidCustomException {
         String address = env.getProperty("api.kcUser.isUsernameValid.uri", "#");
         log.debug("API_USER::isValidUser. $username: {} | $address: {}", username, address);
-        return client.get().uri(address, username)
-                .attributes(clientRegistrationId(webappClientId))
-                .retrieve().toEntity(String.class).getBody();
+        try {
+            return client.get().uri(address, username)
+                    .attributes(clientRegistrationId(webappClientId))
+                    .retrieve().toEntity(String.class).getBody();
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
     }
 
     @Override
-    public String isUserIdValid(String userId) throws CustomRestClientException{
+    public String isUserIdValid(String userId) throws NotValidCustomException {
         String address = env.getProperty("api.kcUser.isUserIdValid.uri", "#");
         log.debug("API_USER::isUserIdValid. $userId: {} | $address: {}", userId, address);
 
@@ -44,7 +52,31 @@ public class ApiUserImplementation implements ApiUser{
                     .attributes(clientRegistrationId(webappClientId))
                     .retrieve().toEntity(String.class).getBody();
         }catch(HttpClientErrorException e){
-            throw new CustomRestClientException(e);
+            throw new NotValidCustomException(e);
         }
+    }
+
+    @Override
+    public String getToken(String username, String password) throws NotValidCustomException {
+        String address = env.getProperty("api.kcUser.token.uri", "/toke");
+        log.debug("USER_API::getToken. $username: {} | $address: {}", username, address);
+
+        MultiValueMap<String, String> creds = new LinkedMultiValueMap<>();
+        creds.add("username",username);
+        creds.add("password",password);
+
+        try {
+            ResponseEntity<String> resp = client.post().uri(address)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(creds)
+                    .retrieve().toEntity(String.class);
+            log.trace("API_USER::getToken. $status: {}", resp.getStatusCode());
+            log.trace("API_USER::getToken. $token: {}", resp.getBody());
+            return resp.getBody();
+
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
+
     }
 }

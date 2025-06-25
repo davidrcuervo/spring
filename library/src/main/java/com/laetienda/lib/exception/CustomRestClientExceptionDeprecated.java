@@ -10,15 +10,16 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Date;
 
-public class CustomRestClientException extends HttpClientErrorException {
-    final private static Logger log = LoggerFactory.getLogger(CustomRestClientException.class);
+@Deprecated
+public class CustomRestClientExceptionDeprecated extends HttpClientErrorException {
+    final private static Logger log = LoggerFactory.getLogger(CustomRestClientExceptionDeprecated.class);
     private Mistake mistake;
-    public CustomRestClientException(Mistake mistake, HttpClientErrorException e){
+    public CustomRestClientExceptionDeprecated(Mistake mistake, HttpClientErrorException e){
         super (e.getMessage(), e.getStatusCode(), e.getStatusText(), e.getResponseHeaders(), e.getResponseBodyAsByteArray(), null);
         setMistake(mistake);
     }
 
-    public CustomRestClientException(HttpClientErrorException e){
+    public CustomRestClientExceptionDeprecated(HttpClientErrorException e){
         super (e.getMessage(), e.getStatusCode(), e.getStatusText(), e.getResponseHeaders(), e.getResponseBodyAsByteArray(), null);
 
         try {
@@ -34,7 +35,7 @@ public class CustomRestClientException extends HttpClientErrorException {
         }
     }
 
-    public CustomRestClientException(Exception ex){
+    public CustomRestClientExceptionDeprecated(Exception ex){
         super(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         log.error("{}: {}", ex.getClass().getSimpleName(), ex.getMessage());
         log.debug(ex.getMessage(), ex);

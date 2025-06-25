@@ -1,8 +1,9 @@
 package com.laetienda.webapp_test.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
-import com.laetienda.utils.service.api.SchemaApi;
+import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.UserApiDeprecated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +20,7 @@ import java.util.Map;
 public class SchemaTestImplementation implements SchemaTest {
     private final static Logger log = LoggerFactory.getLogger(SchemaTestImplementation.class);
 
-    @Autowired private SchemaApi schemaApi;
+    @Autowired private ApiSchema apiSchema;
     @Autowired private UserApiDeprecated userApiDeprecated;
     @Autowired private ObjectMapper jsonMapper;
 
@@ -33,7 +33,7 @@ public class SchemaTestImplementation implements SchemaTest {
 //    @Override
 //    public ResponseEntity<String> helloAll() throws HttpClientErrorException {
 //        log.debug("SCHEMA_TEST::helloAll");
-//        ResponseEntity<String> response = schemaApi.helloAll();
+//        ResponseEntity<String> response = apiSchema.helloAll();
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals("Hello World!!", response.getBody());
@@ -47,12 +47,12 @@ public class SchemaTestImplementation implements SchemaTest {
 //        ResponseEntity<String> response;
 //
 //        ex = assertThrows(HttpClientErrorException.class, () -> {
-//            schemaApi.helloUser();
+//            apiSchema.helloUser();
 //        });
 //        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
 //
 //        String session = loginSession(admuser, admuserPassword);
-//        response = ((SchemaApi)schemaApi.setSessionId(session)).helloUser();
+//        response = ((ApiSchema)apiSchema.setSessionId(session)).helloUser();
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals("Hello " + username, response.getBody());
@@ -61,7 +61,7 @@ public class SchemaTestImplementation implements SchemaTest {
 //        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 //
 //        ex = assertThrows(HttpClientErrorException.class, () -> {
-//            ((SchemaApi)schemaApi.setSessionId(session)).helloUser();
+//            ((ApiSchema)apiSchema.setSessionId(session)).helloUser();
 //        });
 //        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
 //
@@ -80,7 +80,7 @@ public class SchemaTestImplementation implements SchemaTest {
 //
 //        String session = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
 //
-//        response = ((SchemaApi)schemaApi.setSessionId(session)).login();
+//        response = ((ApiSchema)apiSchema.setSessionId(session)).login();
 //        assertEquals(HttpStatus.OK, response.getStatusCode());
 //        assertNotNull(response.getBody());
 //        assertEquals("Hello " + username, response.getBody());
@@ -95,13 +95,13 @@ public class SchemaTestImplementation implements SchemaTest {
         log.debug("SCHEMA_TEST::startSession $username: {}", username);
 
         ResponseEntity<String> resp =
-                ((SchemaApi)schemaApi.setCredentials(username, password))
+                ((ApiSchema) apiSchema.setCredentials(username, password))
                         .startSession();
 
         assertEquals(HttpStatus.OK, resp.getStatusCode());
         assertNotNull(resp.getBody());
         assertEquals("Succesfull log in by " + username, resp.getBody());
-        assertNotNull(schemaApi.getSession());
+        assertNotNull(apiSchema.getSession());
         return resp;
     }
 
@@ -109,20 +109,20 @@ public class SchemaTestImplementation implements SchemaTest {
     public ResponseEntity<String> endSession() throws HttpClientErrorException {
         log.trace("SCHEMA_TEST::endSession");
 
-        ResponseEntity<String> resp = schemaApi.endSession();
+        ResponseEntity<String> resp = apiSchema.endSession();
         assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
-        assertNull(schemaApi.getSession());
+        assertNull(apiSchema.getSession());
         return null;
     }
 
     @Override
-    public <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws HttpClientErrorException {
+    public <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws NotValidCustomException {
         log.debug("SCHEMA_TEST::create $clazzName: {}", clazz.getName());
 //        String session = loginSession(admuser, admuserPassword);
-//        ResponseEntity<T> response = ((SchemaApi)schemaApi.setSessionId(session))
+//        ResponseEntity<T> response = ((ApiSchema)apiSchema.setSessionId(session))
 //                .create(clazz, item);
 
-        ResponseEntity<T> response = schemaApi.create(clazz, item);
+        ResponseEntity<T> response = apiSchema.create(clazz, item);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
@@ -141,11 +141,11 @@ public class SchemaTestImplementation implements SchemaTest {
         log.debug("SCHEMA_TEST::createBadEditor");
 
 //        HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-//            ResponseEntity<T> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+//            ResponseEntity<T> response = ((ApiSchema)apiSchema.setCredentials(admuser, admuserPassword))
 //                .create(clazz, item);
 //        });
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-            ResponseEntity<T> response = schemaApi.create(clazz, item);
+            ResponseEntity<T> response = apiSchema.create(clazz, item);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
@@ -157,9 +157,9 @@ public class SchemaTestImplementation implements SchemaTest {
     public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::find. $class: {}, $key: {}, $value: {}", clazz.getName());
 
-//        ResponseEntity<T> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+//        ResponseEntity<T> response = ((ApiSchema)apiSchema.setCredentials(admuser, admuserPassword))
 //                .find(clazz, body);
-        ResponseEntity<T> response = schemaApi.find(clazz, body);
+        ResponseEntity<T> response = apiSchema.find(clazz, body);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         return response;
@@ -168,7 +168,7 @@ public class SchemaTestImplementation implements SchemaTest {
     @Override
     public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::findById. $class: {}, $id: {}", clazz.getName(), id);
-        ResponseEntity<T> response = schemaApi.findById(clazz, id);
+        ResponseEntity<T> response = apiSchema.findById(clazz, id);
 
         //test result
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -182,9 +182,9 @@ public class SchemaTestImplementation implements SchemaTest {
         log.debug("SCHEMA_TEST::notFound. $class: {}, $key: {}, $value: {}", clazz.getName());
 
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-//            ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+//            ((ApiSchema)apiSchema.setCredentials(admuser, admuserPassword))
 //                    .find(clazz, body);
-            schemaApi.find(clazz, body);
+            apiSchema.find(clazz, body);
         });
 
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
@@ -196,14 +196,14 @@ public class SchemaTestImplementation implements SchemaTest {
     public <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::delete. $class: {}, $key: {}, $value: {}", clazz.getName());
 
-//        ResponseEntity<String> response = ((SchemaApi)schemaApi.setCredentials(admuser, admuserPassword))
+//        ResponseEntity<String> response = ((ApiSchema)apiSchema.setCredentials(admuser, admuserPassword))
 //                .delete(clazz, body);
-        ResponseEntity<String> response = schemaApi.delete(clazz, body);
+        ResponseEntity<String> response = apiSchema.delete(clazz, body);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(Boolean.parseBoolean(response.getBody()));
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-            schemaApi.find(clazz, body);
+            apiSchema.find(clazz, body);
         });
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         return response;
@@ -212,14 +212,14 @@ public class SchemaTestImplementation implements SchemaTest {
     @Override
     public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::deleteById. $class: {}, $id: {}", clazz.getName(), id);
-        ResponseEntity<String> response = schemaApi.deleteById(clazz, id);
+        ResponseEntity<String> response = apiSchema.deleteById(clazz, id);
 
         //test response is fine
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(Boolean.parseBoolean(response.getBody()));
         HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-            schemaApi.findById(clazz, id);
+            apiSchema.findById(clazz, id);
         });
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
         return response;
@@ -229,7 +229,7 @@ public class SchemaTestImplementation implements SchemaTest {
     public <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException {
         log.debug("SCHEMA_TEST::update $clazzName: {}", clazz.getName());
 
-        ResponseEntity<T> response = schemaApi.update(clazz, item);
+        ResponseEntity<T> response = apiSchema.update(clazz, item);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
@@ -240,13 +240,13 @@ public class SchemaTestImplementation implements SchemaTest {
 
     @Override
     public SchemaTest setPort(Integer port) {
-        schemaApi.setPort(port);
+        apiSchema.setPort(port);
         return this;
     }
 
     @Override
     public SchemaTest setPort(String port) {
-        schemaApi.setPort(port);
+        apiSchema.setPort(port);
         return this;
     }
 

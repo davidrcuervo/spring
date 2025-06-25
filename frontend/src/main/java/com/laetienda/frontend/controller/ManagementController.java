@@ -1,6 +1,6 @@
 package com.laetienda.frontend.controller;
 
-import com.laetienda.lib.exception.CustomRestClientException;
+import com.laetienda.lib.exception.CustomRestClientExceptionDeprecated;
 import com.laetienda.frontend.model.Form;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.utils.service.RestClientService;
@@ -110,7 +110,7 @@ public class ManagementController {
             restclient.delete(address, Boolean.class);
             return "redirect:/manage/users.html";
 
-        }catch(CustomRestClientException e){
+        }catch(CustomRestClientExceptionDeprecated e){
             Map<String, Mistake> postErrors = new HashMap<>();
             postErrors.put(username, e.getMistake());
             model.addAttribute("postErrors", postErrors);
@@ -196,7 +196,7 @@ public class ManagementController {
         try{
             Group group = restclient.send(url, method, data, Group.class, params);
             return String.format("redirect:/manage/group.html?groupname=%s", group.getName());
-        }catch(CustomRestClientException e){
+        }catch(CustomRestClientExceptionDeprecated e){
             errors = e.getMistake().getErrors();
 
             errors.forEach((key, list) -> {

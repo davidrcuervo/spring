@@ -9,7 +9,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EntityScan(basePackages={"com.laetienda.model.schema"})
+@EntityScan(basePackages={
+        "com.laetienda.model.schema"
+        ,"com.laetienda.model.company"
+})
 public class SchemaConfiguration {
 
     private final RestClient client;
@@ -34,7 +37,7 @@ public class SchemaConfiguration {
 //    }
 //
 //    @Bean
-//    public SchemaApi getSchemaApiService(){
-//        return new SchemaApiImplementation();
+//    public ApiSchema getSchemaApiService(){
+//        return new ApiSchemaImplementationDeprecated();
 //    }
 }

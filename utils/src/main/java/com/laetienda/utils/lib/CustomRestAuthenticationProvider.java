@@ -1,6 +1,6 @@
 package com.laetienda.utils.lib;
 
-import com.laetienda.lib.exception.CustomRestClientException;
+import com.laetienda.lib.exception.CustomRestClientExceptionDeprecated;
 
 import com.laetienda.model.user.GroupList;
 import com.laetienda.model.user.Usuario;
@@ -47,7 +47,7 @@ public class CustomRestAuthenticationProvider implements AuthenticationProvider 
                 throw new BadCredentialsException("Invalid password");
             }
             result = new UsernamePasswordAuthenticationToken(creds.getUsername(), creds.getPassword(), authorities);
-        }catch(CustomRestClientException e){
+        }catch(CustomRestClientExceptionDeprecated e){
             e.getMistake().getErrors().forEach((key, value) -> {
                 value.forEach((message) -> {
                     log.info("{}: {}", key, message);

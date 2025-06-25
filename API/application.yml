@@ -14,3 +14,16 @@ api:
     isUserIdValid:
       file: /isUserIdValid/{userId}
       uri: ${api.kcUser}${api.kcUser.isUserIdValid.file}
+  company:
+    url: http://company:${PORT_COMPANY}
+    folder: /api/v0/company
+    uri: ${api.company.url}${api.company.folder}
+    create:
+      file: create
+      uri: ${api.company.uri}/${api.company.create.file}
+    find:
+      file: find
+      uri: ${api.company.uri}/${api.company.find.file}/{id}
+    findByName:
+      file: findByName/{name}
+      uri: ${api.company.uri}/${api.company.findByName.file}

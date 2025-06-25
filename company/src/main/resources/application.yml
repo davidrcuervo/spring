@@ -1,0 +1,6 @@
+server:
+  port: ${PORT_COMPANY}
+
+spring:
+  application:
+    name: Client Companies

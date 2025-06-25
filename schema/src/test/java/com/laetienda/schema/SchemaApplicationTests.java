@@ -338,6 +338,10 @@ class SchemaApplicationTests {
                 .andExpect(status().isOk());
     }
 
+	@Test void createWithDifferentOwner() throws Exception{
+		fail();
+	}
+
 	@Test void modifyOwner() throws Exception {
 		ItemTypeA item = new ItemTypeA("modifyOwner", 19, "17 Villaluz");
 

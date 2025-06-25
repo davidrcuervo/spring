@@ -2,7 +2,6 @@ package com.laetienda.schema.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.laetienda.lib.exception.CustomRestClientException;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
@@ -10,16 +9,13 @@ import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.schema.repository.SchemaRepository;
 import com.laetienda.utils.service.api.ApiUser;
 import jakarta.servlet.http.HttpServletRequest;
-import org.aspectj.weaver.ast.Not;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.List;
 import java.util.Map;
@@ -86,7 +82,7 @@ public class ItemServiceImplementation implements ItemService{
         try{
             apiUser.isUserIdValid(userId);
             item.setOwner(userId);
-        }catch(HttpClientErrorException ex) {
+        }catch(NotValidCustomException ex) {
             String message = "ITEM_SERVICE::setOwner. Owner does not exist.";
             log.info(message);
             throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
@@ -229,27 +225,26 @@ public class ItemServiceImplementation implements ItemService{
         try {
 
             if(item.getEditors() != null) {
-                item.getEditors().forEach((editor) -> {
+                for(String editor : item.getEditors()){
                     apiUser.isUserIdValid(editor);
-                });
+                }
             }
 
             if(item.getReaders() != null) {
-                item.getReaders().forEach((reader) -> {
+                for(String reader : item.getReaders()){
                     apiUser.isUserIdValid(reader);
-                });
+                }
             }
 
-        }catch(CustomRestClientException ex){
-            if(ex.getStatusCode() == HttpStatus.NOT_FOUND){
+        }catch(NotValidCustomException ex){
+            if(ex.getStatus() == HttpStatus.NOT_FOUND){
                 String message = "ITEM_SERVICE::verifyReadersAndEditors. Owner, reader or editor does not exist.";
                 log.info(message);
                 throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
             }
 
-            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatusCode(), ex.getMessage());
-            throw new NotValidCustomException(ex.getMessage(), ex.getStatusCode(), "item");
-
+            log.debug("ITEM_SERVICE::verifyReadersAndEditors $code: {}, $error: {}", ex.getStatus(), ex.getMessage());
+            throw new NotValidCustomException(ex.getMessage(), ex.getStatus(), "item");
         }
     }
 

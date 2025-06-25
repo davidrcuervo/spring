@@ -1,5 +1,6 @@
 package com.laetienda.utils.service.api;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,17 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
-public class SchemaApiImplementation extends ApiClientImplementation implements SchemaApi {
-    private static final Logger log = LoggerFactory.getLogger(SchemaApiImplementation.class);
+@Deprecated
+public class ApiSchemaImplementationDeprecated extends ApiClientImplementation implements ApiSchema {
+    private static final Logger log = LoggerFactory.getLogger(ApiSchemaImplementationDeprecated.class);
 
     @Autowired private Environment env;
 
@@ -78,26 +77,34 @@ public class SchemaApiImplementation extends ApiClientImplementation implements 
     }
 
     @Override
-    public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
-        String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.find"));
-        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
-        log.trace("SCHEMA_API::find $address: {}, $ecodedClazz: {}", address, encodedClazzName);
+    public <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        try {
+            String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.find"));
+            String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+            log.trace("SCHEMA_API::find $address: {}, $ecodedClazz: {}", address, encodedClazzName);
 
-        return getRestClient().post()
-                .uri(address, getPort(), encodedClazzName)
-                .body(body)
-                .retrieve().toEntity(clazz);
+            return getRestClient().post()
+                    .uri(address, getPort(), encodedClazzName)
+                    .body(body)
+                    .retrieve().toEntity(clazz);
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
     }
 
     @Override
-    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws HttpClientErrorException {
-        String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
-        String address = String.format("%s/%s?clase=%s", schemaUri, env.getProperty("api.schema.findById"), encodedClazzName);
-        log.trace("SCHEMA_API::findById $address: {}", address);
+    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws NotValidCustomException {
+        try {
+            String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+            String address = String.format("%s/%s?clase=%s", schemaUri, env.getProperty("api.schema.findById"), encodedClazzName);
+            log.trace("SCHEMA_API::findById $address: {}", address);
 
-        return getRestClient().get()
-                .uri(address, getPort(), id)
-                .retrieve().toEntity(clazz);
+            return getRestClient().get()
+                    .uri(address, getPort(), id)
+                    .retrieve().toEntity(clazz);
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
     }
 
     @Override

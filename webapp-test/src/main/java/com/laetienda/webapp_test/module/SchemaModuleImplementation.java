@@ -1,5 +1,6 @@
 package com.laetienda.webapp_test.module;
 
+import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.model.user.Usuario;
@@ -43,7 +44,7 @@ public class SchemaModuleImplementation implements SchemaModule {
     }
 
     @Override
-    public void cycle(){
+    public void cycle() throws NotValidCustomException{
         ItemTypeA item = new ItemTypeA();
         item.setAddress("1453 Villeray");
         item.setAge(43);
@@ -80,7 +81,7 @@ public class SchemaModuleImplementation implements SchemaModule {
     }
 
     @Override
-    public void addReader() {
+    public void addReader() throws NotValidCustomException {
         ItemTypeA item = new ItemTypeA("schemaAddReader", 22, "Calle 70B # 87B - 24");
         Usuario user = new Usuario(
                 "schemaAddReader",
@@ -123,7 +124,7 @@ public class SchemaModuleImplementation implements SchemaModule {
     }
 
     @Override
-    public void addEditor() {
+    public void addEditor() throws NotValidCustomException {
         Usuario user = new Usuario(
                 "schemaAddEditor",
                 "Add","Editor","Schema Test",
@@ -170,7 +171,7 @@ public class SchemaModuleImplementation implements SchemaModule {
     }
 
     @Override
-    public void removeReader() {
+    public void removeReader() throws NotValidCustomException{
         Usuario user = new Usuario(
                 "schemaRemoveReader",
                 "Remove","Reader","Schema Test",
@@ -216,7 +217,7 @@ public class SchemaModuleImplementation implements SchemaModule {
         userTest.delete(user.getUsername(), user.getUsername(), user.getPassword());
     }
 
-    private ItemTypeA create(ItemTypeA item){
+    private ItemTypeA create(ItemTypeA item) throws NotValidCustomException{
         ResponseEntity<ItemTypeA> resp = schemaTest.create(ItemTypeA.class, item);
         ItemTypeA itemResp = resp.getBody();
         assertTrue(itemResp.getId() > 0);
