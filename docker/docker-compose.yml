@@ -243,8 +243,8 @@ services:
       - .env
     environment:
       - HOME=/opt/webapp
-#    volumes:
-#      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+    volumes:
+      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
     build:
       target: testcontainer
       args:
