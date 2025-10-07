@@ -244,7 +244,9 @@ services:
     environment:
       - HOME=/opt/webapp
     volumes:
-      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+      - /mnt/c/Users/I849921/IdeaProjects/spring:/opt/webapp/spring
+      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/start.sh:/opt/webapp/start.sh
+      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/test.sh:/opt/webapp/test.sh
     build:
       target: testcontainer
       args:

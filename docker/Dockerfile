@@ -228,6 +228,10 @@ COPY scripts/webapp/start.sh .
 RUN chmod 750 start.sh
 RUN chown webappuser:docker start.sh
 
+COPY --chmod=0750 --chown=webappuser:docker scripts/webapp/test.sh .
+RUN mkdir -m 750 /usr/local/bin/webapp
+RUN chown webappuser:docker /usr/local/bin/webapp
+
 USER webappuser
 RUN chmod 700 .ssh/docker.key
 
@@ -248,7 +252,7 @@ RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 ############################################
 FROM etapp AS testcontainer
 
-RUN chmod 744 spring/usuario/test.sh
+#RUN chmod 744 spring/usuario/test.sh
 RUN chmod 744 spring/schema/test.sh
 
 ################################
