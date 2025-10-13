@@ -9,8 +9,8 @@ services:
       - jasypt-password
     #  - db-springsession-password
     volumes:
-      - ./scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
-      - ./scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
+      - ./docker/scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
+      - ./docker/scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
 #      - /var/data/docker/postgres/logs:/opt/mypostgres/logs
 #      - /var/data/docker/db/postgresql:/opt/mypostgres/data
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
@@ -244,9 +244,11 @@ services:
     environment:
       - HOME=/opt/webapp
     volumes:
-      - /mnt/c/Users/I849921/IdeaProjects/spring:/opt/webapp/spring
-      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/start.sh:/opt/webapp/start.sh
-      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/test.sh:/opt/webapp/test.sh
+      - /mnt/c/Users/I849921/IdeaProjects/spring/library:/opt/webapp/src/library
+      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp:/opt/webapp/bin
+#      - /mnt/c/Users/I849921/IdeaProjects/spring:/opt/webapp/spring
+#      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/start.sh:/opt/webapp/start.sh
+#      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/test.sh:/opt/webapp/test.sh
     build:
       target: testcontainer
       args:
@@ -261,7 +263,7 @@ secrets:
 #  ldap-password:
 #    file: ./private/ldap-password.txt
   jasypt-password:
-    file: ./private/jasypt-password.txt
+    file: docker/private/jasypt-password.txt
 #  db-keycloak-password:
 #    file: ./private/db-keycloak-password.txt
 #  kc-admin-password:

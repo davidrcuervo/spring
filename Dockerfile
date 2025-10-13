@@ -11,11 +11,11 @@ RUN apt install -y openssl sudo openssh-client curl dos2unix gettext-base netcat
 WORKDIR /opt/docker
 RUN mkdir private
 RUN chmod 700 private
-COPY private/admuser-password.txt private/
-COPY private/samsepi0l-password.txt private/
+COPY docker/private/admuser-password.txt private/
+COPY docker/private/samsepi0l-password.txt private/
 
 #copy envrinment file
-COPY ./.env webapp.env
+COPY .env webapp.env
 RUN dos2unix webapp.env
 RUN chmod 740 webapp.env
 
@@ -60,12 +60,12 @@ RUN chown javauser:docker -R .ssh && chmod 700 -R .ssh
 
 #get software from software repository server
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/jdk-21.0.4_linux-x64_bin.tar.gz /opt/myjava/
-COPY Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
+COPY docker/Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
-COPY Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
+COPY docker/Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/jasypt/jasypt-1.9.3-dist.zip /opt/jasypt
-COPY Software/jasypt-1.9.3-dist.zip /opt/jasypt/
-COPY scripts/jasypt/jdecrypt.sh /opt/jasypt/
+COPY docker/Software/jasypt-1.9.3-dist.zip /opt/jasypt/
+COPY docker/scripts/jasypt/jdecrypt.sh /opt/jasypt/
 RUN chmod 750 .ssh
 RUN chmod 755 /opt/jasypt/jdecrypt.sh
 
@@ -87,9 +87,9 @@ ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
 #import self signed certificates in java
 RUN mkdir certs
 RUN chown javauser:docker certs && chmod 750 certs
-COPY ./private/keys/*.crt certs
+COPY docker/private/keys/*.crt certs
 RUN chmod 744 certs/*.crt
-COPY ./private/keys/*.key certs
+COPY docker/private/keys/*.key certs
 RUN chmod 700 certs/*.key
 RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias keycloak -file certs/kc.crt
 RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias webapp -file certs/webapp.crt
@@ -126,7 +126,7 @@ RUN sudo -u postgres mkdir -m 775 .m2
 RUN apt install -y postgresql
 
 #copy files, scripts, etc
-COPY ../scripts/database/. scripts/.
+COPY docker/scripts/database/. scripts/.
 RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
 
@@ -159,7 +159,7 @@ WORKDIR /opt/nginx
 #RUN chmod 700 webapp.private.key
 
 #copy sites and enable them
-COPY ./scripts/nginx/. .
+COPY docker/scripts/nginx .
 RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
 RUN chmod 740 nginx.entrypoint.sh
 
@@ -173,10 +173,10 @@ USER root
 RUN useradd -g docker -c "Keycloak application user" --shell /bin/bash --create-home --home-dir /opt/keycloak keycloak
 
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/keycloak/keycloak-26.0.5.zip /opt/keycloak
-COPY Software/keycloak-26.1.5.zip /opt/keycloak
+COPY docker/Software/keycloak-26.1.5.zip /opt/keycloak
 
 WORKDIR /opt/keycloak
-COPY scripts/keycloak/. .
+COPY docker/scripts/keycloak .
 RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
 
 #copy certificates and keys
@@ -217,35 +217,40 @@ WORKDIR /opt/webapp
 ENV HOME=/opt/webapp
 
 #Set ssh to be able to connect to github
-RUN mkdir .ssh
-COPY private/keys/. .ssh/.
-COPY scripts/webapp/github.ssh.config .ssh/config
+#RUN mkdir .ssh
+#COPY private/keys/. .ssh/.
+#COPY scripts/webapp/github.ssh.config .ssh/config
+#RUN chown webappuser:docker -R .ssh && chmod 750 -R .ssh
+#RUN chmod 700 .ssh/docker.key
+#RUN git clone github.com:davidrcuervo/spring.git
 
-USER root
-RUN chown webappuser:docker -R .ssh && chmod 750 -R .ssh
+RUN mkdir -m 750 src
+RUN mkdir -m 750 target
+RUN mkdir -m 750 bin
 
-COPY scripts/webapp/start.sh .
-RUN chmod 750 start.sh
-RUN chown webappuser:docker start.sh
+COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/test.sh bin/.
+COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/start.sh bin/.
+COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/compile.sh bin/.
 
-COPY --chmod=0750 --chown=webappuser:docker scripts/webapp/test.sh .
-RUN mkdir -m 750 /usr/local/bin/webapp
-RUN chown webappuser:docker /usr/local/bin/webapp
-
-USER webappuser
-RUN chmod 700 .ssh/docker.key
+#USER root
+#USER webappuser
 
 #Clone the application
-RUN git clone github.com:davidrcuervo/spring.git
+RUN mkdir library
+RUN --mount=type=bind,source=library,target=./src/library ./bin/compile.sh
+#    --mount=type=bind,source=./../model,target=src/model \
+#    --mount=type=bind,source=./../utils,target=src/utils \
+#    bin/complile.sh \
+
 
 #Clean project through maven
-RUN mvn clean -f spring/pom.xml
-RUN mvn install -f spring/library/pom.xml
-RUN mvn install -f spring/model/pom.xml
-RUN mvn install -f spring/utils/pom.xml
-RUN mvn install -DskipTests -f spring/userKc/pom.xml
-RUN mvn install -DskipTests -f spring/frontend/pom.xml
-RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
+#RUN mvn clean -f spring/pom.xml
+#RUN mvn install -f spring/library/pom.xml
+#RUN mvn install -f spring/model/pom.xml
+#RUN mvn install -f spring/utils/pom.xml
+#RUN mvn install -DskipTests -f spring/userKc/pom.xml
+#RUN mvn install -DskipTests -f spring/frontend/pom.xml
+#RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################
 ## MY usuarioapp IMAGE
@@ -253,7 +258,7 @@ RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 FROM etapp AS testcontainer
 
 #RUN chmod 744 spring/usuario/test.sh
-RUN chmod 744 spring/schema/test.sh
+#RUN chmod 744 spring/schema/test.sh
 
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
@@ -282,7 +287,7 @@ RUN echo 'slapd/root_password password password' | debconf-set-selections && \
 RUN mkdir etienda
 RUN mkdir etienda/scripts
 RUN mkdir etienda/data
-COPY ./scripts/ldap/. etienda/scripts/
+COPY docker/scripts/ldap etienda/scripts/
 #COPY ./scripts/ldap/etienda.github.ssh.config.ldif etienda/scripts/
 #COPY ./scripts/ldap/etienda.ldif etienda/scripts/
 RUN chown openldap:openldap -R etienda

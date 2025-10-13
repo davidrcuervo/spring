@@ -54,4 +54,39 @@
             <version>3.0.5</version>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>container</id>
+            <properties>
+                <!-- We’ll use properties to override the paths cleanly -->
+                <custom.build.dir>/opt/webapp/target/library</custom.build.dir>
+            </properties>
+
+            <build>
+                <!-- This part is valid -->
+                <directory>${custom.build.dir}</directory>
+
+                <!-- Valid child: resources -->
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <targetPath>${custom.build.dir}/classes</targetPath>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+
+<!--                <plugins>-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.springframework.boot</groupId>-->
+<!--                        <artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--                        <configuration>-->
+<!--                            &lt;!&ndash; This moves the final JAR &ndash;&gt;-->
+<!--                            <outputDirectory>${custom.build.dir}</outputDirectory>-->
+<!--                            <finalName>userKc</finalName>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
+<!--                </plugins>-->
+            </build>
+        </profile>
+    </profiles>
 </project>
