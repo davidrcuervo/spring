@@ -19,12 +19,12 @@ function run() {
 
 function start() {
   java -ea -Djasypt.encryptor.password=$JASYPT_PASSWORD \
-  -Dspring.config.additional-location=$DIR/spring/API/,$DIR/spring/ \
+  -Dspring.config.additional-location=$HOME/API/,$HOME/etc/ \
   -jar "$1"
 }
 
 if [ ! -f "$1" ]; then
-  echo "ERROR. Jar file does not exist" >&2
+  echo "ERROR. Jar file does not exist. file: $1" >&2
   exit 1
 fi
 

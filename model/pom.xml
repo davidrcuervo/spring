@@ -44,4 +44,23 @@
             <artifactId>spring-data-jpa</artifactId>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>container</id>
+            <properties>
+                <name>container.target.dir</name>
+            </properties>
+
+            <build>
+                <directory>${container.target.dir}</directory>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <targetPath>${container.target.dir}/classes</targetPath>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+    </profiles>
 </project>

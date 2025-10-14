@@ -226,22 +226,21 @@ ENV HOME=/opt/webapp
 
 RUN mkdir -m 750 src
 RUN mkdir -m 750 target
+RUN mkdir -m 750 API
 RUN mkdir -m 750 bin
+RUN mkdir -m 750 etc
 
-COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/test.sh bin/.
-COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/start.sh bin/.
-COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/compile.sh bin/.
+COPY --chmod=0750 --chown=webappuser:docker API/. API/.
+COPY --chmod=0750 --chown=webappuser:docker application.yml etc/.
+COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/. bin/.
 
 #USER root
 #USER webappuser
 
 #Clone the application
-RUN mkdir library
-RUN --mount=type=bind,source=library,target=./src/library ./bin/compile.sh
-#    --mount=type=bind,source=./../model,target=src/model \
-#    --mount=type=bind,source=./../utils,target=src/utils \
-#    bin/complile.sh \
-
+RUN --mount=type=bind,source=library,target=src/library bin/compile.sh library
+RUN --mount=type=bind,source=model,target=src/model bin/compile.sh model
+RUN --mount=type=bind,source=utils,target=src/utils bin/compile.sh utils
 
 #Clean project through maven
 #RUN mvn clean -f spring/pom.xml
@@ -257,6 +256,7 @@ RUN --mount=type=bind,source=library,target=./src/library ./bin/compile.sh
 ############################################
 FROM etapp AS testcontainer
 
+RUN --mount=type=bind,source=userKc,target=src/userKc bin/compile.sh userKc
 #RUN chmod 744 spring/usuario/test.sh
 #RUN chmod 744 spring/schema/test.sh
 

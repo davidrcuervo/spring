@@ -200,7 +200,7 @@ services:
     image: etimage:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ["./start.sh"]
+    entrypoint: ["./bin/start.sh"]
     command:
       - ./spring/frontend/target/frontend-1.0-SNAPSHOT.jar
       - ${PORT_FRONTEND}
@@ -244,8 +244,10 @@ services:
     environment:
       - HOME=/opt/webapp
     volumes:
-      - /mnt/c/Users/I849921/IdeaProjects/spring/library:/opt/webapp/src/library
-      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp:/opt/webapp/bin
+      - ./userKc:/opt/webapp/src/userKc
+      - ./docker/scripts/webapp:/opt/webapp/bin
+      - ./API:/opt/webapp/API
+      - ./application.yml:/opt/webapp/etc/application.yml
 #      - /mnt/c/Users/I849921/IdeaProjects/spring:/opt/webapp/spring
 #      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/start.sh:/opt/webapp/start.sh
 #      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/test.sh:/opt/webapp/test.sh
