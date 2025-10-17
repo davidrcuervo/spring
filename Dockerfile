@@ -229,10 +229,12 @@ RUN mkdir -m 750 target
 RUN mkdir -m 750 API
 RUN mkdir -m 750 bin
 RUN mkdir -m 750 etc
+RUN mkdir -m 750 lib
 
 COPY --chmod=0750 --chown=webappuser:docker API/. API/.
 COPY --chmod=0750 --chown=webappuser:docker application.yml etc/.
 COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/. bin/.
+COPY --chmod=0750 --chown=webappuser:docker docker/Software/junit-platform-console-standalone-6.0.0.jar lib/.
 
 #USER root
 #USER webappuser
@@ -252,13 +254,18 @@ RUN --mount=type=bind,source=utils,target=src/utils bin/compile.sh utils
 #RUN mvn package -DskipTests -f spring/webapp-test/pom.xml
 
 ############################################
-## MY usuarioapp IMAGE
+## USER SERVICE
 ############################################
-FROM etapp AS testcontainer
+FROM etapp AS etuser
 
 RUN --mount=type=bind,source=userKc,target=src/userKc bin/compile.sh userKc
-#RUN chmod 744 spring/usuario/test.sh
-#RUN chmod 744 spring/schema/test.sh
+
+############################################
+## SCHEMA SERVICE
+############################################
+FROM etapp AS etschema
+
+RUN --mount=type=bind,source=schema,target=src/schema bin/compile.sh schema
 
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)

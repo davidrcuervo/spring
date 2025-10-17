@@ -1,6 +1,5 @@
 #!/bin/bash
 JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password)
-DIR=$(pwd)
 
 function arret(){
   echo "Stopping container process..."
@@ -20,25 +19,27 @@ function run() {
 function start() {
   java -ea -Djasypt.encryptor.password=$JASYPT_PASSWORD \
   -Dspring.config.additional-location=$HOME/API/,$HOME/etc/ \
-  -jar "$1"
+  -jar "$JAR_FILE"
 }
 
-if [ ! -f "$1" ]; then
-  echo "ERROR. Jar file does not exist. file: $1" >&2
+if [ -z "$1" ]; then
+  echo "ERROR. Missing package name to execute." >&2
   exit 1
 fi
 
 if [ -z "$2" ]; then
-  echo "ERROR. close command missing" >&2
+  echo "ERROR. close command missing." >&2
   exit 1
 fi
 
 if [ -z "$JASYPT_PASSWORD" ]; then
-  echo "ERROR. Jasypt password is unset" >&2
+  echo "ERROR. Jasypt password is unset." >&2
   exit 1
 fi
 
-echo "$2"
+JAR_FILE="$HOME/target/$1/$1.jar"
+echo "INFO: Jar file is: $JAR_FILE"
+echo "INFO: Service will run on port: $2"
 trap 'arret "$2"' SIGTERM SIGINT SIGQUIT SIGHUP
 start $1 &
 CHILD_PID=$!

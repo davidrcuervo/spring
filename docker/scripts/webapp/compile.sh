@@ -1,18 +1,31 @@
 #!/bin/bash
 
-DIR="$(pwd)/src"
-OUTPUT_DIR="$(pwd)/target"
+DIR="$HOME/src"
+OUTPUT_DIR="$HOME/target"
 
 echo "Compiling starting..."
 
 function compile() {
   mvn clean -Pcontainer -Dcontainer.target.dir=$OUTPUT_DIR -f $DIR/pom.xml
 
-  mvn install -DskipTests \
+  if mvn install -DskipTests \
   -Pcontainer -Dcontainer.target.dir=$OUTPUT_DIR \
-  -f $DIR/pom.xml
+  -f $DIR/pom.xml; then
+    echo "INFO: Compiling finished successfully!!!"
+  else
+    echo "ERROR: Compiling failed. Sorry."
+    exit 1
+  fi
+}
 
-  echo "...Compiling finished successfully!!!"
+function copy_dependencies() {
+    if mvn dependency:copy-dependencies -Pcontainer \
+    -DoutputDirectory=$HOME/lib \
+    -f $DIR/pom.xml; then
+      echo "INFO: Dependencies copied successfully!!!"
+    else
+      echo "ERROR: Dependencies failed to copy. Sorry."
+    fi
 }
 
 if [ -z "$1" ]; then
@@ -26,3 +39,4 @@ echo "INFO: Application folder to compile: $DIR"
 echo "INFO: Destination folder: $OUTPUT_DIR"
 
 compile
+copy_dependencies

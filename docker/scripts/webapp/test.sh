@@ -1,15 +1,22 @@
 #!/bin/bash
 
-DIR="$(pwd)/src"
-OUTPUT_DIR="$(pwd)/target"
 JASYPT_PASSWORD=$(cat /run/secrets/jasypt-password)
 
-function test() {
-  mvn test -U -Pcontainer -Dcontainer.target.dir=$OUTPUT_DIR \
+function test_deprecated() {
+  mvn surefire:test -DskipCompile -Dcontainer.target.dir=$DIR \
   -Djasypt.encryptor.password=$JASYPT_PASSWORD \
   -Dspring.config.additional-location="$HOME/API/","$HOME/etc/" \
-  -Djdk.attach.allowAttachSelf=true \
-  -f $DIR/pom.xml
+  -f $HOME/bin/pom.test.xml
+#  -Djdk.attach.allowAttachSelf=true \
+}
+
+function test() {
+  echo "INFO: Application folder to test: $DIR"
+  java -cp $HOME/lib/junit-platform-console-standalone-6.0.0.jar:$DIR/classes:$DIR/test-classes:$HOME/lib/* \
+  -Djasypt.encryptor.password=$JASYPT_PASSWORD \
+  -Dspring.config.additional-location="$HOME/API/","$HOME/etc/" \
+  org.junit.platform.console.ConsoleLauncher execute \
+  --scan-classpath
 }
 
 if [ -z "$1" ]; then
@@ -17,9 +24,6 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-DIR="$DIR/$1"
-OUTPUT_DIR="$OUTPUT_DIR/$1"
-echo "INFO: Application folder to test: $DIR"
-echo "INFO: Destination folder: $OUTPUT_DIR"
+DIR="$HOME/target/$1"
 
 test

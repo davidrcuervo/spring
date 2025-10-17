@@ -141,12 +141,12 @@ services:
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
 
   etuser:
-    image: etimage:1.0
+    image: etuser:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ["./start.sh"]
+    entrypoint: ["./bin/safestart.sh"]
     command:
-      - ./spring/userKc/target/userKc-0.0.1-SNAPSHOT.jar
+      - userKc
       - ${PORT_USUARIO}
     secrets:
       - jasypt-password
@@ -155,8 +155,8 @@ services:
           condition: service_healthy
     networks:
       - backend
-#    ports:
-#      - "8081:8081"
+    ports:
+      - "8081:8081"
     env_file:
       - .env
     environment:
@@ -167,8 +167,48 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2m
+    build:
+      target: etuser
+      args:
+        - DOCKER_GID=999
     volumes:
-      - ./../API:/opt/webapp/spring/API
+      - ./application.yml:/opt/webapp/etc/application.yml
+      - ./docker/scripts/webapp:/opt/webapp/bin
+
+  etschema:
+    image: etschema:1.0
+    user: webappuser
+    working_dir: /opt/webapp
+    entrypoint: [ "./bin/start.sh" ]
+    command:
+      - schema
+      - ${PORT_SCHEMA}
+    secrets:
+      - jasypt-password
+    depends_on:
+      etuser:
+        condition: service_healthy
+    networks:
+      - backend
+    ports:
+      - "8083:8083"
+    env_file:
+      - .env
+    environment:
+      - HOME=/opt/webapp
+    healthcheck:
+      test: [ "CMD","curl","--fail","http://etschema:8083/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
+    build:
+      target: etschema
+      args:
+        - DOCKER_GID=999
+    volumes:
+      - ./application.yml:/opt/webapp/etc/application.yml
+      - ./docker/scripts/webapp:/opt/webapp/bin
 
   messengeret:
     image: messengerapp:1.0
@@ -244,13 +284,10 @@ services:
     environment:
       - HOME=/opt/webapp
     volumes:
-      - ./userKc:/opt/webapp/src/userKc
       - ./docker/scripts/webapp:/opt/webapp/bin
       - ./API:/opt/webapp/API
       - ./application.yml:/opt/webapp/etc/application.yml
-#      - /mnt/c/Users/I849921/IdeaProjects/spring:/opt/webapp/spring
-#      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/start.sh:/opt/webapp/start.sh
-#      - /mnt/c/Users/I849921/IdeaProjects/spring/docker/scripts/webapp/test.sh:/opt/webapp/test.sh
+#      - ./userKc:/opt/webapp/src/userKc
     build:
       target: testcontainer
       args:
