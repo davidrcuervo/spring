@@ -19,6 +19,8 @@ public class CompanyServiceImplementation implements CompanyService{
     public Company create(@NotNull Company company) throws NotValidCustomException {
         log.debug("COMPANY_SERVICE::create. $company: {}", company.getName());
 
+
+
         return repo.create(company);
     }
 

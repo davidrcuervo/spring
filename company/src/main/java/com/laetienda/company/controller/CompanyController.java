@@ -23,13 +23,13 @@ public class CompanyController {
         return ResponseEntity.ok(service.create(company));
     }
 
-    @GetMapping("${api.company.find.file}")
+    @GetMapping("${api.company.find.file}") //api/v0/company/find/{id}
     public ResponseEntity<Company> find(@PathVariable String id) throws NotValidCustomException{
         log.debug("COMPANY_CONTROLLER::find. $id: {}", id);
         return ResponseEntity.ok(service.find(id));
     }
 
-    @GetMapping("${api.company.findByName.file}")
+    @GetMapping("${api.company.findByName.file}") //api/v0/company/findByName/{name}
     public ResponseEntity<Company> findByName(@PathVariable String name) throws NotValidCustomException{
         log.debug("COMPANY_CONTROLLER::findByName. $name: {}", name);
         return ResponseEntity.ok(service.findByName(name));

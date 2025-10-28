@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS ubuntuet
+FROM ubuntu:24.04 AS etubuntu
 
 #update ubuntu os
 RUN apt update
@@ -11,11 +11,11 @@ RUN apt install -y openssl sudo openssh-client curl dos2unix gettext-base netcat
 WORKDIR /opt/docker
 RUN mkdir private
 RUN chmod 700 private
-COPY docker/private/admuser-password.txt private/
-COPY docker/private/samsepi0l-password.txt private/
+COPY ./docker/private/admuser-password.txt private/
+COPY ./docker/private/samsepi0l-password.txt private/
 
 #copy envrinment file
-COPY .env webapp.env
+COPY ./.env webapp.env
 RUN dos2unix webapp.env
 RUN chmod 740 webapp.env
 
@@ -35,7 +35,7 @@ RUN rm private/samsepi0l-password.txt
 ############################################
 ## MY Java IMAGE (jdk: 21.0.6 & mvn: 3.9.9)
 ############################################
-FROM ubuntuet AS javaet
+FROM etubuntu AS etjava
 
 USER root
 
@@ -60,12 +60,12 @@ RUN chown javauser:docker -R .ssh && chmod 700 -R .ssh
 
 #get software from software repository server
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/jdk-21.0.4_linux-x64_bin.tar.gz /opt/myjava/
-COPY docker/Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
+COPY ./docker/Software/jdk-21.0.6_linux-x64_bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/Java/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
-COPY docker/Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
+COPY ./docker/Software/apache-maven-3.9.9-bin.tar.gz /opt/myjava/
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/jasypt/jasypt-1.9.3-dist.zip /opt/jasypt
-COPY docker/Software/jasypt-1.9.3-dist.zip /opt/jasypt/
-COPY docker/scripts/jasypt/jdecrypt.sh /opt/jasypt/
+COPY ./docker/Software/jasypt-1.9.3-dist.zip /opt/jasypt/
+COPY ./docker/scripts/jasypt/jdecrypt.sh /opt/jasypt/
 RUN chmod 750 .ssh
 RUN chmod 755 /opt/jasypt/jdecrypt.sh
 
@@ -87,9 +87,9 @@ ENV PATH="$JAVA_HOME/bin:$M2:/opt/jasypt/jasypt-1.9.3/bin:$PATH"
 #import self signed certificates in java
 RUN mkdir certs
 RUN chown javauser:docker certs && chmod 750 certs
-COPY docker/private/keys/*.crt certs
+COPY ./docker/private/keys/*.crt certs
 RUN chmod 744 certs/*.crt
-COPY docker/private/keys/*.key certs
+COPY ./docker/private/keys/*.key certs
 RUN chmod 700 certs/*.key
 RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias keycloak -file certs/kc.crt
 RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -noprompt -alias webapp -file certs/webapp.crt
@@ -101,17 +101,22 @@ RUN keytool -import -trustcacerts -keystore "$JAVA_HOME/lib/security/cacerts" -s
 ################################
 ## MY POSTGRESQL IMAGE
 ###############################
-FROM javaet AS postgreset
+FROM etjava AS postgreset
 
-ARG POSTGRES_UID=1001
-ARG POSTGRES_GID=1001
+#ARG POSTGRES_UID=1001
+#ARG POSTGRES_GID=1001
 ENV DEBIAN_FRONTEND=noninteractive
 
 USER root
 
 #Create postgres user
-RUN groupadd -g $POSTGRES_GID postgres
-RUN useradd -u $POSTGRES_UID -g postgres -c "PostgreSQL Administrator" --shell /bin/bash --home-dir /opt/postgresql postgres
+#RUN groupadd -g $POSTGRES_GID postgres
+RUN export POSTGRES_GID=$(cat /opt/docker/webapp.env | grep POSTGRES_GID | awk -F "=" '{print $2}') && \
+    groupadd --gid $POSTGRES_GID postgres
+
+RUN export POSTGRES_UID=$(cat /opt/docker/webapp.env | grep POSTGRES_UID | awk -F "=" '{print $2}') && \
+    useradd -u $POSTGRES_UID -g postgres -c "PostgreSQL Administrator" --shell /bin/bash --home-dir /opt/postgresql postgres
+
 RUN usermod -a -G docker postgres
 
 #create app directory
@@ -126,14 +131,14 @@ RUN sudo -u postgres mkdir -m 775 .m2
 RUN apt install -y postgresql
 
 #copy files, scripts, etc
-COPY docker/scripts/database/. scripts/.
+COPY ./docker/scripts/database/. scripts/.
 RUN chown postgres:postgres -R scripts/
 RUN chmod 755 -R scripts/
 
 ################################
 ## MY NGINX IMAGE
 ###############################
-FROM javaet AS etnginx
+FROM etjava AS etnginx
 
 USER root
 
@@ -159,24 +164,24 @@ WORKDIR /opt/nginx
 #RUN chmod 700 webapp.private.key
 
 #copy sites and enable them
-COPY docker/scripts/nginx .
+COPY ./docker/scripts/nginx .
 RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
 RUN chmod 740 nginx.entrypoint.sh
 
 ############################################
 ## Keycloak
 ############################################
-FROM javaet AS keycloaket
+FROM etjava AS keycloaket
 
 USER root
 
 RUN useradd -g docker -c "Keycloak application user" --shell /bin/bash --create-home --home-dir /opt/keycloak keycloak
 
 #RUN scp -i /opt/myjava/.ssh/docker.key -o StrictHostKeyChecking=no myself@homeServer3.la-etienda.com:/home/myself/Downloads/Software/keycloak/keycloak-26.0.5.zip /opt/keycloak
-COPY docker/Software/keycloak-26.1.5.zip /opt/keycloak
+COPY ./docker/Software/keycloak-26.1.5.zip /opt/keycloak
 
 WORKDIR /opt/keycloak
-COPY docker/scripts/keycloak .
+COPY ./docker/scripts/keycloak .
 RUN find ./ -maxdepth 1 -type f -name "*.sh" | xargs dos2unix
 
 #copy certificates and keys
@@ -203,7 +208,7 @@ RUN apt install -y vim
 ############################################
 ## MY webapp IMAGE
 ############################################
-FROM javaet AS etapp
+FROM etjava AS etimage
 
 USER root
 
@@ -231,10 +236,10 @@ RUN mkdir -m 750 bin
 RUN mkdir -m 750 etc
 RUN mkdir -m 750 lib
 
-COPY --chmod=0750 --chown=webappuser:docker API/. API/.
-COPY --chmod=0750 --chown=webappuser:docker application.yml etc/.
-COPY --chmod=0750 --chown=webappuser:docker docker/scripts/webapp/. bin/.
-COPY --chmod=0750 --chown=webappuser:docker docker/Software/junit-platform-console-standalone-6.0.0.jar lib/.
+COPY --chmod=0750 --chown=webappuser:docker ./API/. API/.
+COPY --chmod=0750 --chown=webappuser:docker ./application.yml etc/.
+COPY --chmod=0750 --chown=webappuser:docker ./docker/scripts/webapp/. bin/.
+COPY --chmod=0750 --chown=webappuser:docker ./docker/Software/junit-platform-console-standalone-6.0.0.jar lib/.
 
 #USER root
 #USER webappuser
@@ -256,21 +261,21 @@ RUN --mount=type=bind,source=utils,target=src/utils bin/compile.sh utils
 ############################################
 ## USER SERVICE
 ############################################
-FROM etapp AS etuser
+FROM etimage AS etuser
 
 RUN --mount=type=bind,source=userKc,target=src/userKc bin/compile.sh userKc
 
 ############################################
 ## SCHEMA SERVICE
 ############################################
-FROM etapp AS etschema
+FROM etimage AS etschema
 
 RUN --mount=type=bind,source=schema,target=src/schema bin/compile.sh schema
 
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
 ###############################
-FROM ubuntuet AS myslapd
+FROM etubuntu AS myslapd
 
 #variables and arguments
 ENV DEBIAN_FRONTEND=noninteractive

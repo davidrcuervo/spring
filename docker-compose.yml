@@ -1,4 +1,5 @@
 services:
+
   postgreset:
     image: postgreset:16.4
     restart: always
@@ -31,11 +32,7 @@ services:
       retries: 5
       start_period: 60s
     build:
-#      dockerfile: dockerfiles/mypostgres.2404.Dockerfile
       target: postgreset
-      args:
-        - POSTGRES_UID=110
-        - POSTGRES_GID=119
 
   keycloaket:
     image: keycloaket:26.1.5
@@ -61,16 +58,14 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
+    build:
+      target: keycloaket
 #    volumes:
 #      - ./scripts/keycloak/kc.entrypoint.sh:/opt/keycloak/kc.entrypoint.sh
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
-    build:
-      target: keycloaket
-      args:
-        - DOCKER_GID=2
 
   keycloaketcnf:
-    image: keycloaketcnf:26.1.5
+    image: keycloaketcnf:26.1.6
     user: keycloak
     working_dir: /opt/keycloak
     entrypoint: /opt/keycloak/kc.config.sh
@@ -89,14 +84,12 @@ services:
       timeout: 25s
       retries: 5
       start_period: 40s
+    build:
+      target: keycloaketcnf
 #    volumes:
 #      - ./scripts/keycloak/kc.config.sh:/opt/keycloak/kc.config.sh
 #      - ./scripts/keycloak/kc.check.sh:/opt/keycloak/kc.check.sh
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
-    build:
-      target: keycloaketcnf
-      args:
-        - DOCKER_GID=2
 
   etnginx:
     image: etnginx:1.24
@@ -134,9 +127,7 @@ services:
     environment:
       - HOME=/opt/webapp
     build:
-      target: etapp
-      args:
-        - DOCKER_GID=1
+      target: etimage
 #    volumes:
 #      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
 
@@ -169,8 +160,6 @@ services:
       start_period: 2m
     build:
       target: etuser
-      args:
-        - DOCKER_GID=999
     volumes:
       - ./application.yml:/opt/webapp/etc/application.yml
       - ./docker/scripts/webapp:/opt/webapp/bin
@@ -204,8 +193,6 @@ services:
       start_period: 2m
     build:
       target: etschema
-      args:
-        - DOCKER_GID=999
     volumes:
       - ./application.yml:/opt/webapp/etc/application.yml
       - ./docker/scripts/webapp:/opt/webapp/bin
@@ -233,8 +220,6 @@ services:
     build:
       #      dockerfile: dockerfiles/myjava.21.Dockerfile
       target: messengerapp
-      args:
-        - DOCKER_GID=999
 
   frontend:
     image: etimage:1.0
@@ -290,8 +275,6 @@ services:
 #      - ./userKc:/opt/webapp/src/userKc
     build:
       target: testcontainer
-      args:
-        - DOCKER_GID=999
 
 networks:
   backend:

@@ -22,8 +22,8 @@ api:
       file: create
       uri: ${api.company.uri}/${api.company.create.file}
     find:
-      file: find
-      uri: ${api.company.uri}/${api.company.find.file}/{id}
+      file: find/{id}
+      uri: ${api.company.uri}/${api.company.find.file}
     findByName:
       file: findByName/{name}
       uri: ${api.company.uri}/${api.company.findByName.file}

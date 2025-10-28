@@ -1,0 +1,12 @@
+.git
+.gitignore
+company/target
+frontend/target
+library/target
+messenger/target
+model/target
+schema/target
+scripts
+userKc/target
+webapp-test/target
+z.deprecated.library
