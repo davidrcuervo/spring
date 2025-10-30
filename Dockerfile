@@ -272,6 +272,13 @@ FROM etimage AS etschema
 
 RUN --mount=type=bind,source=schema,target=src/schema bin/compile.sh schema
 
+############################################
+## FRONTEND SERVICE
+############################################
+FROM etimage AS frontend
+
+RUN --mount=type=bind,source=frontend,target=src/frontend bin/compile.sh frontend
+
 ################################
 ## MY OpenLDAP IMAGE (2.6.7)
 ###############################

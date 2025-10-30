@@ -222,17 +222,19 @@ services:
       target: messengerapp
 
   frontend:
-    image: etimage:1.0
+    image: frontend:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ["./bin/start.sh"]
+    entrypoint: ["./bin/safestart.sh"]
     command:
-      - ./spring/frontend/target/frontend-1.0-SNAPSHOT.jar
+      - frontend
       - ${PORT_FRONTEND}
     secrets:
       - jasypt-password
     depends_on:
       etuser:
+        condition: service_healthy
+      etschema:
         condition: service_healthy
     networks:
       - backend
@@ -248,9 +250,10 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2m
-    volumes:
-      - ./../API:/opt/webapp/spring/API
-#      - ./../start.sh:/opt/webapp/spring/start.sh
+    build:
+      target: frontend
+#    volumes:
+#      - ./frontend:/opt/webapp/src/frontend
 
   testcontainer:
     image: testcontainer:1.0
