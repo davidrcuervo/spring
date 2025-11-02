@@ -35,4 +35,10 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     public Company find(Long id) throws NotValidCustomException {
         return schema.findById(Company.class, id).getBody();
     }
+
+    @Override
+    public void deleteById(Long id) throws NotValidCustomException {
+        log.debug("COMPANY_REPOSITORY::deleteById. $id: {}", id);
+        schema.deleteById(Company.class, id);
+    }
 }

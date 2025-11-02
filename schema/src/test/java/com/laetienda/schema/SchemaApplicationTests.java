@@ -64,6 +64,9 @@ class SchemaApplicationTests {
 	@Value("${api.schema.findById.uri}")
 	private String findByIdAddress;
 
+    @Value("${api.schema.find.uri}")
+    private String findAddress;
+
 //	@LocalServerPort
 //	private int port;
 
@@ -130,6 +133,19 @@ class SchemaApplicationTests {
 
 		return mapper.readValue(result.getResponse().getContentAsString(), ItemTypeA.class);
 	}
+
+    @Test
+    void findNotExistentItem() throws Exception{
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("username", "notExistentItemUsername");
+
+        MvcResult respose = mvc.perform(post(findAddress, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                .content(mapper.writeValueAsBytes(body))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
 
 	private ItemTypeA update(ItemTypeA item, String clazzName) throws Exception {
 		String address = env.getProperty("api.schema.update.uri");

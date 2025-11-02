@@ -117,7 +117,7 @@ public class SchemaController {
         }
     }
 
-    @DeleteMapping("${api.schema.deleteById}")
+    @DeleteMapping("${api.schema.deleteById}") //api/v0/schema/delete/{id}?clase={clazzName}
     public ResponseEntity<Boolean> deleteById(@RequestParam String clase, @PathVariable Long id) throws NotValidCustomException{
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::deleteById $clazzName: {}, $id: {}", clazzName, id);

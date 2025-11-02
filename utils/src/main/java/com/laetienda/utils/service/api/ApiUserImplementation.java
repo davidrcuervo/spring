@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -77,6 +78,16 @@ public class ApiUserImplementation implements ApiUser{
         }catch(Exception e){
             throw new NotValidCustomException(e);
         }
+    }
 
+    @Override
+    public String getCurrentUserId() throws NotValidCustomException{
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.debug("API_USER::getCurrentUser. $loggedUser: {}", userId);
+
+        String result = isUserIdValid(userId);
+        log.trace("API_USER::getCurrentUser. $apiResponse: {}", result);
+
+        return result;
     }
 }

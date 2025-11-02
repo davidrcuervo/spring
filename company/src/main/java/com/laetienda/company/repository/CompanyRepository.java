@@ -7,4 +7,5 @@ public interface CompanyRepository {
     Company create(Company company) throws NotValidCustomException;
     Company findByName(String name) throws NotValidCustomException;
     Company find(Long id) throws NotValidCustomException;
+    void deleteById(Long id) throws NotValidCustomException;
 }

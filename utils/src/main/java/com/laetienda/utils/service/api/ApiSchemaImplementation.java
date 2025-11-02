@@ -105,8 +105,18 @@ public class ApiSchemaImplementation implements ApiSchema{
     }
 
     @Override
-    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws HttpClientErrorException {
-        return null;
+    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws NotValidCustomException {
+        String address = env.getProperty("api.schema.deleteById.uri", "delete/{id}");
+        log.debug("SCHEMA_API::deleteById. $idStr: {} | $clazz: {} | $address: {}", id, clazz.getName(), address);
+
+        try{
+            return client.delete().uri(address, id, getClazzName(clazz))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve().toEntity(String.class);
+        }catch(Exception e){
+            log.trace(e.getMessage(), e);
+            throw new NotValidCustomException(e);
+        }
     }
 
     @Override

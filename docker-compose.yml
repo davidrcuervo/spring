@@ -234,8 +234,8 @@ services:
     depends_on:
       etuser:
         condition: service_healthy
-      etschema:
-        condition: service_healthy
+#      etschema:
+#        condition: service_healthy
     networks:
       - backend
 #    ports:

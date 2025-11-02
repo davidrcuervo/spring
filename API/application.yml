@@ -27,3 +27,6 @@ api:
     findByName:
       file: findByName/{name}
       uri: ${api.company.uri}/${api.company.findByName.file}
+    delete:
+      file: delete/{id}
+      uri: ${api.company.uri}/${api.company.delete.file}

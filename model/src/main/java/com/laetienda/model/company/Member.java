@@ -1,5 +1,7 @@
 package com.laetienda.model.company;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.laetienda.lib.options.FriendStatus;
 import com.laetienda.model.schema.DbItem;
 import jakarta.persistence.*;
@@ -24,8 +26,15 @@ public class Member extends DbItem {
     private Company company;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "member")
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friend> friends = new ArrayList<Friend>();
+
+    public Member(Company company, String memberId, String ownerId) {
+        super.setOwner(ownerId);
+        super.addEditor(memberId);
+        this.company = company;
+        this.userId = memberId;
+    }
 
     public String getUserId() {
         return userId;
@@ -36,7 +45,7 @@ public class Member extends DbItem {
         return this;
     }
 
-    //    @JsonIgnore
+    @JsonIgnore
     public Member submitFriendRequest(@NotNull Member member){
         if (friends == null) {
             this.friends = new ArrayList<>();
@@ -51,7 +60,7 @@ public class Member extends DbItem {
         return this;
     }
 
-    //    @JsonIgnore
+    @JsonIgnore
     public Member receiveFriendRequest(@NotNull Member member){
         if (friends == null) {
             this.friends = new ArrayList<>();
@@ -66,7 +75,7 @@ public class Member extends DbItem {
         return this;
     }
 
-    //    @JsonIgnore
+    @JsonIgnore
     public Member acceptFriend(@NotNull Member member) throws IOException {
 
         if(friends != null
@@ -94,7 +103,7 @@ public class Member extends DbItem {
         return this;
     }
 
-    //    @JsonIgnore
+    @JsonIgnore
     public Member submitFriendRequestHasBeenAccepted(@NotNull Member member) throws IOException{
         if(friends != null
                 && friends.stream().filter(f -> f.getStatus().equals(FriendStatus.REQUEST_SUBMITTED))
@@ -121,7 +130,7 @@ public class Member extends DbItem {
         return this;
     }
 
-    //    @JsonIgnore
+    @JsonIgnore
     public Member blockFriend(@NotNull Member member) throws IOException {
         List<Friend> temp = friends.stream()
                 .filter(f -> f.getFriend().getUserId().equals(member.getUserId()))
@@ -142,7 +151,7 @@ public class Member extends DbItem {
         return this;
     }
 
-    //    @JsonIgnore
+    @JsonIgnore
     public Member deleteFriend(@NotNull Member member) throws IOException {
         List<Friend> temp = friends.stream()
                 .filter(f -> f.getFriend().getUserId().equals(member.getUserId()))
@@ -176,9 +185,19 @@ public class Member extends DbItem {
     }
 
     @JsonIgnore
+    public Member setFriendRequestSubmitted(List<Friend> friendRequestSubmitted){
+        return this;
+    }
+
+    @JsonIgnore
     public List<Friend> getFriendRequestReceived(){
         return friends.stream()
                 .filter(f -> f.getStatus().equals(FriendStatus.REQUEST_RECEIVED))
                 .toList();
+    }
+
+    @JsonIgnore
+    public Member setFriendRequestReceived(List<Friend> friendRequestReceived){
+        return this;
     }
 }

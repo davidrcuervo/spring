@@ -54,6 +54,7 @@ class ClientCompaniesApplicationTests {
 		Company comp = create();
 		comp = findByName(comp.getName());
 		comp = findById(comp.getId());
+        deleteCompany(comp);
 	}
 
 	private Company create() throws Exception {
@@ -71,7 +72,7 @@ class ClientCompaniesApplicationTests {
 	}
 
 	private Company findById(Long id) throws Exception{
-		MvcResult response = mvc.perform(post(findAddress, id)
+		MvcResult response = mvc.perform(get(findAddress, id)
 						.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
 						.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -92,6 +93,35 @@ class ClientCompaniesApplicationTests {
 
 		return json.readValue(response.getResponse().getContentAsString(), Company.class);
 	}
+
+    private void deleteCompany(Company company) throws Exception {
+        String address = env.getProperty("api.company.delete.uri");
+        assertNotNull(address);
+        assertNotNull(company);
+
+        Long id = company.getId();
+
+        MvcResult response = mvc.perform(get(findAddress, id)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mvc.perform(delete(address, id)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+
+        mvc.perform(get(findAddress, id)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+
+        mvc.perform(delete(address, id)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 
 	@Test
 	public void createWithRepeatedName(){

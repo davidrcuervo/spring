@@ -47,9 +47,10 @@ public class KcUserServiceImplementation implements KcUserService{
         KcUser result = repo.findByUserId(userId);
 
         if(isUserValid(result)){
-            return null;
-        } else{
+            log.trace("USER_SERVICE::isUserIdValid: TRUE. $userId: {}", result.getId());
             return result.getId();
+        } else{
+            return null;
         }
     }
 

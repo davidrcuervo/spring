@@ -1,6 +1,7 @@
 package com.laetienda.model.company;
 
 import com.laetienda.model.schema.DbItem;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Email;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import net.minidev.json.annotate.JsonIgnore;
+import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.List;
 @Entity
 public class Company extends DbItem {
 
-    @NotNull
+    @NotNull @Unique
     @Size(min = 2, max = 64)
     private String name;
 
@@ -31,8 +33,8 @@ public class Company extends DbItem {
     @Size(min=5, max=64)
     private String address;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "company")
+//    @JsonIgnore
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Member> members = new ArrayList<Member>();
 
     public Company(){}

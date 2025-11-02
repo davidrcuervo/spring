@@ -47,6 +47,7 @@ public class ItemServiceImplementation implements ItemService{
     public <T> T create(Class<T> clazz, String data) throws NotValidCustomException {
         try {
             log.debug("ITEM_SERVICE::create $clazzName: {}", clazz.getName());
+            log.trace("ITEM_SERVICE::create. $data: {}", data);
 
             //Build object
             DbItem item = (DbItem) jsonMapper.readValue(data, clazz);
@@ -133,7 +134,13 @@ public class ItemServiceImplementation implements ItemService{
     @Override
     public <T> void deleteById(Class<T> clazz, Long id) throws NotValidCustomException {
         log.debug("ITEM_SERVICE::deleteById $clazzName: {}, $id: {}", clazz.getName(), id);
+
         T item = schemaRepo.findById(id, clazz);
+        if(item == null){
+            String message = String.format("Failed to delete item. Item does not exist. $clazzName: %s, %d: {}", clazz.getName(), id);
+            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
+        }
+
         delete(clazz, item);
     }
 
