@@ -1,14 +1,14 @@
 package com.laetienda.model.company;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.model.schema.DbItem;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import net.minidev.json.annotate.JsonIgnore;
 import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.util.ArrayList;
@@ -24,6 +24,10 @@ public class Company extends DbItem {
     @Size(min = 3, max = 400)
     private String description;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private CompanyMemberPolicy memberPolicy;
+
     @Email
     private String email;
 
@@ -33,14 +37,15 @@ public class Company extends DbItem {
     @Size(min=5, max=64)
     private String address;
 
-//    @JsonIgnore
+    @JsonIgnore
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Member> members = new ArrayList<Member>();
 
     public Company(){}
 
-    public Company(String name){
+    public Company(String name, CompanyMemberPolicy memberPolicy){
         this.name = name;
+        this.setMemberPolicy(memberPolicy);
     }
 
     public String getName() {
@@ -59,6 +64,14 @@ public class Company extends DbItem {
     public Company setDescription(String description) {
         this.description = description;
         return this;
+    }
+
+    public CompanyMemberPolicy getMemberPolicy() {
+        return memberPolicy;
+    }
+
+    public void setMemberPolicy(CompanyMemberPolicy memberPolicy) {
+        this.memberPolicy = memberPolicy;
     }
 
     public String getEmail() {
@@ -88,7 +101,6 @@ public class Company extends DbItem {
         return this;
     }
 
-    @JsonIgnore
     public List<Member> getMembers() {
         return members;
     }
@@ -99,7 +111,7 @@ public class Company extends DbItem {
     }
 
     public Company addMember(@NotNull Member member){
-        if(member == null){
+        if(members == null){
             this.members = new ArrayList<Member>();
         }
 

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +72,14 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
         }catch(NoResultException ex){
             return null;
         }
+    }
+
+    @Override
+    public <T> List<T> findByQuery(Class clazz, Map<String, String> body) throws NotValidCustomException {
+        log.debug("SCHEMA_REPO::findByQuery. $clazz: {} | $query: {}", clazz.getName(), body.get("query"));
+
+        TypedQuery<T> jpaQuery = em.createQuery(body.get("query"), clazz);
+        return jpaQuery.getResultList();
     }
 
     @Override

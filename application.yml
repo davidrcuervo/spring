@@ -4,13 +4,13 @@ webapp:
     admin:
       username: ${APP_USER_ADMIN_USERNAME}
       password: ${APP_USER_ADMIN_ENC_PASSWORD}
-      userId: 91d05ed8-8c6d-4d88-9336-f52184449a22
+      userId: 2b22dc2f-137b-4626-8a3b-c3e00f21638b
     test:
       username: ${APP_USER_TEST_USERNAME}
       password: ${APP_USER_TEST_ENC_PASSWORD}
-      userId: 2b1a6ba9-bb7f-4ada-8fa5-24ba863c26ee
+      userId: e46971ec-8bb7-4cca-8475-1e8d16c7fd8b
     service:
-      userId: b6ec3320-ea53-407e-b015-51a1d1f22367
+      userId: 9d75042c-35a8-46c9-99f5-65e3828f55d8
 
 #LOGGING
 logging:

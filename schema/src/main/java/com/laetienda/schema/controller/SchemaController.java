@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -44,6 +45,7 @@ public class SchemaController {
     public <T> ResponseEntity<T> create(@RequestParam(required = true) String clase, @RequestBody String data) throws NotValidCustomException{
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::create $clazzName: {}", clazzName);
+
         try {
             Class<T> clazz = (Class<T>) Class.forName(clazzName);
             return ResponseEntity.ok(itemService.create(clazz, data));
@@ -69,6 +71,13 @@ public class SchemaController {
             log.trace(e.getMessage(), e);
             throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
         }
+    }
+
+    @GetMapping("${api.schema.isItemValid.file}") //api/v0/schema/isValid/{id}?clase={clazzName}
+    public ResponseEntity<String> isItemValid(@PathVariable String id, @RequestParam String clase) throws NotValidCustomException{
+        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
+        log.info("SCHEMA_CONTROLLER::isValid. $id: {} | $clazzName: {}", id, clazzName);
+        return ResponseEntity.ok(itemService.isItemValid(id, clazzName).toString());
     }
 
     @GetMapping("${api.schema.findById}")
@@ -129,6 +138,20 @@ public class SchemaController {
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage());
             log.trace(e.getMessage(), e);
+            throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @PostMapping("${api.schema.findByQuery.file}") //api/v0/schema/findByQuery?clase={clazzEncoded}
+    public <T> ResponseEntity<List<T>> findByQuery(@RequestParam(required = true) String clase, @RequestBody Map<String, String> body) throws NotValidCustomException{
+        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
+        log.debug("SCHEMA_CONTROLLER::findByQuery $clazzName: {}", clazzName);
+
+        try{
+            Class clazz = Class.forName(clazzName);
+            return ResponseEntity.ok(itemService.findByQuery(clazz, body));
+        }catch(ClassNotFoundException e){
+            log.error(e.getMessage());
             throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
         }
     }

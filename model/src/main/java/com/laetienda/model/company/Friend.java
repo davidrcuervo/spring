@@ -1,6 +1,6 @@
 package com.laetienda.model.company;
 
-import com.laetienda.lib.options.FriendStatus;
+import com.laetienda.lib.options.CompanyFriendStatus;
 import com.laetienda.model.schema.DbItem;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +15,7 @@ public class Friend extends DbItem {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    private FriendStatus status;
+    private CompanyFriendStatus status;
 
     @NotNull
     @ManyToOne
@@ -24,16 +24,16 @@ public class Friend extends DbItem {
 
     public Friend(){}
 
-    public Friend(Member friend, FriendStatus status){
+    public Friend(Member friend, CompanyFriendStatus status){
         setFriend(friend);
         setStatus(status);
     }
 
-    public FriendStatus getStatus() {
+    public CompanyFriendStatus getStatus() {
         return status;
     }
 
-    public Friend setStatus(FriendStatus status) {
+    public Friend setStatus(CompanyFriendStatus status) {
         this.status = status;
         return this;
     }

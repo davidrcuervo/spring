@@ -60,6 +60,11 @@ public class ApiSchemaImplementationDeprecated extends ApiClientImplementation i
     }
 
     @Override
+    public <T> ResponseEntity<String> isItemValid(Class<T> clazz, Long itemId) throws NotValidCustomException {
+        return null;
+    }
+
+    @Override
     public <T> ResponseEntity<T> create(Class<T> clazz , DbItem item) throws HttpClientErrorException {
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.create"));
         String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
@@ -140,6 +145,11 @@ public class ApiSchemaImplementationDeprecated extends ApiClientImplementation i
                 .uri(address, getPort(), encodedClazzName)
                 .body(clazz.cast(item))
                 .retrieve().toEntity(clazz);
+    }
+
+    @Override
+    public <T> String getClazzName(Class<T> clazz) {
+        return "";
     }
 
     @Override

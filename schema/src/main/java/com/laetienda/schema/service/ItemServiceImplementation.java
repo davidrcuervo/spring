@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,8 @@ public class ItemServiceImplementation implements ItemService{
     @Autowired private SchemaRepository schemaRepo;
     @Autowired private ToolBoxService tb;
 
+    @Value("${webapp.user.service.userId}")
+    private String serviceUserId;
 //    @Value("${admuser.username}")
 //    private String admUser;
 //
@@ -227,6 +230,60 @@ public class ItemServiceImplementation implements ItemService{
         }
     }
 
+    @Override
+    public <T> Long isItemValid(String itemId, String clazzName) throws NotValidCustomException {
+        log.debug("SCHEMA_SERVICE::isItemValid. $id: {} | clazzName: {}", itemId, clazzName);
+
+        try{
+            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            Long id = Long.parseLong(itemId);
+            T item = schemaRepo.findById(id, clazz);
+
+            if(item == null){
+                String message = String.format("SCHEMA_SERVICE::isItemValid. Item not found. $id: {} | $clazz: {}", id, clazz.getName());
+                log.warn(message);
+                throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
+            }else{
+                return ((DbItem)item).getId();
+            }
+
+        }catch(ClassNotFoundException c) {
+            String message = String.format("SCHEMA_SERVICE::isItemValid. $error: {}", c.getMessage());
+            log.error(message);
+            log.trace(message, c);
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+
+        }catch(NumberFormatException n){
+            String message = String.format("SCHEMA_SERVICE::isItemValid. Failed to parse id. $itemId: {} | $error: {}", itemId, n.getMessage());
+            log.warn(message);
+            log.trace(message, n);
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+        }
+    }
+
+    @Override
+    public <T> List<T> findByQuery(Class clazz, Map<String, String> body) throws NotValidCustomException {
+        log.debug("SCHEMA_SERVICE::findByQuery. $clazz: {}", clazz.getName());
+        body.forEach((String key, String value) -> {
+            log.trace("SCHEMA_SERVICE::findByQuery. ${} -> {}", key, value);
+        });
+
+        if(!body.containsKey("query")){
+            String message = "Parameters does not contain query";
+            log.error(message);
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+        }
+
+        List<T> result = schemaRepo.findByQuery(clazz, body);
+        return result.stream().filter(item -> {
+            try {
+                return canRead((DbItem) item);
+            } catch (Exception e) {
+                return false;
+            }
+        }).toList();
+    }
+
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {
 
         try {
@@ -262,6 +319,9 @@ public class ItemServiceImplementation implements ItemService{
 
     private Boolean canRead(DbItem item){
         String username = request.getUserPrincipal().getName();
-        return username.equals(item.getOwner()) || canEdit(item) || item.getReaders().contains(username);
+        return username.equals(item.getOwner()) ||
+                canEdit(item) ||
+                item.getReaders().contains(username) ||
+                username.equals(serviceUserId);
     }
 }

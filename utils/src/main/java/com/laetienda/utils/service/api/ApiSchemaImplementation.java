@@ -86,6 +86,20 @@ public class ApiSchemaImplementation implements ApiSchema{
     }
 
     @Override
+    public <T> ResponseEntity<String> isItemValid(Class<T> clazz, Long itemId) throws NotValidCustomException {
+        String address = env.getProperty("api.schema.isItemValid.uri", "isItemValid/{id}?clase={clazzName}");
+        log.debug("SCHEMA_API::isItemValid. $itemId: {} | $clazz: {} | $address: {}", itemId, clazz.getName(), address);
+
+        try{
+            return client.get().uri(address, itemId, getClazzName(clazz))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve().toEntity(String.class);
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
+    }
+
+    @Override
     public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws NotValidCustomException {
         String address = env.getProperty("api.schema.findById.uri", "findById");
         log.debug("SCHEMA_API::findById. $id: {} | $clazz: {} | $address: {}", id, clazz.getName(), address);
@@ -174,7 +188,8 @@ public class ApiSchemaImplementation implements ApiSchema{
         return null;
     }
 
-    private <T> String getClazzName(Class<T> clazz){
+    @Override
+    public <T> String getClazzName(Class<T> clazz){
         return Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
     }
 }

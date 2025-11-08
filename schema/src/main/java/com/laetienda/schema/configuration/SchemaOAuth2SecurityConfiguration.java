@@ -28,6 +28,7 @@ public class SchemaOAuth2SecurityConfiguration {
             authorize
                     .requestMatchers(actuator).permitAll()
                     .requestMatchers("/api/v0/schema/simple/test").permitAll()
+                    .requestMatchers("/api/v0/schema/isItemValid/*").permitAll()
                     .anyRequest().fullyAuthenticated();
         });
 

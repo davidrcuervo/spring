@@ -15,13 +15,18 @@ import org.springframework.web.bind.annotation.*;
 public class CompanyController {
     private final static Logger log = LoggerFactory.getLogger(CompanyController.class);
 
-    @Autowired
-    private CompanyService service;
+    @Autowired private CompanyService service;
 
     @PostMapping("${api.company.create.file}") //api/v0/Company/create
     public ResponseEntity<Company> create(@RequestBody @Valid Company company) throws NotValidCustomException {
         log.debug("COMPANY_CONTROLLER::create. $company: {}", company.getName());
         return ResponseEntity.ok(service.create(company));
+    }
+
+    @GetMapping("api.company.isValid.file") //api/v0/company/isValid/{companyId}
+    public ResponseEntity<String> isCompanyValid(@PathVariable String companyId) throws NotValidCustomException{
+        log.debug("COMPANY_CONTROLLER::isCompanyValid. $companyId: {}", companyId);
+        return ResponseEntity.ok(service.isCompanyValid(companyId).toString());
     }
 
     @GetMapping("${api.company.find.file}") //api/v0/company/find/{id}

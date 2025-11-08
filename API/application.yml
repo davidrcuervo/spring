@@ -21,6 +21,9 @@ api:
     create:
       file: create
       uri: ${api.company.uri}/${api.company.create.file}
+    isValid:
+      file: isValid/{companyId}
+      uri: ${api.company.uri}/${api.company.isValid.file}
     find:
       file: find/{id}
       uri: ${api.company.uri}/${api.company.find.file}
@@ -30,3 +33,10 @@ api:
     delete:
       file: delete/{id}
       uri: ${api.company.uri}/${api.company.delete.file}
+    member:
+      find:
+        file: member/find/{companyId}/{userId}
+        uri: ${api.company.uri}/${api.company.member.find.file}
+      add:
+        file: member/add/{companyId}/{userId}
+        uri: ${api.company.uri}/${api.company.member.add.file}

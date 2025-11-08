@@ -1,5 +1,6 @@
 package com.laetienda.schema;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.ItemTypeA;
 import org.junit.jupiter.api.Test;
@@ -459,4 +460,99 @@ class SchemaApplicationTests {
 				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
 				.andExpect(status().isOk());
 	}
+
+    @Test
+    void isItemIdValid() throws Exception{
+        ItemTypeA item = new ItemTypeA("isItemValid", 33, "5 Place Ville Marie");
+        String address = env.getProperty("api.schema.isItemValid.uri");
+        assertNotNull(address);
+
+        //Create item
+        MvcResult response = mvc.perform(post(createAddress, clazzName)
+                    .with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsBytes(item)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        item = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+        Long itemId = item.getId();
+
+        //test if item is valid
+        response = mvc.perform(get(address, itemId, clazzName)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        String strId = response.getResponse().getContentAsString();
+        assertEquals(itemId, Long.parseLong(strId));
+
+        //delete item
+        mvc.perform(delete(deleteAddress, itemId, clazzName)
+				.with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
+				.andExpect(status().isOk());
+
+        //test if item is invalid
+        mvc.perform(get(address, itemId, clazzName)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void serviceUserCanReadItem() throws Exception {
+        fail();
+    }
+
+    @Test
+    void findByQuery() throws Exception {
+        String address = env.getProperty("api.schema.findByQuery.uri");
+        assertNotNull(address);
+
+        ItemTypeA item1 = new ItemTypeA("findSingleResultWithQuery", 18, "1400 Boulevard Rosemont");
+        ItemTypeA item2 = new ItemTypeA("findSingleResultWithQuery2", 18, "1389 Boulevard Rosemont");
+        ItemTypeA item3 = new ItemTypeA("findSingleResultWithQuery3", 18, "1269 Boulevard Rosemont");
+
+        mvc.perform(post(createAddress, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(item1)))
+                .andExpect(status().isOk()).andReturn();
+
+        mvc.perform(post(createAddress, clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(item2)))
+                .andExpect(status().isOk()).andReturn();
+
+        MvcResult response = mvc.perform(post(createAddress, clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(item3)))
+                .andExpect(status().isOk()).andReturn();
+        item3 = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+
+        String query = String.format("SELECT i FROM %s i WHERE i.age = %d", ItemTypeA.class.getName(), 18);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("query", query);
+
+        response = mvc.perform(post(address, clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(params)))
+                .andExpect(status().isOk()).andReturn();
+        List<ItemTypeA> items = mapper.readValue(response.getResponse().getContentAsString(), new TypeReference<List<ItemTypeA>>() {});
+
+        assertEquals(2, items.size());
+        assertTrue(items.stream().anyMatch(i -> i.getUsername().equals(item1.getUsername())));
+        assertTrue(items.stream().anyMatch(i -> i.getUsername().equals(item2.getUsername())));
+
+        //delete item
+        for(ItemTypeA item : items) {
+            mvc.perform(delete(deleteAddress, item.getId(), clazzName)
+                            .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId))))
+                    .andExpect(status().isOk());
+        }
+
+        mvc.perform(delete(deleteAddress, item3.getId(), clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
+                .andExpect(status().isOk());
+    }
 }
