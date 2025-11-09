@@ -168,7 +168,7 @@ services:
     image: etschema:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: [ "./bin/start.sh" ]
+    entrypoint: [ "./bin/safestart.sh" ]
     command:
       - schema
       - ${PORT_SCHEMA}
@@ -234,8 +234,8 @@ services:
     depends_on:
       etuser:
         condition: service_healthy
-#      etschema:
-#        condition: service_healthy
+      etschema:
+        condition: service_healthy
     networks:
       - backend
 #    ports:

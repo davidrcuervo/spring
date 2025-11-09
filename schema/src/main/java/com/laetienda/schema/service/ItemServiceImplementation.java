@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -82,6 +83,12 @@ public class ItemServiceImplementation implements ItemService{
     private void setOwner(DbItem item) throws NotValidCustomException {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         log.trace("ITEM_SERVICE::setOwner. $loggedUser: {}", userId);
+
+        if(item.getOwner() != null && !item.getOwner().equals(userId)){
+            String message = String.format("Item owner is different to logged user. $item.owner: %s | $currentUser: %s", item.getOwner(), userId);
+            log.warn("ITEM_SERVICE::setOwner. {}", message);
+            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+        }
 
         try{
             apiUser.isUserIdValid(userId);

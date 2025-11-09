@@ -29,7 +29,7 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 public class CompanyRepositoryImplementation implements CompanyRepository{
     private final static Logger log = LoggerFactory.getLogger(CompanyRepositoryImplementation.class);
 
-    private RestClient client;
+    private final RestClient client;
     @Autowired private ApiSchema schema;
     @Autowired private Environment env;
     @Autowired private ObjectMapper json;

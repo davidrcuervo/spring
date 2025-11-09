@@ -20,10 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import javax.print.attribute.standard.Media;
-
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -47,8 +43,8 @@ class ClientCompaniesApplicationTests {
 	@Value("${api.company.find.uri}")
 	private String findAddress;
 
-	@Value("${webapp.user.test.username}")
-	private String testUsername;
+	@Value("${webapp.user.test.userId}")
+	private String testUserId;
 
     @Value("${api.company.member.find.uri}")
     private String findMemberAddress; //api/v0/company/member/find/{companyId}/{userId}
@@ -70,17 +66,17 @@ class ClientCompaniesApplicationTests {
 		comp = findByName(comp.getName());
 		comp = findById(comp.getId());
         Member member = addMember(comp);
-        //sendFriendRequest
-        //acceptFriend
-        //blockFriend
-        //removeFriend
-        //removeMember
+        //TODO: sendFriendRequest
+        //TODO: acceptFriend
+        //TODO: blockFriend
+        //TODO: removeFriend
+        //TODO: removeMember
         deleteCompany(comp);
 	}
 
 	private Company create() throws Exception {
 		Company company = new Company("testCycleCompany", CompanyMemberPolicy.AUTHORIZATION_REQUIRED);
-		company.setOwner(testUsername);
+		company.setOwner(testUserId);
 
 		MvcResult response = mvc.perform(post(createAddress)
 				.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)

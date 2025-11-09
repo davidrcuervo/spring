@@ -356,7 +356,24 @@ class SchemaApplicationTests {
     }
 
 	@Test void createWithDifferentOwner() throws Exception{
-		fail();
+        ItemTypeA item = new ItemTypeA("createWithDifferentOwner", 69, "1433 Microsoft Sql");
+        item.setOwner(serviceUserId);
+
+        mvc.perform(post(createAddress, clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(item)))
+                .andExpect(status().isBadRequest());
+
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("username", item.getUsername());
+
+        mvc.perform(post(findAddress, clazzName)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", serviceUserId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsBytes(body))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
 	}
 
 	@Test void modifyOwner() throws Exception {
@@ -498,7 +515,35 @@ class SchemaApplicationTests {
 
     @Test
     void serviceUserCanReadItem() throws Exception {
-        fail();
+        ItemTypeA item = new ItemTypeA("serviceUserCanReadItem", 33, "5432 Postgres");
+
+        MvcResult response = mvc.perform(post(createAddress, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(item)))
+                .andExpect(status().isOk()).andReturn();
+        item = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+        assertNotNull(item);
+        Long itemId = item.getId();
+
+        response = mvc.perform(get(findByIdAddress, item.getId(), clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", serviceUserId)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        item = mapper.readValue(response.getResponse().getContentAsString(), ItemTypeA.class);
+        assertNotNull(item);
+        assertEquals(itemId, item.getId());
+
+        mvc.perform(delete(deleteAddress, itemId, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", serviceUserId)))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(delete(deleteAddress, itemId, clazzName)
+                .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
