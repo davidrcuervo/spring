@@ -114,6 +114,22 @@ public class ApiSchemaImplementation implements ApiSchema{
     }
 
     @Override
+    public <T> ResponseEntity<String> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        String address = env.getProperty("api.schema.findByQuery.uri", "findByQuery?{clazzName}");
+        log.debug("API_SCHEMA::findByQuery. $clazz: {} | $address: {}", clazz.getName(), address);
+
+        try {
+             return client.post().uri(address, getClazzName(clazz))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(json.writeValueAsBytes(body))
+                    .retrieve().toEntity(String.class);
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
+    }
+
+    @Override
     public <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
         return null;
     }

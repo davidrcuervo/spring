@@ -27,6 +27,7 @@ public class CompanySecurityConfiguration {
         http.authorizeHttpRequests(authorize -> {
             authorize
                     .requestMatchers(actuator).permitAll()
+                    .requestMatchers("/api/v0/company/isValid/*").permitAll()
                     .anyRequest().fullyAuthenticated();
         });
 

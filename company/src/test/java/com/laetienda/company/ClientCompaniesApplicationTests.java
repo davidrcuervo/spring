@@ -216,5 +216,4 @@ class ClientCompaniesApplicationTests {
 
 		jwtTestUser = apiUSer.getToken(testUsername, testUserPassword);
 	}
-
 }

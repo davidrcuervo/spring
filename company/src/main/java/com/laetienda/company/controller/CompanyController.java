@@ -23,7 +23,7 @@ public class CompanyController {
         return ResponseEntity.ok(service.create(company));
     }
 
-    @GetMapping("api.company.isValid.file") //api/v0/company/isValid/{companyId}
+    @GetMapping("${api.company.isValid.file}") //api/v0/company/isValid/{companyId}
     public ResponseEntity<String> isCompanyValid(@PathVariable String companyId) throws NotValidCustomException{
         log.debug("COMPANY_CONTROLLER::isCompanyValid. $companyId: {}", companyId);
         return ResponseEntity.ok(service.isCompanyValid(companyId).toString());

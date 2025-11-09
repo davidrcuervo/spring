@@ -32,8 +32,10 @@ public class Member extends DbItem {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friend> friends = new ArrayList<Friend>();
 
-    public Member(Company company, String memberId, String ownerId, CompanyMemberStatus status) {
-        super.setOwner(ownerId);
+    public Member(){}
+
+    public Member(Company company, String memberId, CompanyMemberStatus status) {
+        super.addEditor(company.getOwner());
         setStatus(status);
         setCompany(company);
         setUserId(memberId);

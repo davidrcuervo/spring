@@ -12,6 +12,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 @Deprecated
@@ -110,6 +111,11 @@ public class ApiSchemaImplementationDeprecated extends ApiClientImplementation i
         }catch(Exception e){
             throw new NotValidCustomException(e);
         }
+    }
+
+    @Override
+    public <T> ResponseEntity<String> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        return null;
     }
 
     @Override

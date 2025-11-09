@@ -1,5 +1,8 @@
 package com.laetienda.company.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
@@ -12,10 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestClient;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
@@ -27,6 +32,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     private RestClient client;
     @Autowired private ApiSchema schema;
     @Autowired private Environment env;
+    @Autowired private ObjectMapper json;
 
     @Value("${kc.client-id}") String webappClientId;
 
@@ -90,14 +96,34 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
-    public Member findMemberByUserId(String companyName, String userId) throws NotValidCustomException {
-        log.debug("COMPANY_REPO::findMemberByUserId. $company: {} | $user: {}", companyName, userId);
+    public List<Member> findMemberByUserId(Long companyId, String userId) throws NotValidCustomException {
+        log.debug("COMPANY_REPO::findMemberByUserId. $companyId: {} | $user: {}", companyId, userId);
+        String query = String.format("SELECT m FROM %s m INNER JOIN m.company c WHERE c.id = %d AND m.userId = '%s'", Member.class.getName(), companyId, userId);
+        return findMembersByQuery(query);
+    }
 
-        Map<String, String> body = new HashMap<String, String>();
-        body.put("company", companyName);
-        body.put("userId", userId);
+    @Override
+    public List<Member> findAllMembers(Long cid) throws NotValidCustomException {
+        log.debug("COMPANY_REPO::findAllMembers. $cid: {}", cid);
+        String query = String.format("SELECT m FROM %s m INNER JOIN m.company c WHERE c.id = %d", Member.class.getName(), cid);
+        return findMembersByQuery(query);
+    }
 
-        return schema.find(Member.class, body).getBody();
+    private List<Member> findMembersByQuery(String query) throws NotValidCustomException{
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("query", query);
+
+        ResponseEntity<String> response = schema.findByQuery(Member.class, params);
+        log.trace("COMPANY_REPO::findMemberByUserId. $response: {}", response.getBody());
+
+        try {
+            return json.readValue(response.getBody(), new TypeReference<List<Member>>() {});
+        } catch (JsonProcessingException e) {
+            String message = String.format("COMPANY_REPO::findMemberByUserId. $error: %s", e.getMessage());
+            log.error(message);
+            log.trace(message, e);
+            throw new NotValidCustomException(message, HttpStatus.INTERNAL_SERVER_ERROR, "company");
+        }
     }
 
     @Override

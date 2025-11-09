@@ -38,8 +38,11 @@ public class CompanyServiceImplementation implements CompanyService{
 
         }catch(NotValidCustomException e){
             if(e.getStatus() == HttpStatus.NOT_FOUND){
-                company.addMember(new Member(company, userId, userId, CompanyMemberStatus.ACCEPTED));
-                return repo.create(company);
+                Company result = repo.create(company);
+                Member member = new Member(result, userId, CompanyMemberStatus.ACCEPTED);
+                repo.addMember(member);
+                return result;
+
             }else{
                 throw e;
             }
@@ -73,22 +76,23 @@ public class CompanyServiceImplementation implements CompanyService{
     }
 
     @Override
-    public void delete(String companyName) throws NotValidCustomException {
-        log.debug("COMPANY_SERVICE::delete. $id: {}", companyName);
+    public void delete(String companyId) throws NotValidCustomException {
+        log.debug("COMPANY_SERVICE::delete. $id: {}", companyId);
+        Long cid = isCompanyValid(companyId);
+        List<Member> members = findAllMembers(cid);
 
-        Company company = find(companyName);
-        for(Member member : company.getMembers()){
-            removeMember(companyName, member.getUserId());
+        for(Member member : members){
+            removeMember(cid, member.getUserId());
         }
 
-        repo.deleteById(company.getId());
+        repo.deleteById(cid);
     }
 
     @Override
-    public Company removeMember(String companyName, String userId) throws NotValidCustomException {
-        log.debug("COMPANY_SERVICE::removeMember. $company: {} | $userId: {}", companyName, userId);
+    public Company removeMember(Long companyId, String userId) throws NotValidCustomException {
+        log.debug("COMPANY_SERVICE::removeMember. $company: {} | $userId: {}", companyId, userId);
 
-        Member member = findMemberByUserId(companyName, userId);
+        Member member = findMemberByIds(companyId.toString(), userId);
         return repo.removeMember(member);
     }
 
@@ -106,38 +110,39 @@ public class CompanyServiceImplementation implements CompanyService{
             status = CompanyMemberStatus.ACCEPTED;
         }
 
-        Member member = new Member(company, uid, company.getOwner(), status);
+        Member member = new Member(company, uid, status);
         company.addMember(member);
 
         return repo.addMember(member);
     }
 
     @Override
-    public Member findMemberByUserId(String companyName, String userId) throws NotValidCustomException {
-        log.debug("COMPANY_SERVICE::findMemberByUserId. $company: {}, $user: {}", companyName, userId);
-        return repo.findMemberByUserId(companyName, userId);
-    }
-
-    @Override
     public Member findMemberByIds(String companyId, String userId) throws NotValidCustomException {
+        log.debug("COMPANY_SERVICE::findMemberByIds. $companyid: {} | $userId: {}", companyId, userId);
 
         String uid = apiUser.isUserIdValid(userId);
         Long cid = isCompanyValid(companyId);
-        Company comp = find(companyId);
 
-        List<Member> result = comp.getMembers().stream().filter(member -> member.getUserId().equals(userId)).toList();
+        List<Member> result = repo.findMemberByUserId(cid, uid);
 
         if (result == null || result.isEmpty()) {
-            String message = String.format("COMPANY_SERVICE::findMemberByIds. User is not member of company. $company: %s | $user: %s", comp.getName(), uid);
+            String message = String.format("COMPANY_SERVICE::findMemberByIds. User is not member of company. $companyId: %d | $user: '%s'd", cid, uid);
             log.warn(message);
             throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "member");
 
         } else if (result.size() > 1) {
-            String message = String.format("COMPANY_SERVICE::findMemberByIds. There are more than one member in company with same userId. $company: %s | $user: %s", comp.getName(), uid);
+            String message = String.format("COMPANY_SERVICE::findMemberByIds. There are more than one member in company with same userId. $companyId: %s | $user: %s", cid, uid);
             log.error(message);
             throw new NotValidCustomException(message, HttpStatus.INTERNAL_SERVER_ERROR, "member");
         }
 
         return result.getFirst();
+    }
+
+    @Override
+    public List<Member> findAllMembers(Long cid) throws NotValidCustomException {
+        log.debug("COMPANY_SERVICE::findAllMembers. $cid: {}", cid);
+
+        return repo.findAllMembers(cid);
     }
 }
