@@ -9,6 +9,7 @@ import java.util.List;
 public interface CompanyRepository {
     Company create(Company company) throws NotValidCustomException;
     Company findByName(String name) throws NotValidCustomException;
+    Company findByNameNoJwt(String name) throws NotValidCustomException;
     Long isCompanyValid(Long id) throws NotValidCustomException;
     Company find(Long id) throws NotValidCustomException;
     Company findNoJwt(Long id) throws NotValidCustomException;
@@ -17,4 +18,7 @@ public interface CompanyRepository {
     List<Member> findAllMembers(Long cid) throws NotValidCustomException;
     Member addMember(Member member) throws NotValidCustomException;
     Company removeMember(Member member) throws NotValidCustomException;
+    Member updateMember(Member member) throws NotValidCustomException;
+    Company updateCompany(Company company) throws NotValidCustomException;
+
 }

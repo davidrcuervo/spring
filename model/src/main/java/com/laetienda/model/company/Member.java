@@ -29,7 +29,7 @@ public class Member extends DbItem {
     @Enumerated(EnumType.STRING)
     private CompanyMemberStatus status;
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Friend> friends = new ArrayList<Friend>();
 
     public Member(){}

@@ -38,7 +38,7 @@ public class Company extends DbItem {
     private String address;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
     private List<Member> members = new ArrayList<Member>();
 
     public Company(){}

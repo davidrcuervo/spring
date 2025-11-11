@@ -69,6 +69,27 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
+    public Company findByNameNoJwt(String name) throws NotValidCustomException {
+        log.debug("COMPANY_REPOSITORY::findByNameNoJwt. $name: {}", name);
+        String address = env.getProperty("api.schema.find.uri", "/api/v0/schema/find?clase={clazzName}");
+
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("name", name);
+        String clazzName = schema.getClazzName(Company.class);
+
+        try{
+            return client.post().uri(address, clazzName)
+                    .attributes(clientRegistrationId(webappClientId))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(json.writeValueAsBytes(body))
+                    .retrieve().toEntity(Company.class).getBody();
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
+    }
+
+    @Override
     public Company find(Long id) throws NotValidCustomException {
         return schema.findById(Company.class, id).getBody();
     }
@@ -135,9 +156,20 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
+    public Member updateMember(Member member) throws NotValidCustomException {
+        log.debug("COMPANY_REPOSITORY::updateMember. $memberId: {}", member.getId());
+        return schema.update(Member.class, member).getBody();
+    }
+
+    @Override
+    public Company updateCompany(Company company) throws NotValidCustomException {
+        log.debug("COMPANY_REPOSITORY::updateCompany. $company: {}", company.getName());
+        return schema.update(Company.class, company).getBody();
+    }
+
+    @Override
     public Member addMember(Member member) throws NotValidCustomException {
         log.debug("COMPANY_REPOSITORY::addMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
-
         return schema.create(Member.class, member).getBody();
     }
 }

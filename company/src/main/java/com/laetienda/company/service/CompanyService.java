@@ -3,6 +3,7 @@ package com.laetienda.company.service;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface CompanyService {
     Member addMember(String companyName, String userId) throws NotValidCustomException;
     Member findMemberByIds(String companyId, String userId) throws NotValidCustomException;
     List<Member> findAllMembers(Long cid) throws NotValidCustomException;
+    Member updateMember(@Valid Member member) throws NotValidCustomException;
+    Company updateCompany(@Valid Company company) throws NotValidCustomException;
 }

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,31 +20,37 @@ public class CompanyController {
 
     @PostMapping("${api.company.create.file}") //api/v0/Company/create
     public ResponseEntity<Company> create(@RequestBody @Valid Company company) throws NotValidCustomException {
-        log.debug("COMPANY_CONTROLLER::create. $company: {}", company.getName());
+        log.info("COMPANY_CONTROLLER::create. $company: {}", company.getName());
         return ResponseEntity.ok(service.create(company));
     }
 
     @GetMapping("${api.company.isValid.file}") //api/v0/company/isValid/{companyId}
     public ResponseEntity<String> isCompanyValid(@PathVariable String companyId) throws NotValidCustomException{
-        log.debug("COMPANY_CONTROLLER::isCompanyValid. $companyId: {}", companyId);
+        log.info("COMPANY_CONTROLLER::isCompanyValid. $companyId: {}", companyId);
         return ResponseEntity.ok(service.isCompanyValid(companyId).toString());
     }
 
     @GetMapping("${api.company.find.file}") //api/v0/company/find/{id}
     public ResponseEntity<Company> find(@PathVariable String id) throws NotValidCustomException {
-        log.debug("COMPANY_CONTROLLER::find. $id: {}", id);
+        log.info("COMPANY_CONTROLLER::find. $id: {}", id);
         return ResponseEntity.ok(service.find(id));
     }
 
     @GetMapping("${api.company.findByName.file}") //api/v0/company/findByName/{name}
     public ResponseEntity<Company> findByName(@PathVariable String name) throws NotValidCustomException {
-        log.debug("COMPANY_CONTROLLER::findByName. $name: {}", name);
+        log.info("COMPANY_CONTROLLER::findByName. $name: {}", name);
         return ResponseEntity.ok(service.findByName(name));
     }
 
+    @PutMapping("${api.company.update.file}") //api/v0/company/update
+    public ResponseEntity<Company> update(@RequestBody @Valid Company company) throws NotValidCustomException {
+        log.info("COMPANY_CONTROLLER::update. $company: {}", company.getName());
+        return ResponseEntity.ok(service.updateCompany(company));
+    }
+
     @DeleteMapping("${api.company.delete.file}") //api/v0/company/delete/{id}
-    public ResponseEntity delete(@PathVariable String id) throws NotValidCustomException {
-        log.debug("COMPANY_CONTROLLER::delete $id: {}", id);
+    public ResponseEntity<Void> delete(@PathVariable String id) throws NotValidCustomException {
+        log.info("COMPANY_CONTROLLER::delete $id: {}", id);
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

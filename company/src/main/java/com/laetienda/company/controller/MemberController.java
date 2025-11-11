@@ -3,6 +3,7 @@ package com.laetienda.company.controller;
 import com.laetienda.company.service.CompanyService;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.company.Member;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,5 +27,11 @@ public class MemberController {
     public ResponseEntity<Member> addMember(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException{
         log.info("MEMBER_CONTROLLER::addMember. $companyId: {} | $userId: {}", companyId, userId);
         return ResponseEntity.ok(service.addMember(companyId, userId));
+    }
+
+    @PutMapping("${api.company.member.update.file}")
+    public ResponseEntity<Member> update(@RequestBody @Valid Member member) throws NotValidCustomException{
+        log.info("MEMBER_CONTROLLER::modify. $memberId: {}", member.getId());
+        return ResponseEntity.ok(service.updateMember(member));
     }
 }

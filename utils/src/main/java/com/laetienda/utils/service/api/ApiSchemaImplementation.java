@@ -150,8 +150,19 @@ public class ApiSchemaImplementation implements ApiSchema{
     }
 
     @Override
-    public <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException {
-        return null;
+    public <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws NotValidCustomException {
+        String address = env.getProperty("api.schema.update.uri", "update");
+        log.debug("SCHEMA_API::update. $clazz: {} | $address: {}", clazz.getName(), address);
+
+        try{
+            return client.put().uri(address, getClazzName(clazz))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(json.writeValueAsBytes(item))
+                    .retrieve().toEntity(clazz);
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
     }
 
     @Override

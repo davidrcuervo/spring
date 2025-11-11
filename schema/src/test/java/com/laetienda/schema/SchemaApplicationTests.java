@@ -140,7 +140,7 @@ class SchemaApplicationTests {
         Map<String, String> body = new HashMap<String, String>();
         body.put("username", "notExistentItemUsername");
 
-        MvcResult respose = mvc.perform(post(findAddress, clazzName)
+        mvc.perform(post(findAddress, clazzName)
                 .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
                 .content(mapper.writeValueAsBytes(body))
                 .contentType(MediaType.APPLICATION_JSON))

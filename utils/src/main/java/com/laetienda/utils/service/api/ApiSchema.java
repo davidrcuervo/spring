@@ -23,6 +23,6 @@ public interface ApiSchema extends ApiClient {
     <T> ResponseEntity<String> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
     <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException;
     <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws NotValidCustomException;
-    <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws HttpClientErrorException;
+    <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws NotValidCustomException;
     <T> String getClazzName(Class<T> clazz);
 }

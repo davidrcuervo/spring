@@ -30,6 +30,9 @@ api:
     findByName:
       file: findByName/{name}
       uri: ${api.company.uri}/${api.company.findByName.file}
+    update:
+      file: update
+      uri: ${api.company.uri}/${api.company.update.file}
     delete:
       file: delete/{id}
       uri: ${api.company.uri}/${api.company.delete.file}
@@ -40,3 +43,6 @@ api:
       add:
         file: member/add/{companyId}/{userId}
         uri: ${api.company.uri}/${api.company.member.add.file}
+      update:
+        file: member/update
+        uri: ${api.company.uri}/${api.company.member.update.file}
