@@ -6,6 +6,7 @@ import com.laetienda.model.schema.DbItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
+import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
+
 @Component
 public class ApiSchemaImplementation implements ApiSchema{
     private final static Logger log = LoggerFactory.getLogger(ApiSchemaImplementation.class);
@@ -24,6 +27,9 @@ public class ApiSchemaImplementation implements ApiSchema{
     private final RestClient client;
     @Autowired private Environment env;
     @Autowired private ObjectMapper json;
+
+    @Value("${kc.client-id}")
+    private String webappClientId;
 
     public ApiSchemaImplementation(RestClient restClient){
         this.client = restClient;
@@ -120,6 +126,23 @@ public class ApiSchemaImplementation implements ApiSchema{
 
         try {
              return client.post().uri(address, getClazzName(clazz))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(json.writeValueAsBytes(body))
+                    .retrieve().toEntity(String.class);
+        }catch(Exception e){
+            throw new NotValidCustomException(e);
+        }
+    }
+
+    @Override
+    public <T> ResponseEntity<String> findByQueryNoJwt(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        String address = env.getProperty("api.schema.findByQuery.uri", "findByQuery?{clazzName}");
+        log.debug("API_SCHEMA::findByQueryNoJwt. $clazz: {} | $address: {}", clazz.getName(), address);
+
+        try{
+            return client.post().uri(address, getClazzName(clazz))
+                    .attributes(clientRegistrationId(webappClientId))
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
                     .body(json.writeValueAsBytes(body))

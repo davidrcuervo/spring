@@ -14,8 +14,9 @@ public interface CompanyRepository {
     Company find(Long id) throws NotValidCustomException;
     Company findNoJwt(Long id) throws NotValidCustomException;
     void deleteById(Long id) throws NotValidCustomException;
-    List<Member> findMemberByUserId(Long companyId, String userId) throws NotValidCustomException;
     List<Member> findAllMembers(Long cid) throws NotValidCustomException;
+    List<Member> findMemberByUserId(Long companyId, String userId) throws NotValidCustomException;
+    List<Member> findMemberByUserIdNoJwt(Long cid, String userId) throws NotValidCustomException;
     Member addMember(Member member) throws NotValidCustomException;
     Company removeMember(Member member) throws NotValidCustomException;
     Member updateMember(Member member) throws NotValidCustomException;

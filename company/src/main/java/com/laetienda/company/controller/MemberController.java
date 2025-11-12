@@ -2,6 +2,7 @@ package com.laetienda.company.controller;
 
 import com.laetienda.company.service.CompanyService;
 import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -33,5 +34,12 @@ public class MemberController {
     public ResponseEntity<Member> update(@RequestBody @Valid Member member) throws NotValidCustomException{
         log.info("MEMBER_CONTROLLER::modify. $memberId: {}", member.getId());
         return ResponseEntity.ok(service.updateMember(member));
+    }
+
+    @DeleteMapping("${api.company.member.delete.file}") //api/v0/company/member/delete/{companyId}/{userId}
+    public ResponseEntity<Void> delete(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException {
+        log.info("MEMBER_CONTROLLER::delete. $companyId: {} | $userId: {}", companyId, userId);
+        service.deleteMember(companyId, userId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -46,3 +46,6 @@ api:
       update:
         file: member/update
         uri: ${api.company.uri}/${api.company.member.update.file}
+      delete:
+        file: member/delete/{companyId}/{userId}
+        uri: ${api.company.uri}/${api.company.member.delete.file}

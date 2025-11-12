@@ -117,10 +117,21 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
-    public List<Member> findMemberByUserId(Long companyId, String userId) throws NotValidCustomException {
-        log.debug("COMPANY_REPO::findMemberByUserId. $companyId: {} | $user: {}", companyId, userId);
-        String query = String.format("SELECT m FROM %s m INNER JOIN m.company c WHERE c.id = %d AND m.userId = '%s'", Member.class.getName(), companyId, userId);
+    public List<Member> findMemberByUserId(Long cid, String userId) throws NotValidCustomException {
+        log.debug("COMPANY_REPO::findMemberByUserId. $companyId: {} | $user: {}", cid, userId);
+        String query = getQueryFindMemberByUserId(cid, userId);
         return findMembersByQuery(query);
+    }
+
+    @Override
+    public List<Member> findMemberByUserIdNoJwt(Long cid, String userId) throws NotValidCustomException {
+        log.debug("COMPANY_REPO::findMemberByUserIdNoJwt. $companyId: {} | $user: {}", cid, userId);
+        String query = getQueryFindMemberByUserId(cid, userId);
+        return findMembersByQueryNoJwt(query);
+    }
+
+    private String getQueryFindMemberByUserId(Long cid, String userId) throws NotValidCustomException {
+        return String.format("SELECT m FROM %s m INNER JOIN m.company c WHERE c.id = %d AND m.userId = '%s'", Member.class.getName(), cid, userId);
     }
 
     @Override
@@ -130,11 +141,23 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         return findMembersByQuery(query);
     }
 
-    private List<Member> findMembersByQuery(String query) throws NotValidCustomException{
+    private List<Member> findMembersByQuery(String query) throws NotValidCustomException {
         Map<String, String> params = new HashMap<String, String>();
         params.put("query", query);
 
         ResponseEntity<String> response = schema.findByQuery(Member.class, params);
+        return findMembersByQuery(response);
+    }
+
+    private List<Member> findMembersByQueryNoJwt(String query) throws NotValidCustomException{
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("query", query);
+
+        ResponseEntity<String> response = schema.findByQueryNoJwt(Member.class, params);
+        return findMembersByQuery(response);
+    }
+
+    private List<Member> findMembersByQuery(ResponseEntity<String> response) throws NotValidCustomException {
         log.trace("COMPANY_REPO::findMemberByUserId. $response: {}", response.getBody());
 
         try {

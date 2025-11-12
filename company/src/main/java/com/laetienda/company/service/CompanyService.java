@@ -13,7 +13,8 @@ public interface CompanyService {
     Company find(String id) throws NotValidCustomException;
     Company findByName(String name) throws NotValidCustomException;
     void delete(String idStr) throws NotValidCustomException;
-    Company removeMember(Long companyId, String userId) throws NotValidCustomException;
+    Company deleteMember(String companyId, String userId) throws NotValidCustomException;
+    Company deleteMember(Long companyId, String userId) throws NotValidCustomException;
     Member addMember(String companyName, String userId) throws NotValidCustomException;
     Member findMemberByIds(String companyId, String userId) throws NotValidCustomException;
     List<Member> findAllMembers(Long cid) throws NotValidCustomException;

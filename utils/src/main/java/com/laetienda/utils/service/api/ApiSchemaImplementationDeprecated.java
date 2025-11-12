@@ -119,6 +119,11 @@ public class ApiSchemaImplementationDeprecated extends ApiClientImplementation i
     }
 
     @Override
+    public <T> ResponseEntity<String> findByQueryNoJwt(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+        return null;
+    }
+
+    @Override
     public <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException {
         String address = String.format("%s/%s", schemaUri, env.getProperty("api.schema.delete"));
         String encodedClazzName = Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));

@@ -59,6 +59,15 @@ class ClientCompaniesApplicationTests {
     @Value("${api.company.isValid.uri}")
     private String isCompanyValidUri; //api/v0/company/isValid/{companyId}
 
+    @Value("${api.company.member.add.uri}")
+    private String addMemberAddress;
+
+    @Value("${api.company.member.update.uri}")
+    private String updateMemberAddress;
+
+    @Value("${api.company.member.delete.uri}")
+    private String deleteMemberAddress; //api/v0/company/member/delete/{memberId}
+
 	@Test
 	void health() throws Exception {
 		String address = env.getProperty("api.actuator.health.path");
@@ -83,6 +92,7 @@ class ClientCompaniesApplicationTests {
         //TODO: blockFriend
         //TODO: removeFriend
         //TODO: removeMember
+        deleteMember(member);
         deleteCompany(comp);
 	}
 
@@ -213,8 +223,6 @@ class ClientCompaniesApplicationTests {
     }
 
     private Member addMember(Company company) throws Exception{
-        String address = env.getProperty("api.company.member.add.uri");
-        assertNotNull(address);
 
         String tmp = env.getProperty("webapp.user.admin.userId");
         String uid = apiUser.isUserIdValid(tmp);
@@ -226,8 +234,13 @@ class ClientCompaniesApplicationTests {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
+        //add member that already exists
+        mvc.perform(put(addMemberAddress, company.getId(), testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                .andExpect(status().isForbidden());
+
         // add member request to company
-        MvcResult resp = mvc.perform(put(address, company.getId(), uid)
+        MvcResult resp = mvc.perform(put(addMemberAddress, company.getId(), uid)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -247,13 +260,18 @@ class ClientCompaniesApplicationTests {
     }
 
     private Member updateMember(Member member) throws Exception{
-        String address = env.getProperty("api.company.member.update.uri");
-        assertNotNull(address);
 
         assertEquals(CompanyMemberStatus.REQUESTED, member.getStatus());
         member.setStatus(CompanyMemberStatus.ACCEPTED);
 
-        MvcResult response = mvc.perform(put(address)
+        mvc.perform(put(updateMemberAddress)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(member)))
+                .andExpect(status().isUnauthorized());
+
+        MvcResult response = mvc.perform(put(updateMemberAddress)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -262,14 +280,30 @@ class ClientCompaniesApplicationTests {
         Member result = json.readValue(response.getResponse().getContentAsString(), Member.class);
         assertEquals(CompanyMemberStatus.ACCEPTED, result.getStatus());
 
-        result.setUserId(testUserId);
-        mvc.perform(put(address)
+        member.setUserId(testUserId);
+        mvc.perform(put(updateMemberAddress)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json.writeValueAsBytes(result)))
+                        .content(json.writeValueAsBytes(member)))
                 .andExpect(status().isBadRequest());
 
         return result;
+    }
+
+    private void deleteMember(Member member) throws Exception {
+        mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        mvc.perform(delete(deleteMemberAddress, member.getCompany().getId(), member.getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
 	@Test

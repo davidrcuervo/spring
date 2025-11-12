@@ -12,7 +12,6 @@ import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -82,14 +81,20 @@ public class CompanyServiceImplementation implements CompanyService{
         List<Member> members = findAllMembers(cid);
 
         for(Member member : members){
-            removeMember(cid, member.getUserId());
+            deleteMember(cid, member.getUserId());
         }
 
         repo.deleteById(cid);
     }
 
     @Override
-    public Company removeMember(Long companyId, String userId) throws NotValidCustomException {
+    public Company deleteMember(String companyId, String userId) throws NotValidCustomException {
+        Long cid = isCompanyValid(companyId);
+        return deleteMember(cid, userId);
+    }
+
+    @Override
+    public Company deleteMember(Long companyId, String userId) throws NotValidCustomException {
         log.debug("COMPANY_SERVICE::removeMember. $company: {} | $userId: {}", companyId, userId);
 
         Member member = findMemberByIds(companyId.toString(), userId);
@@ -105,6 +110,14 @@ public class CompanyServiceImplementation implements CompanyService{
         Company company = repo.findNoJwt(cid);
         CompanyMemberPolicy policy = company.getMemberPolicy();
         CompanyMemberStatus status = CompanyMemberStatus.REQUESTED;
+
+        List<Member> temp = repo.findMemberByUserIdNoJwt(cid, userId);
+
+        if(temp != null && !temp.isEmpty()){
+            String message = String.format("Member already exists. $companyId: %d | $userId: %s", cid, uid);
+            log.warn("COMPANY_MEMBER::addMember. $message: {}", message);
+            throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "member");
+        }
 
         if(policy == CompanyMemberPolicy.PUBLIC || policy == CompanyMemberPolicy.REGISTRATION_REQUIRED) {
             status = CompanyMemberStatus.ACCEPTED;
@@ -150,6 +163,7 @@ public class CompanyServiceImplementation implements CompanyService{
         log.debug("COMPANY_SERVICE::updateMember. $memberId: {}", member.getId());
 
         Member temp = apiSchema.findById(Member.class, member.getId()).getBody();
+        String currentUserId = apiUser.getCurrentUserId();
 
         if(temp == null){
             String message = String.format("Member does not exist. $memberId: %d", member.getId());
@@ -167,6 +181,13 @@ public class CompanyServiceImplementation implements CompanyService{
             String message = String.format("Company of member can't be modified. $companyId: %s", member.getCompany().getId());
             log.error(message);
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "member");
+        }
+
+        if(!temp.getStatus().equals(member.getStatus()) &&
+                !(member.getCompany().getOwner().equals(currentUserId)) || member.getCompany().getEditors().contains(currentUserId)){
+            String message = String.format("Current user does not have privileges to modify status of member. $currentUserId: %s | $memberId: %d", currentUserId, member.getId());
+            log.warn(message);
+            throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "member");
         }
 
         return repo.updateMember(member);

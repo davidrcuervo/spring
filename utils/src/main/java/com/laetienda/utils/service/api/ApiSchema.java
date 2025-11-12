@@ -21,6 +21,7 @@ public interface ApiSchema extends ApiClient {
     <T> ResponseEntity<T> find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
     <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws NotValidCustomException;
     <T> ResponseEntity<String> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
+    <T> ResponseEntity<String> findByQueryNoJwt(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
     <T> ResponseEntity<String> delete(Class<T> clazz, Map<String, String> body) throws HttpClientErrorException;
     <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws NotValidCustomException;
     <T> ResponseEntity<T> update(Class<T> clazz, DbItem item) throws NotValidCustomException;
