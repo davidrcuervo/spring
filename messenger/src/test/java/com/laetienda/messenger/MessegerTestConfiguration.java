@@ -5,7 +5,7 @@ import com.laetienda.utils.service.api.MessengerApiImplementation;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
-@TestConfiguration
+//@TestConfiguration
 public class MessegerTestConfiguration {
 //
 //    @Bean

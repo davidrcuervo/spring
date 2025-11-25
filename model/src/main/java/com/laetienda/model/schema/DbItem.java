@@ -42,6 +42,8 @@ public abstract class DbItem {
     @Column(name = "modified", insertable = false, updatable = true)
     private LocalDateTime modified;
 
+    public DbItem(){}
+
     public Long getId() {
         return id;
     }

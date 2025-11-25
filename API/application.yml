@@ -14,6 +14,20 @@ api:
     isUserIdValid:
       file: /isUserIdValid/{userId}
       uri: ${api.kcUser}${api.kcUser.isUserIdValid.file}
+    file:
+      findEmailAddress: /findEmailAddress/{userId}
+    uri:
+      findEmailAddress: ${api.kcUser}${api.kcUser.file.findEmailAddress}
+  mail:
+    url: http://etmail:${PORT_MESSENGER}
+    folder: /api/v0/email
+    file:
+      test: test
+      send: send
+    uri:
+      folder: ${api.mail.url}${api.mail.folder}
+      test: ${api.mail.uri.folder}/${api.mail.file.test}
+      send: ${api.mail.uri.folder}/${api.mail.file.send}
   company:
     url: http://company:${PORT_COMPANY}
     folder: /api/v0/company
@@ -49,3 +63,16 @@ api:
       delete:
         file: member/delete/{companyId}/{userId}
         uri: ${api.company.uri}/${api.company.member.delete.file}
+    friend:
+      find:
+        file: friend/{companyId}/{memberUserId}/{friendUserId}
+        uri: ${api.company.uri}/${api.company.friend.find.file}
+      add:
+        file: friend/add/{companyId}/{memberUserId}/{friendUserId}
+        uri: ${api.company.uri}/${api.company.friend.add.file}
+      update:
+        file: friend/update
+        uri:  ${api.company.uri}/${api.company.friend.update.file}
+      delete:
+        file: friend/delete/{companyId}/{memberUserId}/{friendUserId}
+        uri: ${api.company.uri}/${api.company.friend.delete.file}

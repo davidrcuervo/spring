@@ -1,99 +1,106 @@
 package com.laetienda.messenger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.messager.EmailMessage;
-import com.laetienda.model.user.Usuario;
-import com.laetienda.utils.service.api.MessengerApi;
-import com.laetienda.utils.service.api.UserApiDeprecated;
+import com.laetienda.utils.service.api.ApiUser;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
+@AutoConfigureMockMvc
 class MessengerApplicationTests {
 	final private static Logger log = LoggerFactory.getLogger(MessengerApplicationTests.class);
 
-	@Value("${local.server.port}")
-	private int port;
+    private static String jwtTestUser;
 
-	@Value("${api.usuario.port}")
-	private String apiUserPort;
+    @Autowired private Environment env;
+    @Autowired private MockMvc mvc;
+    @Autowired private ObjectMapper json;
+    @Autowired private ApiUser apiUser;
 
-	@Autowired
-	private MessengerApi messengerApi;
+    @Value("${webapp.user.test.userId}")
+    private String testUserId;
 
-	@Autowired
-	private UserApiDeprecated userApiDeprecated;
+    @Test
+    void health() throws Exception{
+        String address = env.getProperty("api.actuator.health.path");
+        assertNotNull(address);
 
-	@BeforeEach
-	public void setPorts(){
-		userApiDeprecated.setPort(apiUserPort);
-	}
+        mvc.perform(get(address))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void test() throws Exception {
+        String address = env.getProperty("api.mail.uri.test");
+        assertNotNull(address);
+
+        mvc.perform(get(address)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtTestUser()))
+                .andExpect(status().isNoContent());
+    }
 
 	@Test
-	void testSendMessage(){
-		log.trace("MESSENGER_TEST::testSendMessage");
+	void send() throws Exception {
+        String address = env.getProperty("api.mail.uri.send");
+        assertNotNull(address);
 
 		EmailMessage message = new EmailMessage();
 
 		//It should fail because message is missing subject, message and addresses
-		HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-			ResponseEntity<String> resp =
-					((MessengerApi)messengerApi.setPort(port))
-					.sendMessage(message);
-		});
-		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode(), "Message is missing subject, message and addresses");
+		mvc.perform(post(address)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtTestUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(message)))
+                .andExpect(status().isBadRequest());
 
 		//It should fail because message is missing information
 		message.setSubject("Web project. Spring Java Mailer test");
-		HttpClientErrorException ex1 = assertThrows(HttpClientErrorException.class, () -> {
-			ResponseEntity<String> resp = messengerApi.sendMessage(message);
-		});
-		assertEquals(HttpStatus.BAD_REQUEST, ex1.getStatusCode());
+		mvc.perform(post(address)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtTestUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(message)))
+                .andExpect(status().isBadRequest());
 
 		//It should fail because message is missing information
 		message.addToAddress("davidrcuervo@outlook.com");
-		HttpClientErrorException ex2 = assertThrows(HttpClientErrorException.class, () -> {
-			ResponseEntity<String> resp = messengerApi.sendMessage(message);
-		});
-		assertEquals(HttpStatus.BAD_REQUEST, ex2.getStatusCode(), "Message is missing subject, message and addresses");
+		mvc.perform(post(address)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtTestUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(message)))
+                .andExpect(status().isBadRequest());
 
 		//All required information has been added message should be sent
 		message.setView("default/test.html");
-		ResponseEntity<String> resp = messengerApi.sendMessage(message);
-		assertEquals(HttpStatus.OK, resp.getStatusCode());
-		assertNotNull(resp.getBody());
-		assertTrue(Boolean.valueOf(resp.getBody()));
+		mvc.perform(post(address)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtTestUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(message)))
+                .andExpect(status().isNoContent());
 	}
 
-	@Test
-	public void testHelloWorld(){
-		ResponseEntity<String> resp = ((MessengerApi)messengerApi.setPort(port)).helloWord();
-		assertEquals(HttpStatus.OK, resp.getStatusCode());
-		assertNotNull(resp.getBody());
-		assertEquals("Hola mundo", resp.getBody());
-	}
+    public String getJwtTestUser() throws Exception {
 
-	@Test
-	public void testSimplePost(){
-		Usuario user = new Usuario(
-				"testSimplePost",
-				"Simple","Post","Test Messenger",
-				"testSimplePost@mail.com",
-				"secretpassword","secretpassword"
-		);
+        if(jwtTestUser == null){
+            String username = env.getProperty("webapp.user.test.username");
+            String password = env.getProperty("webapp.user.test.password");
+            jwtTestUser = apiUser.getToken(username, password);
+        }
 
-		HttpClientErrorException ex = assertThrows(HttpClientErrorException.class, () -> {
-			((MessengerApi)messengerApi.setPort(port)).testSimplePost(user);
-		});
-
-		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-	}
+        return jwtTestUser;
+    }
 }

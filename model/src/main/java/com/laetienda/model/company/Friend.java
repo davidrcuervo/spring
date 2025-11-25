@@ -11,7 +11,7 @@ public class Friend extends DbItem {
     @NotNull
     @OneToOne
     @JoinColumn(name="friend_id")
-    private Member friend;
+    private Member buddy;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -24,9 +24,14 @@ public class Friend extends DbItem {
 
     public Friend(){}
 
-    public Friend(Member friend, CompanyFriendStatus status){
-        setFriend(friend);
+    public Friend(Member member, Member buddyMember, CompanyFriendStatus status){
+        setBuddy(buddyMember);
         setStatus(status);
+        setMember(member);
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
     }
 
     public CompanyFriendStatus getStatus() {
@@ -38,16 +43,16 @@ public class Friend extends DbItem {
         return this;
     }
 
-    public Member getFriend() {
-        return friend;
+    public Member getBuddy() {
+        return buddy;
     }
 
-    public Friend setFriend(Member friend) {
-        this.friend = friend;
+    public Friend setBuddy(Member buddy) {
+        this.buddy = buddy;
         return this;
     }
 
-    private Member getMember(){
+    public Member getMember(){
         return this.member;
     }
 }

@@ -116,7 +116,7 @@ public class SchemaController {
         log.debug("SCHEMA_CONTROLLER::delete $clazzName: {}", clazzName);
 
         try {
-            Class clazz = Class.forName(clazzName);
+            Class<?> clazz = Class.forName(clazzName);
             itemService.delete(clazz, body);
             return ResponseEntity.ok(true);
         } catch (ClassNotFoundException e) {

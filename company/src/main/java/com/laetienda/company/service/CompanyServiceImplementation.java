@@ -1,10 +1,12 @@
 package com.laetienda.company.service;
 
 import com.laetienda.company.repository.CompanyRepository;
+import com.laetienda.company.repository.FriendRepository;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
 import com.laetienda.model.company.Company;
+import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
 import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.ApiUser;
@@ -24,6 +26,7 @@ public class CompanyServiceImplementation implements CompanyService{
     @Autowired private CompanyRepository repo;
     @Autowired private ApiUser apiUser;
     @Autowired private ApiSchema apiSchema;
+    @Autowired private FriendRepository repoFriend;
 
     @Override
     public Company create(@NotNull Company company) throws NotValidCustomException {
@@ -98,6 +101,11 @@ public class CompanyServiceImplementation implements CompanyService{
         log.debug("COMPANY_SERVICE::removeMember. $company: {} | $userId: {}", companyId, userId);
 
         Member member = findMemberByIds(companyId.toString(), userId);
+
+        for(Friend f : repoFriend.findAll(companyId, userId)){
+            repoFriend.delete(f);
+        }
+
         return repo.removeMember(member);
     }
 

@@ -1,12 +1,13 @@
 package com.laetienda.company;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.options.CompanyFriendStatus;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
 import com.laetienda.model.company.Company;
+import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
 import com.laetienda.utils.service.api.ApiUser;
-import jdk.jfr.ContentType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -68,6 +69,18 @@ class ClientCompaniesApplicationTests {
     @Value("${api.company.member.delete.uri}")
     private String deleteMemberAddress; //api/v0/company/member/delete/{memberId}
 
+    @Value("${api.company.friend.find.uri}")
+    private String findFriendAddress;
+
+    @Value("${api.company.friend.add.uri}")
+    private String addFriendAddress;
+
+    @Value("${api.company.friend.update.uri}")
+    private String updateFriendAddress;
+
+    @Value("${api.company.friend.delete.uri}")
+    private String deleteFriendAddress;
+
 	@Test
 	void health() throws Exception {
 		String address = env.getProperty("api.actuator.health.path");
@@ -87,11 +100,12 @@ class ClientCompaniesApplicationTests {
         Member member = addMember(comp);
         comp = updateCompany(comp);
         member = updateMember(member);
-        //TODO: sendFriendRequest
+        Friend friend = sendFriendRequest(member);
         //TODO: acceptFriend
         //TODO: blockFriend
         //TODO: removeFriend
         //TODO: removeMember
+        //TODO: modifyCompanyOwner
         deleteMember(member);
         deleteCompany(comp);
 	}
@@ -304,6 +318,40 @@ class ClientCompaniesApplicationTests {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    private Friend sendFriendRequest(Member member)throws Exception{
+
+        Long cid = member.getCompany().getId();
+
+        //friend/find/{companyId}/{memberUserId}/{friendUserId}
+        mvc.perform(get(findFriendAddress, cid, adminUserId, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                .andExpect(status().isNotFound());
+
+        //friend/add/{companyId}/{memberUserId}/{friendUserId}
+        MvcResult response = mvc.perform(put(addFriendAddress, cid, adminUserId, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
+        assertEquals(CompanyFriendStatus.REQUESTED, result.getStatus());
+
+        mvc.perform(get(findFriendAddress, cid, adminUserId, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        mvc.perform(put(addFriendAddress, cid, adminUserId, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(put(addFriendAddress, cid, testUserId, adminUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                .andExpect(status().isForbidden());
+
+        return result;
     }
 
 	@Test

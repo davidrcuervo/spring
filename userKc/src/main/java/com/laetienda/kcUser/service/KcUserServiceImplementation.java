@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,12 @@ public class KcUserServiceImplementation implements KcUserService{
         } else{
             return null;
         }
+    }
+
+    @Override
+    public String getEmailAddress(String userId) throws HttpStatusCodeException {
+        log.debug("USER_SERVICE::getEmailAddress. $userId: {}", userId);
+        return repo.findByUserId(userId).getEmail();
     }
 
     private KcUser findByUsername(String username) throws NotValidCustomException{

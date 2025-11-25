@@ -273,6 +273,13 @@ FROM etimage AS etschema
 RUN --mount=type=bind,source=schema,target=src/schema bin/compile.sh schema
 
 ############################################
+## SCHEMA SERVICE
+############################################
+FROM etimage AS etmail
+
+RUN --mount=type=bind,source=messenger,target=src/messenger bin/compile.sh messenger
+
+############################################
 ## FRONTEND SERVICE
 ############################################
 FROM etimage AS frontend

@@ -2,15 +2,11 @@ package com.laetienda.messenger.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.messager.EmailMessage;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 public interface EmailService {
 
-    /**
-     * Send message
-     * @param message
-     * @throws NotValidCustomException
-     */
-    void sendMessage(EmailMessage message) throws NotValidCustomException;
-    public void testMailer();
+    void send(EmailMessage message) throws HttpStatusCodeException;
+    void test() throws HttpStatusCodeException;
 }

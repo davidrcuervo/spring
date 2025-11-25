@@ -1,5 +1,5 @@
 package com.laetienda.lib.options;
 
 public enum CompanyFriendStatus {
-    REQUEST_SUBMITTED, REQUEST_RECEIVED, ACCEPTED, BLOCKED
+    REQUESTED, ACCEPTED, BLOCKED_BY_SENDER, BLOCKED_BY_RECEIVER
 }

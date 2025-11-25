@@ -14,6 +14,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -83,19 +84,13 @@ public class KcUserRepositoryImplementation implements KcUserRepository {
     }
 
     @Override
-    public KcUser findByUserId(String userId) {
+    public KcUser findByUserId(String userId) throws HttpStatusCodeException {
         String address = env.getProperty("api.kc.admin.user.byUserId", "/admin/master/users/{userId}");
-        log.debug("USER_REPOSITORY::isUserIdValid $userId: {} | $clientId: {} | $address: {}", userId, clientId, address);
+        log.debug("USER_REPOSITORY::findByUserId $userId: {} | $clientId: {} | $address: {}", userId, clientId, address);
 
-        try {
-            return client.get().uri(address, userId)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .attributes(clientRegistrationId(clientId))
-                    .retrieve().toEntity(KcUser.class).getBody();
-        }catch (HttpClientErrorException | HttpServerErrorException e){
-            log.warn(e.getMessage());
-            log.trace(e.getMessage(), e);
-            return null;
-        }
+        return client.get().uri(address, userId)
+                .accept(MediaType.APPLICATION_JSON)
+                .attributes(clientRegistrationId(clientId))
+                .retrieve().toEntity(KcUser.class).getBody();
     }
 }

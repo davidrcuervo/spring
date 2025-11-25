@@ -160,9 +160,9 @@ services:
       start_period: 2m
     build:
       target: etuser
-    volumes:
-      - ./application.yml:/opt/webapp/etc/application.yml
-      - ./docker/scripts/webapp:/opt/webapp/bin
+#    volumes:
+#      - ./application.yml:/opt/webapp/etc/application.yml
+#      - ./docker/scripts/webapp:/opt/webapp/bin
 
   etschema:
     image: etschema:1.0
@@ -193,33 +193,39 @@ services:
       start_period: 2m
     build:
       target: etschema
-    volumes:
-      - ./application.yml:/opt/webapp/etc/application.yml
-      - ./docker/scripts/webapp:/opt/webapp/bin
+#    volumes:
+#      - ./application.yml:/opt/webapp/etc/application.yml
+#      - ./docker/scripts/webapp:/opt/webapp/bin
 
-  messengeret:
-    image: messengerapp:1.0
+  etmail:
+    image: etmail:1.0
     user: webappuser
     working_dir: /opt/webapp
-    entrypoint: ./spring/messenger/start.sh
+    entrypoint: [ "./bin/safestart.sh" ]
+    command:
+      - messenger
+      - ${PORT_MESSENGER}
     secrets:
       - jasypt-password
     depends_on:
-      keycloaketcnf:
+      etuser:
         condition: service_healthy
     networks:
       - backend
-#    ports:
-#      - "8082:8082"
+    ports:
+      - "8082:8082"
     env_file:
       - .env
     environment:
       - HOME=/opt/webapp
-    #    volumes:
-    #      - /mnt/c/Users/I849921/IdeaProjects:/opt/webapp
+    healthcheck:
+      test: [ "CMD","curl","--fail","http://etmail:8082/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
     build:
-      #      dockerfile: dockerfiles/myjava.21.Dockerfile
-      target: messengerapp
+      target: etmail
 
   frontend:
     image: frontend:1.0
@@ -235,6 +241,8 @@ services:
       etuser:
         condition: service_healthy
       etschema:
+        condition: service_healthy
+      etmail:
         condition: service_healthy
     networks:
       - backend

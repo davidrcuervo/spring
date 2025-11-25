@@ -1,11 +1,13 @@
 package com.laetienda.kcUser.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
@@ -26,17 +28,18 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-//@Import(RestClientConfiguration.class)
 class UserControllerTest {
     private final static Logger log = LoggerFactory.getLogger(UserControllerTest.class);
 
-//    private final RestClient client;
     @Autowired private MockMvc mvc;
     @Autowired private Environment env;
+    @Autowired private ObjectMapper json;
 
-//    UserControllerTest(RestClient restClient){
-//        this.client = restClient;
-//    }
+    @Value("${webapp.user.test.userId}")
+    private String testUserId;
+
+    @Value("${webapp.user.admin.username}")
+    private String adminUserId;
 
     @Test
     void unrestricted() throws Exception {
@@ -110,6 +113,8 @@ class UserControllerTest {
 
     String getToken(String username, String password) throws Exception {
         String address = env.getProperty("api.kcUser.token.uri"); //http://127.0.0.1:8081/token
+        assertNotNull(address);
+
         log.debug("KC_USER_TEST::getToken. $address: {}", address);
 
         MultiValueMap<String, String> creds = new LinkedMultiValueMap<>();
@@ -178,5 +183,30 @@ class UserControllerTest {
 
         mvc.perform(get(address, "invalid-service-id").with(jwt()))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void findEmailAddress() throws Exception{
+        String address = env.getProperty("api.kcUser.uri.findEmailAddress");
+        assertNotNull(address);
+
+        MvcResult response = mvc.perform(get(address, testUserId)
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        log.trace("USER_TEST::findEmailAddress. $response: {}", response.getResponse().getContentAsString());
+        String result = response.getResponse().getContentAsString();
+        assertEquals("myself@la-etienda.com", result);
+
+        mvc.perform(get(address, "not-valid-user-id")
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", testUserId)))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        mvc.perform(get(address, "not-valid-user-id")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
     }
 }

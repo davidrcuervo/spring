@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
@@ -89,5 +90,15 @@ public class ApiUserImplementation implements ApiUser{
         log.trace("API_USER::getCurrentUser. $apiResponse: {}", result);
 
         return result;
+    }
+
+    @Override
+    public String getEmailAddress(String userId) throws HttpStatusCodeException {
+        String address = env.getProperty("api.kcUser.uri.findEmailAddress", "/findEmailAddress/{userId}");
+        log.debug("API_USER::getEmailAddress. $userId: {}", userId);
+
+        return client.get().uri(address, userId)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve().toEntity(String.class).getBody();
     }
 }

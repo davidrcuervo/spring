@@ -225,7 +225,7 @@ public class ItemServiceImplementation implements ItemService{
                 return schemaRepo.deleteUserById(userId);
 
             }else{
-                String message = String.format("User, %s, is owner if database items and can't be removed", userId);
+                String message = String.format("User, %s, is owner of database items and can't be removed", userId);
                 log.warn(message);
                 throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "Item");
             }

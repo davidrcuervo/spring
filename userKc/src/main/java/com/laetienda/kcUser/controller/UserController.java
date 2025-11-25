@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.security.Principal;
 
@@ -25,25 +26,25 @@ public class UserController {
 
     @GetMapping("${api.kcUser.find.file}") //find.html
     public ResponseEntity<KcUser> find(){
-        log.trace("USER_CONTROLLER::find");
+        log.info("USER_CONTROLLER::find");
         return ResponseEntity.ok(service.find());
     }
 
     @PostMapping("${api.kcUser.token.file}")
     public ResponseEntity<String> getToken(@RequestParam MultiValueMap<String, String> creds){
-        log.trace("USER_CONTROLLER::getToken $username: {}", creds.get("username"));
+        log.info("USER_CONTROLLER::getToken $username: {}", creds.get("username"));
         return ResponseEntity.ok(service.getToken(creds));
     }
 
     @GetMapping("${api.kcUser.isUsernameValid.file}")
     public ResponseEntity<String> isUsernameValid(@PathVariable String username) throws NotValidCustomException {
-        log.debug("USER_CONTROLLER::isUsernameValid. $username: {}", username);
+        log.info("USER_CONTROLLER::isUsernameValid. $username: {}", username);
         return ResponseEntity.ok(service.isUsernameValid(username));
     }
 
     @GetMapping("${api.kcUser.isUserIdValid.file}")
     public ResponseEntity<String> isUserIdValid(@PathVariable String userId) throws NotValidCustomException {
-        log.debug("USER_CONTROLLER::isUserIdValid. $userId: {}", userId);
+        log.info("USER_CONTROLLER::isUserIdValid. $userId: {}", userId);
         return ResponseEntity.ok(service.isUserIdValid(userId));
     }
 
@@ -89,6 +90,12 @@ public class UserController {
 
         return ResponseEntity.ok(String.format("Successful login. $user: %s", principal.getName()));
 //        return ResponseEntity.ok("Successful login");
+    }
+
+    @GetMapping("${api.kcUser.file.findEmailAddress}") //api/v0/user/findEmailAddress/{userId}
+    public ResponseEntity<String> getEmailAddress(@PathVariable String userId) throws HttpStatusCodeException {
+        log.info("USER_CONTROLLER::getEmailAddress. $userId: {}", userId);
+        return ResponseEntity.ok(service.getEmailAddress(userId));
     }
 
     @GetMapping("${api.usuario.testAuthorization.file}")//api/v0/user/testAuthorization.html
