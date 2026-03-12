@@ -7,9 +7,11 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 public interface FriendService {
-    Friend find(String companyId, String memberUserId, String friendUserId) throws NotValidCustomException;
+    Friend find(String companyId, String userId) throws NotValidCustomException;
     List<Friend> findAll(String companyId, String userId) throws NotValidCustomException;
-    Friend add(String companyId, String memberUserId, String friendUserId) throws NotValidCustomException;
-    Friend update(@Valid Friend friend) throws NotValidCustomException;
-    void delete(String companyId, String memberUserId, String friendUserId) throws NotValidCustomException;
+    Friend add(String companyId, String userId) throws NotValidCustomException;
+    void delete(String companyId, String userId) throws NotValidCustomException;
+    Friend accept(String companyId, String userId) throws NotValidCustomException;
+    Friend block(String companyId, String userId) throws NotValidCustomException;
+    Friend unblock(String companyId, String userId) throws NotValidCustomException;
 }

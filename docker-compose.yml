@@ -160,8 +160,8 @@ services:
       start_period: 2m
     build:
       target: etuser
-#    volumes:
-#      - ./application.yml:/opt/webapp/etc/application.yml
+    volumes:
+      - ./application.yml:/opt/webapp/etc/application.yml
 #      - ./docker/scripts/webapp:/opt/webapp/bin
 
   etschema:
@@ -193,8 +193,8 @@ services:
       start_period: 2m
     build:
       target: etschema
-#    volumes:
-#      - ./application.yml:/opt/webapp/etc/application.yml
+    volumes:
+      - ./application.yml:/opt/webapp/etc/application.yml
 #      - ./docker/scripts/webapp:/opt/webapp/bin
 
   etmail:
@@ -226,6 +226,8 @@ services:
       start_period: 2m
     build:
       target: etmail
+    volumes:
+      - ./application.yml:/opt/webapp/etc/application.yml
 
   frontend:
     image: frontend:1.0

@@ -45,4 +45,22 @@ public class EmailServiceImplementation implements EmailService{
             throw new NotValidCustomException(e);
         }
     }
+
+    @Override
+    public void acceptFriendRequest(Friend friend) throws NotValidCustomException {
+        log.debug("EMAIL_SERVICE::acceptFriendRequest");
+
+        try{
+            if(flag){
+                String memberUserId = friend.getMember().getUserId();
+                String address = apiUser.getEmailAddress(memberUserId);
+                EmailMessage message = new EmailMessage("company/AcceptFriendRequest.html", address, "Friend request has been accepted");
+                message.setItem(friend, Friend.class);
+                email.send(message);
+            }
+
+        }catch(HttpStatusCodeException e){
+            throw new NotValidCustomException(e);
+        }
+    }
 }

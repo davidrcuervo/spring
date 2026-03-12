@@ -64,15 +64,15 @@ api:
         file: member/delete/{companyId}/{userId}
         uri: ${api.company.uri}/${api.company.member.delete.file}
     friend:
-      find:
-        file: friend/{companyId}/{memberUserId}/{friendUserId}
-        uri: ${api.company.uri}/${api.company.friend.find.file}
-      add:
-        file: friend/add/{companyId}/{memberUserId}/{friendUserId}
-        uri: ${api.company.uri}/${api.company.friend.add.file}
-      update:
-        file: friend/update
-        uri:  ${api.company.uri}/${api.company.friend.update.file}
-      delete:
-        file: friend/delete/{companyId}/{memberUserId}/{friendUserId}
-        uri: ${api.company.uri}/${api.company.friend.delete.file}
+      file:
+        find: friend/{companyId}/{userId}
+        add: friend/add/{companyId}/{userId}
+        accept: friend/accept/{companyId}/{userId}
+        block: friend/block/{companyId}/{userId}
+        unblock: friend/unblock/{companyId}/{userId}
+      uri:
+        find: ${api.company.uri}/${api.company.friend.file.find}
+        add: ${api.company.uri}/${api.company.friend.file.add}
+        accept: ${api.company.uri}/${api.company.friend.file.accept}
+        block: ${api.company.uri}/${api.company.friend.file.block}
+        unblock: ${api.company.uri}/${api.company.friend.file.unblock}

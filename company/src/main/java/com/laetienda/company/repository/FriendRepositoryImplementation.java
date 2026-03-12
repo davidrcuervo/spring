@@ -68,7 +68,8 @@ public class FriendRepositoryImplementation implements FriendRepository {
 
     @Override
     public Friend update(Friend friend) throws NotValidCustomException {
-        return null;
+        log.debug("FRIEND_REPOSITORY::update. $friendId: {}", friend.getId());
+        return apiSchema.update(Friend.class, friend).getBody();
     }
 
     @Override

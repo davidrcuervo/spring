@@ -98,7 +98,7 @@ public class SchemaController {
     @PutMapping("${api.schema.updatePath}")
     public <T> ResponseEntity<T> update(@RequestParam String clase, @RequestBody String data) throws NotValidCustomException {
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
-        log.debug("SCHEMA_CONTROLER::update $clazzName: {}", clazzName);
+        log.debug("SCHEMA_CONTROLLER::update $clazzName: {}", clazzName);
 
         try{
             Class<T> clazz = (Class<T>) Class.forName(clazzName);

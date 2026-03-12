@@ -17,7 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class CompanyServiceImplementation implements CompanyService{
@@ -227,6 +230,15 @@ public class CompanyServiceImplementation implements CompanyService{
             throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "company");
         }
 
+        if(new HashSet<String>(company.getEditors()).containsAll(temp.getEditors())
+                || new HashSet<String>(temp.getEditors()).containsAll(company.getEditors())){
+            companyAddManager(temp, company);
+        }
+
+        if(!temp.getOwner().equals(company.getOwner())){
+            modifyCompanyOwner(temp, company);
+        }
+
         return repo.updateCompany(company);
     }
 
@@ -241,6 +253,39 @@ public class CompanyServiceImplementation implements CompanyService{
                 return true;
             }else{
                 throw e;
+            }
+        }
+    }
+
+    private void modifyCompanyOwner(Company temp, Company company) throws NotValidCustomException {
+
+        String newOwnerUserId = company.getOwner();
+        List<Member> members = findAllMembers(temp.getId());
+
+        for(Member member : members){
+            if(!member.getEditors().contains(newOwnerUserId)) {
+                member.addEditor(newOwnerUserId);
+                repo.updateMember(member);
+            }
+        }
+    }
+
+    private void companyAddManager(Company temp, Company company) throws NotValidCustomException {
+        Set<String> tempManagers = new HashSet<>(temp.getEditors());
+        Set<String> companyManagers = new HashSet<>(company.getEditors());
+        List<Member> members = findAllMembers(temp.getId());
+
+        tempManagers.removeAll(companyManagers);
+        for(String userId : tempManagers){
+            for(Member member : members){
+                member.removeEditor(userId);
+            }
+        }
+
+        companyManagers.removeAll(new HashSet<>(temp.getEditors()));
+        for(String userId : companyManagers){
+            for(Member member: members){
+                member.addEditor(userId);
             }
         }
     }

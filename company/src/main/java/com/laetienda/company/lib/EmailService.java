@@ -6,4 +6,5 @@ import com.laetienda.model.messager.EmailMessage;
 
 public interface EmailService {
     void sendFriendRequest(Friend friend) throws NotValidCustomException;
+    void acceptFriendRequest(Friend friend) throws NotValidCustomException;
 }

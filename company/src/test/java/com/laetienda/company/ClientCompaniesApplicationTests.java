@@ -60,6 +60,9 @@ class ClientCompaniesApplicationTests {
     @Value("${api.company.isValid.uri}")
     private String isCompanyValidUri; //api/v0/company/isValid/{companyId}
 
+    @Value("${api.company.update.uri}") //api/v0/company/update
+    private String updateCompanyAddress;
+
     @Value("${api.company.member.add.uri}")
     private String addMemberAddress;
 
@@ -69,17 +72,11 @@ class ClientCompaniesApplicationTests {
     @Value("${api.company.member.delete.uri}")
     private String deleteMemberAddress; //api/v0/company/member/delete/{memberId}
 
-    @Value("${api.company.friend.find.uri}")
+    @Value("${api.company.friend.uri.find}")
     private String findFriendAddress;
 
-    @Value("${api.company.friend.add.uri}")
+    @Value("${api.company.friend.uri.add}")
     private String addFriendAddress;
-
-    @Value("${api.company.friend.update.uri}")
-    private String updateFriendAddress;
-
-    @Value("${api.company.friend.delete.uri}")
-    private String deleteFriendAddress;
 
 	@Test
 	void health() throws Exception {
@@ -101,16 +98,17 @@ class ClientCompaniesApplicationTests {
         comp = updateCompany(comp);
         member = updateMember(member);
         Friend friend = sendFriendRequest(member);
-        //TODO: acceptFriend
-        //TODO: blockFriend
-        //TODO: removeFriend
-        //TODO: removeMember
+        friend = acceptFriend(friend);
+        friend = blockFriend(friend);
+        friend = unblockFriend(friend);
+        comp = companyAddManager(comp);
         //TODO: modifyCompanyOwner
-        deleteMember(member);
-        deleteCompany(comp);
+        //TODO: companyRemoveManager
+//        deleteMember(member);
+//        deleteCompany(comp);
 	}
 
-	private Company create(Company company) throws Exception {
+    private Company create(Company company) throws Exception {
 
 		MvcResult response = mvc.perform(post(createAddress)
 				.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
@@ -146,11 +144,10 @@ class ClientCompaniesApplicationTests {
 	}
 
     private Company updateCompany(Company company) throws Exception {
-        String address = env.getProperty("api.company.update.uri");
         String description = "Description of the company has been added.";
         Company temp = new Company("updateCompany", CompanyMemberPolicy.PUBLIC);
         temp.setOwner(adminUserId);
-        assertNotNull(address);
+        assertNotNull(updateCompanyAddress);
 
         assertNull(company.getDescription());
         company.setDescription(description);
@@ -164,7 +161,7 @@ class ClientCompaniesApplicationTests {
                 .andReturn();
         temp = json.readValue(response.getResponse().getContentAsString(), Company.class);
 
-        response = mvc.perform(put(address)
+        response = mvc.perform(put(updateCompanyAddress)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -175,7 +172,7 @@ class ClientCompaniesApplicationTests {
         assertEquals(description, result.getDescription());
 
         company.setName(temp.getName());
-        mvc.perform(put(address)
+        mvc.perform(put(updateCompanyAddress)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -184,7 +181,7 @@ class ClientCompaniesApplicationTests {
 
         company.setName(result.getName());
         company.setMemberPolicy(CompanyMemberPolicy.PUBLIC);
-        mvc.perform(put(address)
+        mvc.perform(put(updateCompanyAddress)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -325,12 +322,12 @@ class ClientCompaniesApplicationTests {
         Long cid = member.getCompany().getId();
 
         //friend/find/{companyId}/{memberUserId}/{friendUserId}
-        mvc.perform(get(findFriendAddress, cid, adminUserId, testUserId)
+        mvc.perform(get(findFriendAddress, cid, testUserId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
                 .andExpect(status().isNotFound());
 
         //friend/add/{companyId}/{memberUserId}/{friendUserId}
-        MvcResult response = mvc.perform(put(addFriendAddress, cid, adminUserId, testUserId)
+        MvcResult response = mvc.perform(put(addFriendAddress, cid, testUserId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -338,24 +335,115 @@ class ClientCompaniesApplicationTests {
         Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
         assertEquals(CompanyFriendStatus.REQUESTED, result.getStatus());
 
-        mvc.perform(get(findFriendAddress, cid, adminUserId, testUserId)
+        mvc.perform(get(findFriendAddress, cid, testUserId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        mvc.perform(put(addFriendAddress, cid, adminUserId, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+        mvc.perform(put(addFriendAddress, cid, adminUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(put(addFriendAddress, cid, testUserId, adminUserId)
+        mvc.perform(put(addFriendAddress, cid, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(get(findFriendAddress, cid, testUserId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
                 .andExpect(status().isForbidden());
 
         return result;
     }
 
+    private Friend acceptFriend(Friend friend) throws Exception {
+        String address = env.getProperty("api.company.friend.uri.accept"); //api/v0/company/friend/accept/{companyId}/{memberUserId}/{buddyUserId}
+        assertNotNull(address);
+
+        Long cid = friend.getMember().getCompany().getId();
+
+        MvcResult response = mvc.perform(put(address, cid, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                .andExpect(status().isOk())
+                .andReturn();
+        Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
+        assertEquals(CompanyFriendStatus.ACCEPTED, result.getStatus());
+
+        mvc.perform(put(address, cid, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(put(address, cid, "not-valid-user-id")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                .andExpect(status().isNotFound());
+
+        return result;
+    }
+
+    private Friend blockFriend(Friend friend) throws Exception {
+        String addressBlock = env.getProperty("api.company.friend.uri.block");
+        assertNotNull(addressBlock);
+
+        Long cid = friend.getMember().getCompany().getId();
+
+        MvcResult response = mvc.perform(put(addressBlock, cid, adminUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
+        assertEquals(CompanyFriendStatus.BLOCKED_BY_RECEIVER, result.getStatus());
+
+        mvc.perform(put(addressBlock, cid, "not-valid-user-id")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                .andExpect(status().isNotFound());
+
+        return result;
+    }
+
+    private Friend unblockFriend(Friend friend) throws Exception {
+        String address = env.getProperty("api.company.friend.uri.unblock");
+        assertNotNull(address);
+
+        Long cid = friend.getMember().getCompany().getId();
+
+        mvc.perform(put(address, cid, testUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                .andExpect(status().isForbidden());
+
+        MvcResult response = mvc.perform(put(address, cid, adminUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
+        assertEquals(CompanyFriendStatus.ACCEPTED, result.getStatus());
+
+        mvc.perform(put(address, cid, adminUserId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                .andExpect(status().isBadRequest());
+
+        return result;
+    }
+
+    private Company companyAddManager(Company comp) {
+
+        assertFalse(comp.getEditors().contains(adminUserId));
+
+        //TODO -FAIL- try to add manager that is same owner
+        comp.addEditor(adminUserId);
+
+        //TODO -FAIL- add manager that is not authorized.
+        //TODO -.OK.- add manager by owner.
+        //TODO -.OK.- Block member by new manager
+        //TODO -.OK.- add another manager by manager (requires extra user).
+        //TODO -.OK.- unblock member by third manager
+
+        fail();
+        return null;
+    }
+
 	@Test
-	public void createWithRepeatedName(){
+	public void createCompanyWithRepeatedName(){
 		fail();
 	}
 

@@ -17,28 +17,33 @@ public class FriendController {
 
     @Autowired private FriendService service;
 
-    @GetMapping("${api.company.friend.find.file}")
-    public ResponseEntity<Friend> find(@PathVariable String companyId, @PathVariable String memberUserId, @PathVariable String friendUserId) throws NotValidCustomException {
-        log.info("FRIEND_CONTROLLER::find. $companyId: {} | $memberUserId: {}, $friendUserId {}", companyId, memberUserId, friendUserId);
-        return ResponseEntity.ok(service.find(companyId, memberUserId, friendUserId));
+    @GetMapping("${api.company.friend.file.find}")
+    public ResponseEntity<Friend> find(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException {
+        log.info("FRIEND_CONTROLLER::find. $companyId: {} | $userId: {}", companyId, userId);
+        return ResponseEntity.ok(service.find(companyId, userId));
     }
 
-    @PutMapping("${api.company.friend.add.file}")
-    public ResponseEntity<Friend> add(@PathVariable String companyId, @PathVariable String memberUserId, @PathVariable String friendUserId) throws NotValidCustomException {
-        log.info("FRIEND_CONTROLLER::add. $companyId: {} | $memberUserId: {}, $friendUserId {}", companyId, memberUserId, friendUserId);
-        return ResponseEntity.ok(service.add(companyId, memberUserId, friendUserId));
+    @PutMapping("${api.company.friend.file.add}")
+    public ResponseEntity<Friend> add(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException {
+        log.info("FRIEND_CONTROLLER::add. $companyId: {} | $userId {}", companyId, userId);
+        return ResponseEntity.ok(service.add(companyId, userId));
     }
 
-    @PutMapping("${api.company.friend.update.file}")
-    public ResponseEntity<Friend> update(@RequestBody @Valid Friend friend) throws NotValidCustomException{
-        log.info("FRIEND_CONTROLLER::update. $friendId: {}", friend.getId());
-        return ResponseEntity.ok(service.update(friend));
+    @PutMapping("${api.company.friend.file.accept}")
+    public ResponseEntity<Friend> accept(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException{
+        log.info("FRIEND_CONTROLLER::accept. $companyId: {} | $buddyUserId: {}", companyId, userId);
+        return ResponseEntity.ok(service.accept(companyId, userId));
     }
 
-    @DeleteMapping("${api.company.friend.delete.file}")
-    public ResponseEntity<Void> delete(@PathVariable String companyId, @PathVariable String memberUserId, @PathVariable String friendUserId) throws NotValidCustomException {
-        log.info("FRIEND_CONTROLLER::delete. $companyId: {} | $memberUserId: {}, $friendUserId {}", companyId, memberUserId, friendUserId);
-        service.delete(companyId, memberUserId, friendUserId);
-        return ResponseEntity.noContent().build();
+    @PutMapping("${api.company.friend.file.block}")
+    public ResponseEntity<Friend> block(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException {
+        log.info("FRIEND_CONTROLLER::block. $companyId: {} | $userId: {}", companyId, userId);
+        return ResponseEntity.ok(service.block(companyId, userId));
+    }
+
+    @PutMapping("${api.company.friend.file.unblock}")
+    public ResponseEntity<Friend> unblock(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException {
+        log.info("FRIEND_CONTROLLER::unblock. $companyId: {} | $userId: {}", companyId, userId);
+        return ResponseEntity.ok(service.unblock(companyId, userId));
     }
 }
