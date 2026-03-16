@@ -16,7 +16,7 @@ function decrypt_with_script(){
   stringOutputType="base64" verbose=false
 }
 
-function_decrypt(){
+function decrypt(){
 mvn jasypt:decrypt-value \
 -Djasypt.encryptor.password="$2" \
 -Djasypt.plugin.value="$1" \
@@ -36,7 +36,7 @@ VALUE="${ENCRYPTED_VALUE#ENC(}"
 VALUE="${VALUE%)}"
 
 if [ ! -z "$2" ]; then
-  function_decrypt $VALUE $2
+  decrypt_with_script $VALUE $2
 
 elif [ -f  "$SECRET_FILE" ]; then
   SECRET=$(cat "$SECRET_FILE")

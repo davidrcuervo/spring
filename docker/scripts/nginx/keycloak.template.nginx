@@ -14,8 +14,8 @@ server {
     listen 443 ssl;
     server_name ${KC_PUBLIC_ADDRESS};
 
-    ssl_certificate /opt/myjava/certs/kc.crt;
-    ssl_certificate_key /opt/myjava/certs/kc.unsecure.key;
+    ssl_certificate /opt/docker/certs/kc.crt;
+    ssl_certificate_key /opt/docker/certs/kc.unsecure.key;
 
     location / {
         proxy_pass https://keycloak;

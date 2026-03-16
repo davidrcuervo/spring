@@ -8,13 +8,11 @@ services:
     entrypoint: scripts/postgres-entrypoint.sh
     secrets:
       - jasypt-password
-    #  - db-springsession-password
-    volumes:
-      - ./docker/scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
-      - ./docker/scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
+#    volumes:
+#      - ./docker/scripts/database/postgres-entrypoint.sh:/opt/mypostgres/scripts/postgres-entrypoint.sh
+#      - ./docker/scripts/database/postgres-exitpoint.sh:/opt/mypostgres/scripts/postgres-exitpoint.sh
 #      - /var/data/docker/postgres/logs:/opt/mypostgres/logs
 #      - /var/data/docker/db/postgresql:/opt/mypostgres/data
-#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
     environment:
       - HOME=/opt/mypostgres
     env_file:
@@ -35,7 +33,7 @@ services:
       target: postgreset
 
   keycloaket:
-    image: keycloaket:26.1.5
+    image: keycloaket:26.5.5
     user: keycloak
     working_dir: /opt/keycloak
     entrypoint: /opt/keycloak/kc.entrypoint.sh
@@ -61,11 +59,10 @@ services:
     build:
       target: keycloaket
 #    volumes:
-#      - ./scripts/keycloak/kc.entrypoint.sh:/opt/keycloak/kc.entrypoint.sh
-#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
+#      - ./docker/scripts/keycloak/kc.entrypoint.sh:/opt/keycloak/kc.entrypoint.sh
 
   keycloaketcnf:
-    image: keycloaketcnf:26.1.6
+    image: keycloaketcnf:26.5.5
     user: keycloak
     working_dir: /opt/keycloak
     entrypoint: /opt/keycloak/kc.config.sh
@@ -89,7 +86,6 @@ services:
 #    volumes:
 #      - ./scripts/keycloak/kc.config.sh:/opt/keycloak/kc.config.sh
 #      - ./scripts/keycloak/kc.check.sh:/opt/keycloak/kc.check.sh
-#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
 
   etnginx:
     image: etnginx:1.24
@@ -114,10 +110,8 @@ services:
     build:
       target: etnginx
 
-  etimage:
-    image: etimage:1.0
-    user: webappuser
-    working_dir: /opt/webapp
+  etjava:
+    image: etjava:1.0
     secrets:
       - jasypt-password
     networks:
@@ -127,9 +121,9 @@ services:
     environment:
       - HOME=/opt/webapp
     build:
-      target: etimage
+      target: etjava
 #    volumes:
-#      - ./scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
+#      - ./docker/scripts/jasypt/jdecrypt.sh:/opt/jasypt/jdecrypt.sh
 
   etuser:
     image: etuser:1.0

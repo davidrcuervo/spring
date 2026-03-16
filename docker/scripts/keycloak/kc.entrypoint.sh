@@ -44,7 +44,7 @@ echo "keycloak database type: $SCHEMA_TYPE"
 echo "keycloak database url: $SCHEMA_KEYCLOAK_URL"
 echo "keycloak database username: $SCHEMA_KEYCLOAK_USERNAME"
 
-$HOME/keycloak-26.1.5/bin/kc.sh start \
+$HOME/keycloak-26.5.5/bin/kc.sh start \
 --db=$SCHEMA_TYPE \
 --db-url=$SCHEMA_KEYCLOAK_URL \
 --db-username=$SCHEMA_KEYCLOAK_USERNAME \
@@ -53,8 +53,8 @@ $HOME/keycloak-26.1.5/bin/kc.sh start \
 --metrics-enabled=true \
 --http-management-port $PORT_KEYCLOAK_MANAGEMENT \
 --hostname-strict false \
---https-certificate-file=/opt/myjava/certs/kc.crt \
---https-certificate-key-file=/opt/myjava/certs/kc.unsecure.key
+--https-certificate-file=/opt/docker/certs/kc.crt \
+--https-certificate-key-file=/opt/docker/certs/kc.unsecure.key
 #--http-enabled true \
 #--proxy-headers=forwarded \
 #--http-port=$PORT_KEYCLOAK
