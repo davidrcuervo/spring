@@ -1,3 +1,6 @@
+/.idea
+.idea/modules.xml
+/.docker
 /frontend/target
 /library/target
 /library/null
@@ -8,8 +11,6 @@
 /utils/target
 /schema/target
 /webapp-test/target
-/.idea
-.idea/modules.xml
 /API/User/.api.output
 /API/Group/.api.output
 /docker/private

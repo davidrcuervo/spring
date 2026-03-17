@@ -12,7 +12,7 @@ function test_deprecated() {
 
 function test() {
   echo "INFO: Application folder to test: $DIR"
-  java -cp $HOME/lib/junit-platform-console-standalone-6.0.0.jar:$DIR/classes:$DIR/test-classes:$HOME/lib/* \
+  java -cp $HOME/lib/junit-platform-console-standalone-6.0.3.jar:$DIR/classes:$DIR/test-classes:$HOME/lib/* \
   -Djasypt.encryptor.password=$JASYPT_PASSWORD \
   -Dspring.config.additional-location="$HOME/API/","$HOME/etc/" \
   org.junit.platform.console.ConsoleLauncher execute \

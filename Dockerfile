@@ -180,9 +180,7 @@ RUN apt install -y vim
 ## MY webapp IMAGE
 ############################################
 FROM etjava AS etwebapp
-
-USER root
-
+#USER root
 RUN useradd -g docker -c "Usuario application user" --shell /bin/bash --create-home --home-dir /opt/webapp webappuser
 
 USER webappuser
@@ -221,28 +219,28 @@ RUN --mount=type=bind,source=utils,target=src/utils bin/compile.sh utils
 ############################################
 ## USER SERVICE
 ############################################
-FROM etimage AS etuser
+FROM etwebapp AS etuser
 
 RUN --mount=type=bind,source=userKc,target=src/userKc bin/compile.sh userKc
 
 ############################################
 ## SCHEMA SERVICE
 ############################################
-FROM etimage AS etschema
+FROM etwebapp AS etschema
 
 RUN --mount=type=bind,source=schema,target=src/schema bin/compile.sh schema
 
 ############################################
 ## SCHEMA SERVICE
 ############################################
-FROM etimage AS etmail
+FROM etwebapp AS etmail
 
 RUN --mount=type=bind,source=messenger,target=src/messenger bin/compile.sh messenger
 
 ############################################
 ## FRONTEND SERVICE
 ############################################
-FROM etimage AS frontend
+FROM etwebapp AS frontend
 
 RUN --mount=type=bind,source=frontend,target=src/frontend bin/compile.sh frontend
 
