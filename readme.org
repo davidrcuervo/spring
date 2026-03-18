@@ -32,7 +32,7 @@ git clone git@github.com:davidrcuervo/webapp.git
 	* *DEPRECATED:* docker.key.pub
       - admuser-password.txt
       - jasypt-password.txt
-      - sampsepi0l-password.txt
+      - samsepi0l-password.txt
     - Software
 
 ** Download software

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.8</version>
+		<version>3.5.11</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.laetienda</groupId>
@@ -15,7 +15,7 @@
 	<description>Schema of the web site</description>
 	<url/>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>com.github.ulisesbocchio</groupId>
 			<artifactId>jasypt-spring-boot-starter</artifactId>
-			<version>3.0.5</version>
+			<version>4.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -100,7 +100,7 @@
 			<plugin>
 				<groupId>com.github.ulisesbocchio</groupId>
 				<artifactId>jasypt-maven-plugin</artifactId>
-				<version>3.0.5</version>
+				<version>4.0.4</version>
 			</plugin>
 		</plugins>
 	</build>
