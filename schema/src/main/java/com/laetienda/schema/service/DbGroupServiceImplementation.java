@@ -11,6 +11,7 @@ import jakarta.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -155,7 +156,24 @@ public class DbGroupServiceImplementation implements DbGroupService {
 
     @Override
     public DbGroup find(String groupId) throws HttpStatusCodeException {
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
+        log.debug("DbGROUP_SERVICE::find $groupId: {}", groupId);
+
+        try{
+            Long gid = Long.parseLong(groupId);
+            DbGroup group = groupRepo.findById(gid).orElse(null);
+
+            if (group == null) {
+                String m = String.format("Group with id %s not found", groupId);
+                log.warn("DbGROUP_SERVICE::find.. {}", m);
+                throw new HttpClientErrorException(HttpStatus.NOT_FOUND, m);
+            }
+
+            return group;
+        }catch(NumberFormatException e){
+            String m = String.format("Group with id, %s, is not a valid format", groupId);
+            log.warn("DbGROUP_SERVICE::find. {}", m);
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, m);
+        }
     }
 
     @Override
@@ -290,8 +308,34 @@ public class DbGroupServiceImplementation implements DbGroupService {
     @Override
     public DbGroup addMember(String groupId, String userId) throws HttpStatusCodeException {
         log.debug("DbGROUP_SERVICE::addMember. $groupId: {} | $userId: {}", groupId, userId);
-        
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
+
+        String currentUserId = apiUser.getCurrentUserId();
+        DbGroup group = find(groupId);
+
+        try{
+            String temp = apiUser.isUserIdValid(userId);
+
+            if(!canEdit(currentUserId, group)) {
+                String m = String.format("User is not authorized to edit group. $groupId: %s | $userId: %s", groupId, currentUserId);
+                log.warn("DbGROUP_SERVICE::addMember.. {}", m);
+                throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
+            }
+
+            group.addMember(userId);
+            return groupRepo.save(group);
+
+        } catch(HttpClientErrorException e){
+            if(e.getStatusCode().is4xxClientError()){
+                log.warn("DbGROUP_SERVICE::addMember. {}", e.getMessage());
+                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }else{
+                throw e;
+            }
+
+        } catch(DataAccessException e){
+            log.error("DbGROUP_SERVICE::addMember. {}", e.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override

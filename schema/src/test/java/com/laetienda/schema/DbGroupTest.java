@@ -64,6 +64,9 @@ class DbGroupTest {
     @Value("${api.schema.find.uri}")
     private String findTestItemUri;
 
+    @Value("${api.schema.findById.uri}")
+    private String findItemByIdUri;
+
     @Value("${api.schema.update.uri}")
     private String updateTestItemUri;
 
@@ -75,6 +78,12 @@ class DbGroupTest {
 
     @Value("${api.schema.group.uri.update}")
     private String updateGroupUri;
+
+    @Value("${api.schema.group.uri.member.add}")
+    private String addGroupMemberUri;
+
+    @Value("${api.schema.group.uri.member.remove}")
+    private String removeGroupMemberUri;
 
     private void build(int numberOfEntries, String name){
 
@@ -584,12 +593,53 @@ class DbGroupTest {
     }
 
     @Test
-    void readerMember(){
-        fail();
+    void addReaderMember() throws Exception{
+        build(1, "readerMember");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        MvcResult resp = mvc.perform(get(findGroupByNameUri, groups[1].getName())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+
+        mvc.perform(get(findItemByIdUri, items[1].getId(), clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
+                .andExpect(status().isUnauthorized());
+
+        resp = mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+
+        mvc.perform(get(findItemByIdUri, items[1].getId(), clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        deleteEntries();
     }
 
     @Test
     void editorMember(){
+        fail();
+    }
+
+    @Test
+    void addInvalidMember() throws Exception{
+        fail();
+    }
+
+    @Test
+    void addMemberInvalidGroupId() throws Exception{
+        fail();
+    }
+
+    @Test
+    void addMemberByUnauthorizedUser() throws Exception{
         fail();
     }
 
