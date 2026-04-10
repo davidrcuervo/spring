@@ -111,6 +111,7 @@ api:
         findByName: /group/findByName/{groupName}
         update: /group/{groupId}/update
         delete: /group/{groupId}/delete
+        orphans: /group/orphans
         member:
           add: /group/{groupId}/member/add/{userId}
           remove: /group/{groupId}/member/remove/{userId}
@@ -118,6 +119,7 @@ api:
         findByName: ${api.schema.uri}${api.schema.group.file.findByName}
         update: ${api.schema.uri}${api.schema.group.file.update}
         delete: ${api.schema.uri}${api.schema.group.file.delete}
+        orphans: ${api.schema.uri}${api.schema.group.file.orphans}
         member:
           add: ${api.schema.uri}${api.schema.group.file.member.add}
           remove: ${api.schema.uri}${api.schema.group.file.member.remove}

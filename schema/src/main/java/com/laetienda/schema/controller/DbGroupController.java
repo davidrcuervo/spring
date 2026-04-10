@@ -9,7 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("${api.schema.root}")
@@ -29,7 +32,7 @@ public class DbGroupController {
     }
 
     @PutMapping("${api.schema.group.file.update}")  //group/{groupId}/update
-    public ResponseEntity<DbGroup> update(@RequestBody Map<String, Object> body, @PathVariable String groupId) throws HttpStatusCodeException {
+    public ResponseEntity<DbGroup> update(@RequestBody Map<String, String> body, @PathVariable String groupId) throws HttpStatusCodeException {
         log.info("DbGROUP_CONTROLLER::update. $groupId: {}", groupId);
         return ResponseEntity.ok(service.update(groupId, body));
     }
@@ -51,5 +54,11 @@ public class DbGroupController {
     public ResponseEntity<DbGroup> removeMember(@PathVariable String groupId, @PathVariable String userId) throws HttpStatusCodeException {
         log.info("DbGROUP_CONTROLLER::remove. $groupId: {} | $userId: {}", groupId, userId);
         return ResponseEntity.ok(service.removeMember(groupId, userId));
+    }
+
+    @GetMapping("${api.schema.group.file.orphans}")
+    public ResponseEntity<List<DbGroup>> getOrphans() {
+        log.info("DbGROUP_CONTROLLER::getOrphans.");
+        return ResponseEntity.ok(new ArrayList<>(service.getOrphans()));
     }
 }
