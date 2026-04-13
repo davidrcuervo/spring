@@ -625,6 +625,8 @@ class DbGroupTest {
 
     @Test
     void editorMember(){
+        build(2, "editorMember");
+         items[1].addEditorGroup(groups[1]);
         fail();
     }
 
