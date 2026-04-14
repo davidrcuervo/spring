@@ -308,39 +308,49 @@ public class DbGroupServiceImplementation implements DbGroupService {
     @Override
     public DbGroup addMember(String groupId, String userId) throws HttpStatusCodeException {
         log.debug("DbGROUP_SERVICE::addMember. $groupId: {} | $userId: {}", groupId, userId);
+        return addOrRemoveMember(groupId, userId, true);
+    }
+
+    @Override
+    public DbGroup removeMember(String groupId, String userId) throws HttpStatusCodeException {
+        log.debug("DbGROUP_SERVICE::removeMember. $groupId: {} | $userId: {}", groupId, userId);
+        return addOrRemoveMember(groupId, userId, false);
+    }
+
+    private DbGroup addOrRemoveMember(String groupId, String userId, boolean addMember) throws HttpStatusCodeException {
+        log.debug("DbGROUP_SERVICE::addOrRemoveMember. $addMember: {} | $groupId: {} | $userId: {}", addMember, groupId, userId);
 
         String currentUserId = apiUser.getCurrentUserId();
         DbGroup group = find(groupId);
 
-        try{
-            String temp = apiUser.isUserIdValid(userId);
+        if(!canEdit(currentUserId, group) && !group.getMembers().contains(userId)) {
+            String m = String.format("User is not authorized to edit group. $groupId: %s | $userId: %s", groupId, currentUserId);
+            log.warn("DbGROUP_SERVICE::addOrRemoveMember.. {}", m);
+            throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
+        }
 
-            if(!canEdit(currentUserId, group)) {
-                String m = String.format("User is not authorized to edit group. $groupId: %s | $userId: %s", groupId, currentUserId);
-                log.warn("DbGROUP_SERVICE::addMember.. {}", m);
-                throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
+        try{
+            if(addMember) {
+                String temp = apiUser.isUserIdValid(userId);
+                group.addMember(userId);
+            }else{
+                group.removeMember(userId);
             }
 
-            group.addMember(userId);
             return groupRepo.save(group);
 
         } catch(HttpClientErrorException e){
             if(e.getStatusCode().is4xxClientError()){
-                log.warn("DbGROUP_SERVICE::addMember. {}", e.getMessage());
+                log.warn("DbGROUP_SERVICE::addOrRemoveMember. {}", e.getMessage());
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
             }else{
                 throw e;
             }
 
         } catch(DataAccessException e){
-            log.error("DbGROUP_SERVICE::addMember. {}", e.getMessage());
+            log.error("DbGROUP_SERVICE::addOrRemoveMember. {}", e.getMessage());
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
-    }
-
-    @Override
-    public DbGroup removeMember(String groupId, String userId) throws HttpStatusCodeException {
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
     }
 
     @Override
@@ -444,6 +454,12 @@ public class DbGroupServiceImplementation implements DbGroupService {
             String m = String.format("User is not owner, only owner can modify the owner. $owner: %s", owner);
             log.warn("DbGROUP_SERVICE::updateOwner. {}", m);
             throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
+        }
+
+        if(!dbGroup.getMembers().contains(dbGroup.getOwner())){
+            String m = String.format("Current owner is not member, first add current owner as member of group. $currentOwner: %s",  dbGroup.getOwner());
+            log.warn("DbGROUP_SERVICE::updateOwner. {}", m);
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, m);
         }
 
         try{

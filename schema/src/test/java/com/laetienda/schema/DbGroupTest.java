@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.options.DbGroupPolicy;
 import com.laetienda.model.kc.KcUser;
 import com.laetienda.model.schema.DbGroup;
+import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.model.user.TestUserDto;
 import com.laetienda.model.user.Usuario;
@@ -30,6 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
@@ -69,6 +71,9 @@ class DbGroupTest {
 
     @Value("${api.schema.update.uri}")
     private String updateTestItemUri;
+
+    @Value("${api.schema.deleteUserById.uri}")
+    private String deleteUserByIdUri;
 
     @Value("${api.schema.group.uri.findByName}")
     private String findGroupByNameUri;
@@ -330,6 +335,16 @@ class DbGroupTest {
     }
 
     @Test
+    void findAllGroups() throws Exception {
+        fail();
+    }
+
+    @Test
+    void findAllItems() throws Exception {
+        fail();
+    }
+
+    @Test
     void updateItemAfterAddingNewGroup() throws Exception {
         build(1, "updateItemAfterAddingGroup");
 
@@ -485,6 +500,11 @@ class DbGroupTest {
                 .andExpect(status().isOk()).andReturn();
         groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
 
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
         Map<String, String> body = Map.of("owner", USERS[2].getUserId());
         resp = mvc.perform(put(updateGroupUri, groups[1].getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
@@ -494,6 +514,11 @@ class DbGroupTest {
                 .andExpect(status().isOk()).andReturn();
         groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
         assertEquals(groups[1].getOwner(), USERS[2].getUserId());
+
+        mvc.perform(delete(removeGroupMemberUri, groups[1].getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
 
         mvc.perform(get(findGroupByNameUri, groups[1].getName())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
@@ -552,6 +577,11 @@ class DbGroupTest {
                 .andExpect(status().isOk()).andReturn();
         groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
 
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
         Map<String, String> body = Map.of("owner", USERS[0].getUserId());
 
         mvc.perform(put(updateGroupUri, groups[1].getId())
@@ -565,7 +595,75 @@ class DbGroupTest {
 
     @Test
     void updateGroupOwnerByNoOwner() throws Exception{
-        fail();
+        build(1, "updateGroupOwnerByNoOwner");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].addMember(USERS[2].getUserId());
+        items[1].addEditorGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        groups[1] = items[1].getEditorGroups().stream()
+                .filter(g -> g.getName().equals(groups[1].getName()))
+                .findFirst().orElse(null);
+        assertNotNull(groups[1]);
+
+        Map<String, String> body = Map.of("owner", USERS[2].getUserId());
+        mvc.perform(put(updateGroupUri, groups[1].getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(put(updateGroupUri, groups[1].getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        MvcResult resp = mvc.perform(put(updateGroupUri, groups[1].getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+
+        assertTrue(groups[1].getMembers().contains(USERS[1].getUserId()));
+        assertEquals(USERS[2].getUserId(), groups[1].getOwner());
+
+        deleteEntries();
+    }
+
+    @Test
+    void deleteUser()  throws Exception{
+        build(1, "deleteUser");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].addMember(USERS[2].getUserId());
+        items[1].addEditorGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        mvc.perform(delete(deleteUserByIdUri, USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(delete(removeGroupMemberUri, groups[1].getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        mvc.perform(delete(deleteUserByIdUri, USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        deleteEntries();
     }
 
     @Test
@@ -624,35 +722,235 @@ class DbGroupTest {
     }
 
     @Test
-    void editorMember(){
-        build(2, "editorMember");
-         items[1].addEditorGroup(groups[1]);
-        fail();
+    void addEditorMember() throws Exception{
+        build(1, "editorMember");
+        String newAddress = "17 Myself Street. Apt: 101";
+
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        items[1].addEditorGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        items[1].setAddress(newAddress);
+
+        mvc.perform(put(updateTestItemUri, clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(items[1])))
+                .andExpect(status().isUnauthorized());
+
+        groups[1] = items[1].getEditorGroups()
+                .stream().filter(g -> g.getName().equals(groups[1].getName()))
+                .findFirst().orElse(null);
+        assertNotNull(groups[1]);
+
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        MvcResult resp = mvc.perform(put(updateTestItemUri, clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(items[1])))
+                .andExpect(status().isOk()).andReturn();
+        items[1] = json.readValue(resp.getResponse().getContentAsString(), ItemTypeA.class);
+        assertEquals(newAddress, items[1].getAddress());
+
+        deleteEntries();
+
     }
 
     @Test
     void addInvalidMember() throws Exception{
-        fail();
+        build(1, "invalidMember");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].addMember("invalidMember");
+        items[1].addReaderGroup(groups[1]);
+
+        mvc.perform(post(createUri,  clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(items[1])))
+                .andExpect(status().isBadRequest());
+
+        groups[1].removeMember("invalidMember");
+        groups[1].addMember(USERS[0].getUserId());
+
+        mvc.perform(post(createUri,  clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(items[1])))
+                .andExpect(status().isBadRequest());
+
+        groups[1].removeMember(USERS[0].getUserId());
+        groups[1].addMember(USERS[2].getUserId());
+
+        items[1] = createTestItem(1);
+
+        deleteEntries();
     }
 
     @Test
     void addMemberInvalidGroupId() throws Exception{
-        fail();
+
+        mvc.perform(put(addGroupMemberUri, "54", USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     void addMemberByUnauthorizedUser() throws Exception{
-        fail();
+        build(1, "addMemberByUnauthorizedUser");
+
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].addMember(USERS[2].getUserId());
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        mvc.perform(get(findItemByIdUri, items[1].getId(), clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+        mvc.perform(put(updateTestItemUri, clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(items[1])))
+                .andExpect(status().isUnauthorized());
+
+        MvcResult resp = mvc.perform(get(findGroupByNameUri, groups[1].getName())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[3].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[3].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        deleteEntries();
     }
 
     @Test
-    void policy(){
-        fail();
+    void removeMember() throws Exception{
+        build(1, "removeMember");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].addMember(USERS[2].getUserId());
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        groups[1] = items[1].getReaderGroups().stream()
+                        .filter(g -> g.getName().equals(groups[1].getName()))
+                        .findFirst().orElse(null);
+
+        mvc.perform(get(findItemByIdUri, items[1].getId(), clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        mvc.perform(delete(removeGroupMemberUri, groups[1].getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        mvc.perform(get(findItemByIdUri, items[1].getId(), clazzName)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        deleteEntries();
     }
 
     @Test
-    void updatePolicy(){
-        fail();
+    void removeMemberByMember() throws Exception{
+        build(1, "removeMemberByMember");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].addMember(USERS[2].getUserId());
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        groups[1] = items[1].getReaderGroups().stream()
+                .filter(g -> g.getName().equals(groups[1].getName()))
+                .findFirst().orElse(null);
+        assertNotNull(groups[1]);
+        assertTrue(groups[1].getMembers().contains(USERS[2].getUserId()));
+
+        MvcResult resp = mvc.perform(delete(removeGroupMemberUri, groups[1].getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+        assertFalse(groups[1].getMembers().contains(USERS[2].getUserId()));
+
+        deleteEntries();
+    }
+
+    @Test
+    void policy() throws Exception {
+        build(1, "policy");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].addMember(USERS[2].getUserId());
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        MvcResult resp = mvc.perform(get(findGroupByNameUri, groups[1].getName())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] =  json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[3].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        Map<String, String> body = Map.of("policy", DbGroupPolicy.MANAGE_BY_ALL.toString());
+        resp = mvc.perform(put(updateGroupUri, groups[1].getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+        assertEquals(DbGroupPolicy.MANAGE_BY_ALL, groups[1].getPolicy());
+
+        resp = mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[3].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+        assertTrue(groups[1].getMembers().contains(USERS[3].getUserId()));
+
+        deleteEntries();
+    }
+
+    @Test
+    void updatePolicyInvalid() throws Exception{
+        build(1, "updatePolicyInvalid");
+        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        MvcResult resp = mvc.perform(get(findGroupByNameUri, groups[1].getName())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+
+        Map<String, String> body = Map.of("policy", "NOT_VALID_POLICY");
+        mvc.perform(put(updateGroupUri, groups[1].getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isBadRequest());
+
+        deleteEntries();
     }
 
     private ItemTypeA createTestItem(int c) throws Exception {
@@ -669,9 +967,10 @@ class DbGroupTest {
     static void setup(
             @Autowired ApiUser apiUser,
             @Autowired Environment env,
-            @Autowired OAuth2AuthorizedClientManager authorizedClientManager) throws Exception {
+            @Autowired OAuth2AuthorizedClientManager authorizedClientManager
+    ) throws Exception {
 
-        int numberOfUsers = 2;
+        int numberOfUsers = 3;
         String clientRegistrationId = env.getProperty("kc.client-registration-id.webapp");
         assertNotNull(clientRegistrationId);
 

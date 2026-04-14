@@ -161,7 +161,7 @@ public class SchemaController {
 
     @DeleteMapping("${api.schema.deleteUserById.file}")
     public ResponseEntity<Void> deleteUserById(@PathVariable String userId) throws NotValidCustomException{
-        log.debug("SCHEMA_CONROLLER::deleteUserById: $userId: {}", userId);
+        log.debug("SCHEMA_CONTROLLER::deleteUserById: $userId: {}", userId);
         itemService.deleteUserById(userId);
         return ResponseEntity.noContent().build();
     }
