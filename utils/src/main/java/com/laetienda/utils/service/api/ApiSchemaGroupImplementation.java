@@ -1,6 +1,7 @@
 package com.laetienda.utils.service.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.DbGroup;
 import org.slf4j.Logger;
@@ -56,7 +57,21 @@ public class ApiSchemaGroupImplementation extends ApiRestClientImplementation im
 
     @Override
     public List<DbGroup> findAll() throws HttpStatusCodeException {
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
+        try {
+            var temp = client.get().uri(uriAddressFindAll)
+                .accept(MediaType.APPLICATION_JSON);
+
+            if(super.getJwtToken() != null){
+                temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
+            }
+
+            String body = temp.retrieve().toEntity(String.class).getBody();
+            return json.readValue(body, new TypeReference<List<DbGroup>>() {});
+
+        } catch (JsonProcessingException e) {
+            log.error("API_SCHEMA_GROUP::findAll. {}", e.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override
@@ -110,16 +125,42 @@ public class ApiSchemaGroupImplementation extends ApiRestClientImplementation im
 
     @Override
     public List<DbGroup> getOrphans() throws HttpStatusCodeException {
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
+        try{
+            var temp = client.get().uri(uriAddressOrphans);
+
+            if(super.getJwtToken() != null){
+                temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
+            }
+
+            String result = temp.retrieve().toEntity(String.class).getBody();
+            return json.readValue(result, new TypeReference<List<DbGroup>>() {});
+
+        }catch(JsonProcessingException e){
+            log.error("API_SCHEMA_GROUP::getOrphans. {}", e.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override
     public DbGroup addMember(Long groupId, String userId) throws HttpStatusCodeException {
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
+        var temp = client.put().uri(uriAddressAddMember, groupId, userId)
+                .accept(MediaType.APPLICATION_JSON);
+
+        if(super.getJwtToken() != null){
+            temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
+        }
+
+        return temp.retrieve().toEntity(DbGroup.class).getBody();
     }
 
     @Override
     public DbGroup removeMember(Long groupId, String userId) throws HttpStatusCodeException {
-        throw new HttpServerErrorException(HttpStatus.NOT_IMPLEMENTED);
+        var temp = client.delete().uri(uriAddressRemoveMember, groupId, userId)
+                .accept(MediaType.APPLICATION_JSON);
+
+        if(super.getJwtToken() != null){
+            temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
+        }
+        return temp.retrieve().toEntity(DbGroup.class).getBody();
     }
 }

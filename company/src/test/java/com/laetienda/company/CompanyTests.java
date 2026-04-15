@@ -7,7 +7,11 @@ import com.laetienda.lib.options.CompanyMemberStatus;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
+import com.laetienda.model.schema.DbGroup;
+import com.laetienda.model.user.TestUserDto;
+import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.service.api.ApiUser;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -16,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,11 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class ClientCompaniesApplicationTests {
-    private final static Logger log = LoggerFactory.getLogger(ClientCompaniesApplicationTests.class);
+@Import(CompanyTestConfiguration.class)
+class CompanyTests {
+    private final static Logger log = LoggerFactory.getLogger(CompanyTests.class);
 
-	private static String jwtTestUser;
-    private static String jwtAdminUser;
+    private static TestUserDto[] USERS;
 
 	@Autowired Environment env;
 	@Autowired MockMvc mvc;
@@ -48,20 +53,11 @@ class ClientCompaniesApplicationTests {
     @Value("${api.company.delete.uri}")
     private String deleteAddress;
 
-	@Value("${webapp.user.test.userId}")
-	private String testUserId;
-
-    @Value("${webapp.user.admin.userId}")
-    private String adminUserId;
-
     @Value("${api.company.member.find.uri}")
     private String findMemberAddress; //api/v0/company/member/find/{companyId}/{userId}
 
     @Value("${api.company.isValid.uri}")
     private String isCompanyValidUri; //api/v0/company/isValid/{companyId}
-
-//    @Value("${api.company.update.uri}") //api/v0/company/update
-//    private String updateCompanyAddress;
 
     @Value("${api.company.member.add.uri}")
     private String addMemberAddress;
@@ -89,7 +85,7 @@ class ClientCompaniesApplicationTests {
 	@Test
 	void cycle() throws Exception{
         Company company = new Company("testCycleCompany", CompanyMemberPolicy.AUTHORIZATION_REQUIRED);
-		company.setOwner(testUserId);
+		company.setOwner(USERS[1].getUserId());
 
 		Company comp = create(company);
 		comp = findByName(comp.getName());
@@ -111,7 +107,7 @@ class ClientCompaniesApplicationTests {
     private Company create(Company company) throws Exception {
 
 		MvcResult response = mvc.perform(post(createAddress)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(json.writeValueAsBytes(company)))
 				.andExpect(status().isOk())
@@ -122,7 +118,7 @@ class ClientCompaniesApplicationTests {
 
 	private Company findById(Long id) throws Exception{
 		MvcResult response = mvc.perform(get(findAddress, id)
-						.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+						.header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
 						.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andReturn();
@@ -135,7 +131,7 @@ class ClientCompaniesApplicationTests {
 		assertNotNull(address);
 
 		MvcResult response = mvc.perform(get(address, companyName)
-						.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+						.header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
 						.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andReturn();
@@ -151,19 +147,8 @@ class ClientCompaniesApplicationTests {
         assertNotNull(address);
         assertNull(company.getDescription());
 
-//                company.setDescription(description);
-//        response = mvc.perform(put(updateCompanyAddress)
-//                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .accept(MediaType.APPLICATION_JSON)
-//                        .content(json.writeValueAsBytes(company)))
-//                .andExpect(status().isOk())
-//                .andReturn();
-//        result = json.readValue(response.getResponse().getContentAsString(), Company.class);
-//        assertEquals(description, result.getDescription());
-
         MvcResult response = mvc.perform(post(address, company.getId())
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
                     .content(description))
@@ -175,10 +160,10 @@ class ClientCompaniesApplicationTests {
 
         //CREATE COMPANY FOR TESTING UPDATES
         Company temp = new Company("updateCompany", CompanyMemberPolicy.PUBLIC);
-        temp.setOwner(adminUserId);
+        temp.setOwner(USERS[2].getUserId());
 
         response = mvc.perform(post(createAddress)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsBytes(temp)))
@@ -192,25 +177,15 @@ class ClientCompaniesApplicationTests {
         assertNotNull(address);
 
         mvc.perform(put(address, company.getId(), temp.getName())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
 
         company.setName(result.getName());
 
-        //UPDATE COMPANY MEMBER POLICY
-//      company.setMemberPolicy(CompanyMemberPolicy.PUBLIC);
-//        address = env.getProperty("api.company.update.uri.memberPolicy");
-//        assertNotNull(address);
-//
-//        mvc.perform(put(address, company.getId(), CompanyMemberPolicy.PUBLIC)
-//                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isNotFound());
-
         //DELETE TEMP COMPANY
         mvc.perform(delete(deleteAddress, temp.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
@@ -225,7 +200,7 @@ class ClientCompaniesApplicationTests {
         Long id = company.getId();
 
         MvcResult response = mvc.perform(get(findAddress, id)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -235,17 +210,17 @@ class ClientCompaniesApplicationTests {
                 .andExpect(status().isOk());
 
         mvc.perform(delete(deleteAddress, id)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         mvc.perform(get(findAddress, id)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                     .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
 
         mvc.perform(delete(deleteAddress, id)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
@@ -256,24 +231,21 @@ class ClientCompaniesApplicationTests {
 
     private Member addMember(Company company) throws Exception{
 
-        String tmp = env.getProperty("webapp.user.admin.userId");
-        String uid = apiUser.isUserIdValid(tmp);
-
         // check if member does not exist
         log.trace("COMPANY_TEST::addMember. $findMemberAddress: {}", findMemberAddress);
-        mvc.perform(get(findMemberAddress, company.getId(), uid)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+        mvc.perform(get(findMemberAddress, company.getId(), USERS[2].getUserId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
         //add member that already exists
-        mvc.perform(put(addMemberAddress, company.getId(), testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+        mvc.perform(put(addMemberAddress, company.getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isForbidden());
 
-        // add member request to company
-        MvcResult resp = mvc.perform(put(addMemberAddress, company.getId(), uid)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+        //add member request to company
+        MvcResult resp = mvc.perform(put(addMemberAddress, company.getId(), USERS[2].getUserId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -281,8 +253,8 @@ class ClientCompaniesApplicationTests {
         assertEquals(CompanyMemberStatus.REQUESTED, result.getStatus());
 
         //check again if member exists
-        resp = mvc.perform(get(findMemberAddress, company.getId(), uid)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+        resp = mvc.perform(get(findMemberAddress, company.getId(), USERS[2].getUserId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
         Member memb1 = json.readValue(resp.getResponse().getContentAsString(), Member.class);
@@ -297,14 +269,14 @@ class ClientCompaniesApplicationTests {
         member.setStatus(CompanyMemberStatus.ACCEPTED);
 
         mvc.perform(put(updateMemberAddress)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsBytes(member)))
                 .andExpect(status().isUnauthorized());
 
         MvcResult response = mvc.perform(put(updateMemberAddress)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsBytes(member)))
@@ -312,9 +284,9 @@ class ClientCompaniesApplicationTests {
         Member result = json.readValue(response.getResponse().getContentAsString(), Member.class);
         assertEquals(CompanyMemberStatus.ACCEPTED, result.getStatus());
 
-        member.setUserId(testUserId);
+        member.setUserId(USERS[1].getUserId());
         mvc.perform(put(updateMemberAddress)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsBytes(member)))
                 .andExpect(status().isBadRequest());
@@ -324,16 +296,16 @@ class ClientCompaniesApplicationTests {
 
     private void deleteMember(Member member) throws Exception {
         mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
         mvc.perform(delete(deleteMemberAddress, member.getCompany().getId(), member.getUserId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isNoContent());
 
         mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
@@ -343,34 +315,34 @@ class ClientCompaniesApplicationTests {
         Long cid = member.getCompany().getId();
 
         //friend/find/{companyId}/{memberUserId}/{friendUserId}
-        mvc.perform(get(findFriendAddress, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+        mvc.perform(get(findFriendAddress, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isNotFound());
 
         //friend/add/{companyId}/{memberUserId}/{friendUserId}
-        MvcResult response = mvc.perform(put(addFriendAddress, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+        MvcResult response = mvc.perform(put(addFriendAddress, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
         Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
         assertEquals(CompanyFriendStatus.REQUESTED, result.getStatus());
 
-        mvc.perform(get(findFriendAddress, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+        mvc.perform(get(findFriendAddress, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        mvc.perform(put(addFriendAddress, cid, adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+        mvc.perform(put(addFriendAddress, cid, USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(put(addFriendAddress, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+        mvc.perform(put(addFriendAddress, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(get(findFriendAddress, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+        mvc.perform(get(findFriendAddress, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isForbidden());
 
         return result;
@@ -382,19 +354,19 @@ class ClientCompaniesApplicationTests {
 
         Long cid = friend.getMember().getCompany().getId();
 
-        MvcResult response = mvc.perform(put(address, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+        MvcResult response = mvc.perform(put(address, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isOk())
                 .andReturn();
         Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
         assertEquals(CompanyFriendStatus.ACCEPTED, result.getStatus());
 
-        mvc.perform(put(address, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+        mvc.perform(put(address, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isForbidden());
 
         mvc.perform(put(address, cid, "not-valid-user-id")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isNotFound());
 
         return result;
@@ -406,8 +378,8 @@ class ClientCompaniesApplicationTests {
 
         Long cid = friend.getMember().getCompany().getId();
 
-        MvcResult response = mvc.perform(put(addressBlock, cid, adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+        MvcResult response = mvc.perform(put(addressBlock, cid, USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -415,7 +387,7 @@ class ClientCompaniesApplicationTests {
         assertEquals(CompanyFriendStatus.BLOCKED_BY_RECEIVER, result.getStatus());
 
         mvc.perform(put(addressBlock, cid, "not-valid-user-id")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isNotFound());
 
         return result;
@@ -427,20 +399,20 @@ class ClientCompaniesApplicationTests {
 
         Long cid = friend.getMember().getCompany().getId();
 
-        mvc.perform(put(address, cid, testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+        mvc.perform(put(address, cid, USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isForbidden());
 
-        MvcResult response = mvc.perform(put(address, cid, adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+        MvcResult response = mvc.perform(put(address, cid, USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
         Friend result = json.readValue(response.getResponse().getContentAsString(), Friend.class);
         assertEquals(CompanyFriendStatus.ACCEPTED, result.getStatus());
 
-        mvc.perform(put(address, cid, adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+        mvc.perform(put(address, cid, USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isBadRequest());
 
         return result;
@@ -450,41 +422,45 @@ class ClientCompaniesApplicationTests {
         String address = env.getProperty("api.company.manager.uri.add");
         assertNotNull(address);
 
-        assertFalse(comp.getEditors().contains(adminUserId));
+        assertFalse(comp.getEditors().contains(USERS[2].getUserId()));
 
         //BAD_REQUEST: Add manager that is same owner
-        mvc.perform(put(address, comp.getId(), testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
-                .andExpect(status().isBadRequest());
+        mvc.perform(put(address, comp.getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
+                .andExpect(status().isOk());
 
         //UNAUTHORIZED: Add manager by user that is not manager
-        mvc.perform(put(address, comp.getId(), adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser()))
+        mvc.perform(put(address, comp.getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isUnauthorized());
 
         //SUCCESSFUL: Add manager by owner.
-        MvcResult response = mvc.perform(put(address, comp.getId(), adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+        MvcResult response = mvc.perform(put(address, comp.getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
         Company result = json.readValue(response.getResponse().getContentAsString(), Company.class);
-        assertTrue(result.getEditors().contains(adminUserId));
+        DbGroup managers = result.getEditorGroups().stream()
+                .filter(g -> g.getName().equals(comp.getName().strip().toLowerCase() + "_MANAGERS_GROUP"))
+                .findFirst().orElse(null);
+        assertNotNull(managers);
+        assertTrue(managers.getMembers().contains(USERS[2].getUserId()));
 
         //BAD_REQUEST: Add manager that is already manager
-        mvc.perform(put(address, comp.getId(), adminUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser))
+        mvc.perform(put(address, comp.getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isBadRequest());
 
-        //FORBIDDEN: Block manager by new manager
-        response = mvc.perform(get(findMemberAddress, comp.getId(), testUserId)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtTestUser)
+        //FORBIDDEN: Block company owner by new manager
+        response = mvc.perform(get(findMemberAddress, comp.getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
         Member member = json.readValue(response.getResponse().getContentAsString(), Member.class);
 
         member.setStatus(CompanyMemberStatus.BLOCKED);
         mvc.perform(put(updateMemberAddress)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getJwtAdminUser())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsString(member)))
                 .andExpect(status().isForbidden());
@@ -494,6 +470,14 @@ class ClientCompaniesApplicationTests {
 
         fail();
         return null;
+    }
+
+    @Test
+    public void temp() throws Exception {
+        mvc.perform(get(findAddress, 1)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
+                        .andExpect(status().isNotFound());
     }
 
 	@Test
@@ -506,26 +490,18 @@ class ClientCompaniesApplicationTests {
         fail();
     }
 
-    public String getJwtAdminUser() throws Exception{
-
-        if(jwtAdminUser == null){
-            String username = env.getProperty("webapp.user.admin.username");
-            String password = env.getProperty("webapp.user.admin.password");
-            jwtAdminUser = apiUser.getToken(username, password);
-        }
-
-        return jwtAdminUser;
-
+    @Test
+    public void updateCompanyByBlockedMember() throws Exception{
+        fail();
     }
 
-	@BeforeAll
-	public static void setJwtTestUser(@Autowired ApiUser apiUSer, @Autowired Environment env) throws Exception{
-		String testUsername = env.getProperty("webapp.user.test.username");
-		assertNotNull(testUsername);
+    @BeforeAll
+    static public void setUp(@Autowired UtilsBox utils){
+        USERS = utils.getTestUsers(3, "company.CompanyTest");
+    }
 
-		String testUserPassword = env.getProperty("webapp.user.test.password");
-		assertNotNull(testUserPassword);
-
-		jwtTestUser = apiUSer.getToken(testUsername, testUserPassword);
-	}
+    @AfterAll
+    static public void tearDown(@Autowired UtilsBox utils){
+        utils.deleteTestUsers(USERS);
+    }
 }

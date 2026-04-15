@@ -58,7 +58,6 @@ public class ApiUserImplementation implements ApiUser{
     @Override
     public String isUserIdValid(String userId) throws HttpStatusCodeException {
         String address = env.getProperty("api.kcUser.isUserIdValid.uri", "#");
-        log.debug("API_USER::isUserIdValid. $userId: {} | $address: {}", userId, address);
 
         return client.get().uri(address, userId)
                 .attributes(clientRegistrationId(webappClientId))
@@ -134,12 +133,7 @@ public class ApiUserImplementation implements ApiUser{
     @Override
     public String getCurrentUserId() throws HttpStatusCodeException{
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.debug("API_USER::getCurrentUser. $loggedUser: {}", userId);
-
-        String result = isUserIdValid(userId);
-        log.trace("API_USER::getCurrentUser. $apiResponse: {}", result);
-
-        return result;
+        return isUserIdValid(userId);
     }
 
     @Override

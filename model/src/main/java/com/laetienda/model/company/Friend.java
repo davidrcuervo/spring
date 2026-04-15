@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
+@Table(name = "COMPANY_FRIEND")
 public class Friend extends DbItem {
 
     @NotNull

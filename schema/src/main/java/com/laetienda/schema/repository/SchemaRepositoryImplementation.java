@@ -113,7 +113,7 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
 
     @Override
     @Transactional
-    public <T> void delete(Class<T> clazz, T item) {
+    public <T> void delete(Class<T> clazz, T item) throws HttpStatusCodeException {
         log.debug("SCHEMA_REPO::delete $clazzName: {}", clazz.getName());
         em.remove(item);
     }

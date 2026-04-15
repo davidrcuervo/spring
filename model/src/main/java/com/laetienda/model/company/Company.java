@@ -15,10 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "COMPANY")
 public class Company extends DbItem {
 
     @NotNull @Unique
     @Size(min = 2, max = 64)
+    @Column(unique = true, nullable = false, length = 64)
     private String name;
 
     @Size(min = 3, max = 400)

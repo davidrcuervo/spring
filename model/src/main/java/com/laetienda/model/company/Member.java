@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "COMPANY_MEMBER")
 public class Member extends DbItem {
     private final static Logger log = LoggerFactory.getLogger(Member.class);
 

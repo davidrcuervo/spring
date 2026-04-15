@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,20 +74,40 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
         assertEquals(DbGroupPolicy.MANAGE_BY_ALL, group.getPolicy());
 
         //TODO: ADD MEMBER
+        group = apiGroup.addMember(group.getId(), users[2].getUserId());
+        assertNotNull(group);
+        assertTrue(group.getMembers().contains(users[2].getUserId()));
+
         //TODO: REMOVE MEMBER
+        apiGroup.setJwtToken(users[2].getToken());
+        group=apiGroup.removeMember(group.getId(), users[2].getUserId());
+        assertNotNull(group);
+        assertFalse(group.getMembers().contains(users[2].getUserId()));
+
+        HttpStatusCodeException exception = assertThrows(HttpStatusCodeException.class,
+                () -> apiGroup.findByName(groupFinal.getName()));
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+
         //TODO: FIND ALL
+        apiGroup.setJwtToken(users[1].getToken());
+        List<DbGroup> results = apiGroup.findAll();
+        assertNotNull(results);
+        assertEquals(1, results.size());
 
         //DELETE ITEM
         apiSchema.deleteById(ItemTypeA.class, item.getId());
 
+        //TODO: FIND ORPHANS
+        results = apiGroup.getOrphans();
+        assertNotNull(results);
+        assertEquals(1, results.size());
+
         //DELETE GROUP
         apiGroup.delete(group.getId());
 
-        HttpStatusCodeException exception = assertThrows(HttpStatusCodeException.class,
+        exception = assertThrows(HttpStatusCodeException.class,
                 () -> apiGroup.findByName(groupFinal.getName()));
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-
-        //TODO: FIND ORPHANS
 
         log.info("SCHEMA_TEST::groups | Test finished successfully.");
     }

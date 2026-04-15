@@ -192,12 +192,17 @@ public class ItemServiceImplementation implements ItemService{
         String username = request.getUserPrincipal().getName();
         Long id = ((DbItem)item).getId();
 
-        if(canEdit((DbItem)item)){
-            schemaRepo.delete(clazz, item);
-            log.trace("ITEM_SERVICE::delete. $item.id: {}", id);
-        }else{
+        if(!canEdit((DbItem)item)) {
             String message = String.format("User, %s, doesn't have privileges to remove the item. $item.id: %d", username, ((DbItem) item).getId());
             throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+        }
+
+        try {
+            schemaRepo.delete(clazz, item);
+            log.trace("ITEM_SERVICE::delete. $item.id: {}", id);
+        }catch(Exception ex){
+            log.error("ITEM_SERVICE::delete. {} -> {}", ex.getClass().getSimpleName(), ex.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }
 

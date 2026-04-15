@@ -13,7 +13,7 @@ public interface SchemaRepository {
     <T> T find(Class<T> clazz, Map<String, String> body);
     List<? extends DbItem> findAll(Class<? extends DbItem> clazz) throws HttpServerErrorException;
     <T> List<T> findByQuery(Class clazz, Map<String, String> body) throws NotValidCustomException;
-    <T> void delete(Class<T> clazz, T item);
+    <T> void delete(Class<T> clazz, T item) throws HttpServerErrorException;
     <T> T findById(Long id, Class<T> clazz) throws NotValidCustomException;
     boolean deleteUserById(String userId);
 

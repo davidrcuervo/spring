@@ -46,12 +46,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Override
     public Company create(@NotNull Company company) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::create. $company: {}", company.getName());
-
-        try {
-            return schema.create(Company.class, company).getBody();
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        return schema.create(Company.class, company).getBody();
     }
 
     @Override
@@ -129,12 +124,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Override
     public void deleteById(Long id) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::deleteById. $id: {}", id);
-
-        try {
-            schema.deleteById(Company.class, id);
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        schema.deleteById(Company.class, id);
     }
 
     @Override
@@ -205,18 +195,13 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     public Company removeMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::removeMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
 
-        try {
-            schema.deleteById(Member.class, member.getId());
-            return find(member.getCompany().getId());
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        schema.deleteById(Member.class, member.getId());
+        return find(member.getCompany().getId());
     }
 
     @Override
     public Member updateMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::updateMember. $memberId: {}", member.getId());
-
         try {
             return schema.update(Member.class, member).getBody();
         } catch (NotValidCustomException e) {
@@ -238,11 +223,6 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Override
     public Member addMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::addMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
-
-        try {
-            return schema.create(Member.class, member).getBody();
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        return schema.create(Member.class, member).getBody();
     }
 }
