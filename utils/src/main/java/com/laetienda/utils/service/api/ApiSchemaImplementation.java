@@ -1,5 +1,6 @@
 package com.laetienda.utils.service.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
@@ -8,10 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
@@ -21,7 +25,7 @@ import java.util.Map;
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 @Component
-public class ApiSchemaImplementation implements ApiSchema{
+public class ApiSchemaImplementation extends ApiRestClientImplementation implements ApiSchema{
     private final static Logger log = LoggerFactory.getLogger(ApiSchemaImplementation.class);
 
     private final RestClient client;
@@ -61,18 +65,24 @@ public class ApiSchemaImplementation implements ApiSchema{
     }
 
     @Override
-    public <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws NotValidCustomException {
+    public <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws HttpStatusCodeException {
         String address = env.getProperty("api.schema.create.uri", "create");
         log.debug("SCHEMA_API::create. $clazz: {}", clazz.getName());
 
         try {
-            return client.post().uri(address, getClazzName(clazz))
+            var temp = client.post().uri(address, getClazzName(clazz))
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .body(json.writeValueAsBytes(item))
-                    .retrieve().toEntity(clazz);
-        }catch(Exception e){
-            throw new NotValidCustomException(e);
+                    .body(json.writeValueAsBytes(item));
+
+            if(super.getJwtToken() != null){
+                temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
+            }
+
+            return temp.retrieve().toEntity(clazz);
+        }catch(JsonProcessingException e){
+            log.warn("SCHEMA_API::create. {}", e.getMessage());
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -158,18 +168,18 @@ public class ApiSchemaImplementation implements ApiSchema{
     }
 
     @Override
-    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws NotValidCustomException {
+    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws HttpStatusCodeException {
         String address = env.getProperty("api.schema.deleteById.uri", "delete/{id}");
         log.debug("SCHEMA_API::deleteById. $idStr: {} | $clazz: {} | $address: {}", id, clazz.getName(), address);
 
-        try{
-            return client.delete().uri(address, id, getClazzName(clazz))
-                    .accept(MediaType.APPLICATION_JSON)
-                    .retrieve().toEntity(String.class);
-        }catch(Exception e){
-            log.trace(e.getMessage(), e);
-            throw new NotValidCustomException(e);
+        var temp = client.delete().uri(address, id, getClazzName(clazz))
+                .accept(MediaType.APPLICATION_JSON);
+
+        if(super.getJwtToken() != null){
+            temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
         }
+
+        return temp.retrieve().toEntity(String.class);
     }
 
     @Override
@@ -186,56 +196,6 @@ public class ApiSchemaImplementation implements ApiSchema{
         }catch(Exception e){
             throw new NotValidCustomException(e);
         }
-    }
-
-    @Override
-    public RestClient getRestClient() {
-        return null;
-    }
-
-    @Override
-    public ApiClient setSessionId(String sessionId) {
-        return null;
-    }
-
-    @Override
-    public ApiClient setCredentials(String loginUsername, String password) {
-        return null;
-    }
-
-    @Override
-    public ApiClient setPort(String port) {
-        return null;
-    }
-
-    @Override
-    public ApiClient setPort(Integer port) {
-        return null;
-    }
-
-    @Override
-    public String getPort() {
-        return "";
-    }
-
-    @Override
-    public String getUsername() {
-        return "";
-    }
-
-    @Override
-    public String getSession() {
-        return "";
-    }
-
-    @Override
-    public ResponseEntity<String> startSession(String loginAddres, String logoutAddress) throws HttpClientErrorException {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<String> endSession(String logoutAddress) throws HttpClientErrorException {
-        return null;
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.model.user.TestUserDto;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.service.api.ApiUser;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -1088,59 +1089,15 @@ class DbGroupTest {
     }
 
     @BeforeAll
-    static void setup(
-            @Autowired ApiUser apiUser,
-            @Autowired Environment env,
-            @Autowired OAuth2AuthorizedClientManager authorizedClientManager
-    ) throws Exception {
-
-        int numberOfUsers = 3;
-        String clientRegistrationId = env.getProperty("kc.client-registration-id.webapp");
-        assertNotNull(clientRegistrationId);
-
-        USERS = new TestUserDto[numberOfUsers + 1];
-
-        String userName = "schemaGroup";
-        String[] firstName = {"First", "Second", "Third", "Forth",  "Fifth", "Sixth"};
-
-        for(int j = 1; j <= numberOfUsers; j++) {
-            String u = String.format("testUser%d_%s", j, userName);
-            Usuario user = new Usuario(u,
-                    firstName[j], null, userName,
-                    u+"@address.com", false,
-                    "secreteTestPassword"+j, "secreteTestPassword"+j
-            );
-
-            KcUser kcUser = apiUser.create(user, clientRegistrationId);
-            apiUser.enable(kcUser.getId(), clientRegistrationId);
-            String token = apiUser.getToken(user.getUsername(), user.getPassword());
-
-            USERS[j] = new TestUserDto(kcUser.getId(), token);
-        }
-
-        //SET SERVICE ACCOUNT IN USERS ARRAY
-        String kcCerts = env.getProperty("api.kc.realm.certs");
-        assertNotNull(kcCerts);
-
-        OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
-                .withClientRegistrationId(clientRegistrationId)
-                .principal("test-system") // Identity of the requester
-                .build();
-
-        // This triggers the POST to Keycloak if the token is missing or expired
-        OAuth2AuthorizedClient authorizedClient = authorizedClientManager.authorize(authorizeRequest);
-        String serviceAccountToken = authorizedClient.getAccessToken().getTokenValue();
-        Jwt jwt = NimbusJwtDecoder.withJwkSetUri(kcCerts).build().decode(serviceAccountToken);
-
-        USERS[0] = new TestUserDto(jwt.getSubject(), serviceAccountToken);
+    static public void setUp(
+            @Autowired UtilsBox utils
+            ) throws HttpStatusCodeException {
+        USERS = utils.getTestUsers(3, "schema.DbGroupTest");
     }
 
     @AfterAll
-    static void tearDown(@Autowired ApiUser apiUser) {
-
-        for(int j = 1; j < USERS.length; j++) {
-            apiUser.delete(USERS[j].userId, USERS[j].getToken());
-        }
+    static public void tearDown(@Autowired UtilsBox utils) {
+        utils.deleteTestUsers(USERS);
     }
 
     private ItemTypeA getItem(String username, String jwtToken) throws Exception {

@@ -1,5 +1,9 @@
 package com.laetienda.schema;
 
+import com.laetienda.utils.lib.UtilsBox;
+import com.laetienda.utils.lib.UtilsBoxImplementation;
+import com.laetienda.utils.service.api.ApiUser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.client.*;
