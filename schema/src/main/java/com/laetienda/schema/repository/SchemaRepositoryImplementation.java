@@ -18,6 +18,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.lang.reflect.Type;
@@ -91,6 +92,18 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
     }
 
     @Override
+    public List<? extends DbItem> findAll(Class<? extends DbItem> clazz) throws HttpServerErrorException {
+        log.debug("SCHEMA_REPO::findAll $clazzName: {}", clazz.getName());
+
+        String query = String.format("SELECT t FROM %s t", clazz.getName());
+        log.trace("SCHEMA_REPO::findAll $query: {}", query);
+
+        TypedQuery<? extends DbItem> jpaQuery = em.createQuery(query, clazz);
+
+        return jpaQuery.getResultList();
+    }
+
+    @Override
     public <T> List<T> findByQuery(Class clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("SCHEMA_REPO::findByQuery. $clazz: {} | $query: {}", clazz.getName(), body.get("query"));
 
@@ -127,16 +140,14 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
         log.debug("SCHEMA_REPO::deleteUserById. $userId: {}", userId);
 
         List<DbItem> readers =  repo.findByEditors(userId);
-        readers.stream().map(item -> {
-            item.removeEditor(userId);
-            return item;
-        }).forEach(item -> em.merge(item));
+        readers.stream()
+                .peek(item -> item.removeEditor(userId))
+                .forEach(item -> em.merge(item));
 
         List<DbItem> editors = repo.findByReaders(userId);
-        editors.stream().map(item -> {
-            item.removeReader(userId);
-            return item;
-        }).forEach(item -> em.merge(item));
+        editors.stream()
+                .peek(item -> item.removeReader(userId))
+                .forEach(item -> em.merge(item));
 
         return true;
     }

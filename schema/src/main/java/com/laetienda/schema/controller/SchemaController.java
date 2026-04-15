@@ -1,6 +1,7 @@
 package com.laetienda.schema.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.schema.service.ItemService;
 import com.laetienda.utils.service.api.UserApiDeprecated;
@@ -8,9 +9,11 @@ import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.nio.charset.StandardCharsets;
@@ -76,13 +79,6 @@ public class SchemaController {
         }
     }
 
-    @GetMapping("${api.schema.isItemValid.file}") //api/v0/schema/isValid/{id}?clase={clazzName}
-    public ResponseEntity<String> isItemValid(@PathVariable String id, @RequestParam String clase) throws NotValidCustomException{
-        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
-        log.info("SCHEMA_CONTROLLER::isValid. $id: {} | $clazzName: {}", id, clazzName);
-        return ResponseEntity.ok(itemService.isItemValid(id, clazzName).toString());
-    }
-
     @GetMapping("${api.schema.findById.file}")
     public <T> ResponseEntity<T> findById(@RequestParam String clase, @PathVariable Long id) throws NotValidCustomException {
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
@@ -96,6 +92,27 @@ public class SchemaController {
             log.trace(e.getMessage(), e);
             throw new NotValidCustomException(e.getMessage(), HttpStatus.BAD_REQUEST, "item");
         }
+    }
+
+    @GetMapping("${api.schema.findAll.file}") //api/v0/schema/find/all?clazzNameEncoded={clazzName}
+    public ResponseEntity<List<? extends DbItem>> findAll(@RequestParam String clazzNameEncoded) throws HttpStatusCodeException {
+        String clazzName = new String(Base64.getUrlDecoder().decode(clazzNameEncoded.getBytes()), StandardCharsets.UTF_8);
+        log.info("SCHEMA_CONTROLLER::findAll $clazzName: {}", clazzName);
+
+        try {
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
+            return ResponseEntity.ok(itemService.findAll(clazz));
+        } catch (ClassNotFoundException | LinkageError | ClassCastException e) {
+            log.warn("SCHEMA_CONTROLLER::findAll $error: {}", e.getMessage());
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @GetMapping("${api.schema.isItemValid.file}") //api/v0/schema/isValid/{id}?clase={clazzName}
+    public ResponseEntity<String> isItemValid(@PathVariable String id, @RequestParam String clase) throws NotValidCustomException{
+        String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
+        log.info("SCHEMA_CONTROLLER::isValid. $id: {} | $clazzName: {}", id, clazzName);
+        return ResponseEntity.ok(itemService.isItemValid(id, clazzName).toString());
     }
 
     @PutMapping("${api.schema.update.file}")

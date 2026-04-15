@@ -25,6 +25,12 @@ public class DbGroupController {
         this.service = service;
     }
 
+    @GetMapping("${api.schema.group.file.findAll}") //groups
+    public ResponseEntity<List<DbGroup>> findAll() throws HttpStatusCodeException {
+        log.info("DbGroupController::findAll");
+        return ResponseEntity.ok(service.findAll());
+    }
+
     @GetMapping("${api.schema.group.file.findByName}") //group/find/{groupName}
     public ResponseEntity<DbGroup> findByName(@PathVariable String groupName) throws HttpStatusCodeException {
         log.info("DbGROUP_CONTROLLER::findByName. $groupName: {}", groupName);

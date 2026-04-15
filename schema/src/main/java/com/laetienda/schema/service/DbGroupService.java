@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 public interface DbGroupService {
+    List<DbGroup> findAll() throws HttpStatusCodeException;
     DbGroup findByName(String name) throws HttpStatusCodeException;
     void create(DbItem item) throws HttpStatusCodeException;
     boolean isValid(DbGroup dbGroup) throws HttpStatusCodeException;
@@ -19,4 +20,5 @@ public interface DbGroupService {
     DbGroup addMember(String groupId, String userId) throws HttpStatusCodeException;
     DbGroup removeMember(String groupId, String userId) throws HttpStatusCodeException;
     Set<DbGroup> getOrphans() throws  HttpStatusCodeException;
+
 }

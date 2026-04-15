@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.List;
 import java.util.Map;
@@ -143,6 +144,16 @@ public class ItemServiceImplementation implements ItemService{
         return find(clazz, item);
     }
 
+    @Override
+    public List<? extends DbItem> findAll(Class<? extends DbItem> clazz) throws HttpStatusCodeException {
+        String userId = request.getUserPrincipal().getName();
+        log.debug("ITEM_SERVICE::findAll $clazzName: {} | $userId: {}", clazz.getName(), userId);
+
+        return schemaRepo.findAll(clazz).stream()
+                .filter(item -> canRead(item, userId))
+                .toList();
+    }
+
     private <T> T find(Class<T> clazz, T item) throws NotValidCustomException{
         String userId = request.getUserPrincipal().getName();
         if (item == null) {
@@ -246,6 +257,12 @@ public class ItemServiceImplementation implements ItemService{
         log.debug("ITEM_SERVICE::deleteUserById. $userId: {}", userId);
         String loggedUserId = request.getUserPrincipal().getName();
 
+        if(!groupService.findAll().isEmpty()){
+            String m = String.format("User can't be removed because it belongs to groups. $userId: %s", userId);
+            log.warn("ITEM_SERVICE::deleteUserById. {}", m);
+            throw new NotValidCustomException(m, HttpStatus.FORBIDDEN, "user");
+        }
+
         if(loggedUserId.equals(userId) || tb.hasAuthority("role_manager")){
 
             List<DbItem> itemsByOwner = itemRepo.findByOwner(userId);
@@ -256,13 +273,13 @@ public class ItemServiceImplementation implements ItemService{
 
             }else{
                 String message = String.format("User, %s, is owner of database items and can't be removed", userId);
-                log.warn(message);
+                log.warn("ITEM_SERVICE::deleteUserById. {}", message);
                 throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "Item");
             }
 
         }else{
             String message = String.format("User, %s, does not have authorization to remove user, %s", loggedUserId, userId);
-            log.warn(message);
+            log.warn("ITEM_SERVICE::deleteUserById.. {}", message);
             throw new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
         }
     }
@@ -349,45 +366,51 @@ public class ItemServiceImplementation implements ItemService{
         }
     }
 
-    private Boolean canEdit(DbItem item){
-        String username = request.getUserPrincipal().getName();
+    private boolean canEdit(DbItem item){
+        String userId = request.getUserPrincipal().getName();
+        return canEdit(item, userId);
+    }
 
-        if(username.equals(item.getOwner()))
+    private boolean canEdit(DbItem item, String userId){
+        if(userId.equals(item.getOwner()))
             return true;
 
-        if(item.getEditors().contains(username))
+        if(item.getEditors().contains(userId))
             return true;
 
         return item.getEditorGroups().stream().anyMatch(editorGroup -> {
-            if(editorGroup.getOwner().equals(username))
+            if(editorGroup.getOwner().equals(userId))
                 return true;
-            return editorGroup.getMembers().contains(username);
+            return editorGroup.getMembers().contains(userId);
         });
     }
 
-    private Boolean canRead(DbItem item){
-        String username = request.getUserPrincipal().getName();
+    private boolean canRead(DbItem item){
+        String userId = request.getUserPrincipal().getName();
+        return canRead(item, userId);
+    }
 
-        if(username.equals(serviceUserId))
+    private boolean canRead(DbItem item, String userId){
+        if(userId.equals(serviceUserId))
             return true;
 
-        if(username.equals(item.getOwner()))
+        if(userId.equals(item.getOwner()))
             return true;
 
-        if(item.getReaders().contains(username))
+        if(item.getReaders().contains(userId))
             return true;
 
         if(item.getReaderGroups().stream().anyMatch(
                 readerGroup -> {
                     log.trace("ITEM_SERVICE::canRead. $readerGroupOwner: {}", readerGroup.getOwner());
-                    if(readerGroup.getOwner().equals(username))
+                    if(readerGroup.getOwner().equals(userId))
                         return true;
-                    return readerGroup.getMembers().contains(username);
+                    return readerGroup.getMembers().contains(userId);
                 })
         ) {
             return true;
         }
 
-        return canEdit(item);
+        return canEdit(item, userId);
     }
 }

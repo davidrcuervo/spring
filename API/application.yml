@@ -22,6 +22,8 @@ api:
   kcUser:
     server: http://etuser:${PORT_USUARIO}
     folder: /api/v0/user
+
+    # Find current logged user
     find:
       file: find
       uri: ${api.kcUser.uri.folder}/${api.kcUser.find.file}
@@ -71,13 +73,61 @@ api:
     login:
       file: login
       uri: ${api.schema.uri}/${api.schema.login.file}
+
     create:
+    # ACTION: Create new database item
+    # METHOD: post
+    # QUERY PARAMETERS:
+    # - {clazzName}: Name of class encoded with Base64
+    # BODY: Schema item in JSON representation
+    # RETURNS:
+    # - Code: 200 on success
+    # - Body: Schema item in JSON representation includes itemId and owner
+    # ERRORS:
+    # - 400
+    # - 401
+    # - 403
+    # - 500
       file: create
       path: ${api.schema.create.file}?clase={clazzName}
       uri: ${api.schema.uri}/${api.schema.create.path}
+
     isItemValid:
+    # ACTION: Find if DbItem exists, and it is valid
+    # METHOD: GET
+    # PATH VARIABLES:
+    # - id: Type: Long | exact id of the DbItem
+    # BODY: void
+    # SUCCESS:
+    # - Code: 200
+    # - Body: com.laetienda.model.schema.DbItem
+    # ERRORS:
+    # - 400: Item id is not "Long" type.
+    # - 401: User does not have read permissions.
+    # - 403:
+    # - 404: Item does not exist
+    # - 500:
       file: isItemValid/{id}
       uri: ${api.schema.uri}/${api.schema.isItemValid.file}?clase={clazzName}
+
+    findAll:
+    # ACTION: Find all items where that user can read
+    # METHOD: GET
+    # QUERY PARAMETERS:
+    # - clazzName: Name of class encoded with Base64
+    # ON SUCCESS:
+    # - Code: 200
+    # - Body: List<T>
+    # ERRORS:
+    # - 400:
+    # - 401:
+    # - 403:
+    # - 404:
+    # - 500:
+      file: find/all
+      path: ${api.schema.findAll.file}?clazzNameEncoded={clazzName}
+      uri: ${api.schema.uri}/${api.schema.findAll.path}
+
     find:
       file: find
       path: ${api.schema.find.file}?clase={clazzName}
@@ -98,9 +148,21 @@ api:
     deleteById:
       file: delete/{id}
       uri: ${api.schema.uri}/${api.schema.deleteById.file}?clase={clazzName}
+
     deleteUserById:
+    # ACTION: Remove user from item reader and editor.
+    # METHOD: DELETE
+    # PATH VARIABLES:
+    # - userId: id of user to be removed
+    # ON SUCCESS:
+    # - Code: 204 - no content
+    # - Body: void
+    # ERRORS:
+    # - 401: Unauthorized - only same user can remove user, or user with role_manager
+    # - 403: Forbidden - If user is owner of any item, or user belongs to any schema group.
       file: deleteUser/{userId}
       uri: ${api.schema.uri}/${api.schema.deleteUserById.file}
+
     update:
       file: update
       path: ${api.schema.update.file}?clase={clazzName}
@@ -108,6 +170,19 @@ api:
     group:
       root: ${api.schema.root}/group
       file:
+        findAll: /groups
+        # ACTION: Find all groups where user is member or owner
+        # METHOD: GET
+        # ON SUCCESS:
+        # - Code: 200
+        # - Body: List<schema.DbGroup>
+        # ERRORS:
+        # - 400:
+        # - 401:
+        # - 403:
+        # - 404:
+        # - 500:
+
         findByName: /group/findByName/{groupName}
         update: /group/{groupId}/update
         delete: /group/{groupId}/delete
@@ -116,6 +191,7 @@ api:
           add: /group/{groupId}/member/add/{userId}
           remove: /group/{groupId}/member/remove/{userId}
       uri:
+        findAll: ${api.schema.uri}${api.schema.group.file.findAll}
         findByName: ${api.schema.uri}${api.schema.group.file.findByName}
         update: ${api.schema.uri}${api.schema.group.file.update}
         delete: ${api.schema.uri}${api.schema.group.file.delete}

@@ -42,6 +42,22 @@ public class DbGroupServiceImplementation implements DbGroupService {
     }
 
     @Override
+    public List<DbGroup> findAll() throws HttpStatusCodeException {
+        log.debug("DbGroupController::findAll");
+
+        String currentUserId = apiUser.getCurrentUserId();
+        List<DbGroup> results = groupRepo.findAll();
+
+        return results.stream().filter(result -> {
+            if(result.getOwner().equals(currentUserId)) {
+                return true;
+
+            } else
+                return result.getMembers().contains(currentUserId);
+        }).toList();
+    }
+
+    @Override
     public DbGroup findByName(String name) throws HttpStatusCodeException {
         log.debug("DbGROUP_SERVICE::findByName. $name: {}", name);
 
