@@ -1,17 +1,19 @@
 package com.laetienda.schema.service;
 
-import com.laetienda.lib.options.DbGroupPolicy;
+import com.laetienda.lib.options.DbUserAccessPolicy;
+import com.laetienda.lib.options.DbServiceAccessPolicy;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbGroup;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.repository.DbGroupRepository;
 import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.utils.service.api.ApiUser;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -29,15 +31,22 @@ public class DbGroupServiceImplementation implements DbGroupService {
     private final ItemRepository itemRepo;
     private final ApiUser apiUser;
     private final Validator validator;
+    private final HttpServletRequest request;
+    private final ToolBoxService tb;
 
     DbGroupServiceImplementation(
             DbGroupRepository dbGroupRepository,
             ItemRepository itemRepository,
             Validator validator,
-            ApiUser apiUser) {
+            HttpServletRequest httpServletRequest,
+            ToolBoxService toolBoxService,
+            ApiUser apiUser
+    ) {
         this.groupRepo = dbGroupRepository;
         this.itemRepo = itemRepository;
         this.validator = validator;
+        this.request = httpServletRequest;
+        this.tb = toolBoxService;
         this.apiUser = apiUser;
     }
 
@@ -45,16 +54,10 @@ public class DbGroupServiceImplementation implements DbGroupService {
     public List<DbGroup> findAll() throws HttpStatusCodeException {
         log.debug("DbGroupController::findAll");
 
-        String currentUserId = apiUser.getCurrentUserId();
+        String currentUserId = request.getUserPrincipal().getName();
         List<DbGroup> results = groupRepo.findAll();
 
-        return results.stream().filter(result -> {
-            if(result.getOwner().equals(currentUserId)) {
-                return true;
-
-            } else
-                return result.getMembers().contains(currentUserId);
-        }).toList();
+        return results.stream().filter(this::canRead).toList();
     }
 
     @Override
@@ -62,7 +65,7 @@ public class DbGroupServiceImplementation implements DbGroupService {
         log.debug("DbGROUP_SERVICE::findByName. $name: {}", name);
 
         DbGroup result = groupRepo.findByName(name);
-        String uid = apiUser.getCurrentUserId();
+        String uid = request.getUserPrincipal().getName();
 
         if (result == null) {
             String message = String.format("Group, with that name, does not exist: %s", name);
@@ -70,12 +73,7 @@ public class DbGroupServiceImplementation implements DbGroupService {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, message);
         }
 
-        if(!canRead(uid,  result)) {
-            String message = String.format("User does not have authorization to access group. $groupName: %s | $userId: %s", name, uid);
-            log.warn("DbGROUP_SERVICE::findByName. {}", message);
-            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, message);
-        }
-
+        canReadIfNotThrowNotAuthorized(result);
         return isValid(result) ? result : null;
     }
 
@@ -171,7 +169,7 @@ public class DbGroupServiceImplementation implements DbGroupService {
     }
 
     @Override
-    public DbGroup find(String groupId) throws HttpStatusCodeException {
+    public DbGroup findIfErrorThroughException(String groupId) throws HttpStatusCodeException {
         log.debug("DbGROUP_SERVICE::find $groupId: {}", groupId);
 
         try{
@@ -197,6 +195,7 @@ public class DbGroupServiceImplementation implements DbGroupService {
         log.debug("DbGROUP_SERVICE::update. $groupId: {}", groupId);
 
         Optional<DbGroup> group = groupRepo.findById(parseGroupId(groupId));
+        String currentUserId = apiUser.getCurrentUserId();
 
         if(group.isEmpty()) {
             String m = String.format("A group with that name does not exist. $groupId: %s", groupId);
@@ -204,29 +203,21 @@ public class DbGroupServiceImplementation implements DbGroupService {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, m);
         }
 
-        String uid = apiUser.getCurrentUserId();
-        if(!canEdit(uid, group.get())){
-            String m = String.format("User is not authorized to edit group. $groupId: %s | $userId: %s", groupId, uid);
-            log.warn("DbGROUP_SERVICE::update. {}", m);
-            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
-        }
+        canEditIfNotThrowUnauthorized(group.get());
 
         body.forEach((key, value) -> {
             log.trace("DbGROUP_SERVICE::update. $field: {} | $value: {}", key, value);
 
-            if(key.equals("name")){
-                updateName(group.get(), value);
-
-            } else if(key.equals("owner")){
-                updateOwner(group.get(), value, uid);
-
-            } else if(key.equals("policy")){
-                updatePolicy(group.get(), value);
-
-            } else{
-                String m = String.format("Invalid update field: $field: %s", key);
-                log.warn("DbGROUP_SERVICE::update. {}", m);
-                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, m);
+            switch (key) {
+                case "name" -> updateName(group.get(), value);
+                case "owner" -> updateOwner(group.get(), value, currentUserId);
+                case "userAccessPolicy" -> updateUserAccessPolicy(group.get(), value);
+                case "serviceAccessPolicy" -> updateServiceAccessPolicy(group.get(), value);
+                default -> {
+                    String m = String.format("Invalid update field: $field: %s", key);
+                    log.warn("DbGROUP_SERVICE::update. {}", m);
+                    throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, m);
+                }
             }
         });
 
@@ -286,7 +277,7 @@ public class DbGroupServiceImplementation implements DbGroupService {
             Long gid = Long.parseLong(groupId);
 
             groupRepo.findById(gid).ifPresent(group -> {
-                if (canEdit(uid, group)) {
+                if (canEdit(group)) {
 
                     group.getEditorItems().forEach(item -> {
                         itemRepo.findById(item.getId()).ifPresent(editorItem -> {
@@ -336,13 +327,13 @@ public class DbGroupServiceImplementation implements DbGroupService {
     private DbGroup addOrRemoveMember(String groupId, String userId, boolean addMember) throws HttpStatusCodeException {
         log.debug("DbGROUP_SERVICE::addOrRemoveMember. $addMember: {} | $groupId: {} | $userId: {}", addMember, groupId, userId);
 
-        String currentUserId = apiUser.getCurrentUserId();
-        DbGroup group = find(groupId);
+        DbGroup group = findIfErrorThroughException(groupId);
+        String loggedUserId = request.getUserPrincipal().getName();
 
-        if(!canEdit(currentUserId, group) && !group.getMembers().contains(userId)) {
-            String m = String.format("User is not authorized to edit group. $groupId: %s | $userId: %s", groupId, currentUserId);
-            log.warn("DbGROUP_SERVICE::addOrRemoveMember.. {}", m);
-            throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
+        if(!addMember && loggedUserId.equals(userId)){
+            log.trace("DbGROUP_SERVICE::addOrRemoveMember. User is removing himself from group");
+        }else{
+            canEditIfNotThrowUnauthorized(group);
         }
 
         try{
@@ -372,11 +363,11 @@ public class DbGroupServiceImplementation implements DbGroupService {
     @Override
     public Set<DbGroup> getOrphans() throws HttpStatusCodeException {
         log.debug("DbGROUP_SERVICE::getOrphans.");
-        String uid = apiUser.getCurrentUserId();
+        String uid = request.getUserPrincipal().getName();
 
         Set<DbGroup> temp = groupRepo.findByReaderItemsIsEmptyAndEditorItemsIsEmpty();
 
-        return temp.stream().filter(g -> canRead(uid, g))
+        return temp.stream().filter(this::canRead)
                 .collect(Collectors.toSet());
     }
 
@@ -404,31 +395,65 @@ public class DbGroupServiceImplementation implements DbGroupService {
         return null;
     }
 
-    private boolean canRead(String uid, DbGroup dbGroup) throws HttpStatusCodeException {
+    private void canReadIfNotThrowNotAuthorized(DbGroup dbGroup) throws HttpStatusCodeException {
+        String userId = request.getUserPrincipal().getName();
+
+        if(!canRead(dbGroup)) {
+            String m = "User is not authorized to read group. $groupId: %s | $userId: %s";
+            String mess = String.format(m, dbGroup.getName(), userId);
+            log.warn("DbGROUP_SERVICE::canReadIfNotThrowNotAuthorized. {}", mess);
+            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, mess);
+        }
+    }
+
+    private boolean canRead(DbGroup dbGroup) throws HttpStatusCodeException {
+        boolean isService = tb.hasAuthority("role_service");
+        String uid = request.getUserPrincipal().getName();
 
         if(dbGroup.getOwner().equals(uid))
             return true;
 
-        else if(dbGroup.getMembers() != null && dbGroup.getMembers().contains(uid))
-            return true;
+        if(isService){
+            if(DbServiceAccessPolicy.SERVICE_WRITE.equals(dbGroup.getServiceAccessPolicy()))
+                return true;
 
-        else
-            return false;
+            if(DbServiceAccessPolicy.SERVICE_READ.equals(dbGroup.getServiceAccessPolicy()))
+                return true;
+        }
+
+        return dbGroup.getMembers() != null && dbGroup.getMembers().contains(uid);
     }
 
-    private boolean canEdit(String userId, DbGroup dbGroup) throws HttpStatusCodeException {
+    private void canEditIfNotThrowUnauthorized(DbGroup group) throws HttpStatusCodeException {
+        String userId = request.getUserPrincipal().getName();
+        if(!canEdit(group)) {
+            String m = "User is not authorized to edit group. $groupId: %s | $userId: %s";
+            String mess = String.format(m, group.getName(), userId);
+            log.warn("DbGROUP_SERVICE::canEditIfNotThrowNotAuthorized. {}", mess);
+            throw new  HttpClientErrorException(HttpStatus.UNAUTHORIZED, mess);
+        }
+    }
+
+    private boolean canEdit(DbGroup dbGroup) throws HttpStatusCodeException {
+        boolean isService = tb.hasAuthority("role_service");
+        String userId = request.getUserPrincipal().getName();
 
         if(dbGroup.getOwner().equals(userId))
             return true;
 
-        if (dbGroup.getPolicy().equals(DbGroupPolicy.MANAGE_BY_OWNER_ONLY))
+        if(isService){
+            if(DbServiceAccessPolicy.SERVICE_WRITE.equals(dbGroup.getServiceAccessPolicy()))
+                return true;
+        }
+
+        if (dbGroup.getUserAccessPolicy().equals(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY))
             return false;
 
-        else if(dbGroup.getPolicy().equals(DbGroupPolicy.MANAGE_BY_ALL))
+        else if(dbGroup.getUserAccessPolicy().equals(DbUserAccessPolicy.MANAGE_BY_ALL))
             return dbGroup.getMembers().contains(userId);
 
         else{
-            String message = String.format("SEVERE | Group contains an undefined policy. $groupPolicy: %s", dbGroup.getPolicy().toString());
+            String message = String.format("SEVERE | Group contains an undefined policy. $groupPolicy: %s", dbGroup.getUserAccessPolicy().toString());
             log.error("DbGROUP_SERVICE::canEdit. {}", message);
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, message);
         }
@@ -493,14 +518,26 @@ public class DbGroupServiceImplementation implements DbGroupService {
         }
     }
 
-    private void updatePolicy(DbGroup dbGroup, String value) throws HttpStatusCodeException {
-        log.debug("DbGROUP_SERVICE::updatePolicy. $groupId: {} | $policy: {}", dbGroup.getId(), value);
+    private void updateUserAccessPolicy(DbGroup dbGroup, String value) throws HttpStatusCodeException {
+        log.debug("DbGROUP_SERVICE::updateUserAccessPolicy. $groupId: {} | $policy: {}", dbGroup.getId(), value);
 
         try{
-            dbGroup.setPolicy(DbGroupPolicy.valueOf(value.toUpperCase()));
+            dbGroup.setUserAccessPolicy(DbUserAccessPolicy.valueOf(value.toUpperCase()));
         }catch(IllegalArgumentException e) {
-            log.error("DbGROUP_SERVICE::updatePolicy. {}", e.getMessage());
+            log.error("DbGROUP_SERVICE::updateUserAccessPolicy. {}", e.getMessage());
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    private void updateServiceAccessPolicy(DbGroup dbGroup, String value) throws HttpStatusCodeException {
+        log.debug("DbGROUP_SERVICE::updateServiceAccessPolicy. $groupId: {} | $policy: {}", dbGroup.getId(), value);
+
+        try{
+            dbGroup.setServiceAccessPolicy(DbServiceAccessPolicy.valueOf(value.toUpperCase()));
+        }catch(IllegalArgumentException e) {
+            log.error("DbGROUP_SERVICE::updateServiceAccessPolicy. {}", e.getMessage());
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
 }

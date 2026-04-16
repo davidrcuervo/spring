@@ -1,7 +1,8 @@
 package com.laetienda.model.schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.laetienda.lib.options.DbGroupPolicy;
+import com.laetienda.lib.options.DbUserAccessPolicy;
+import com.laetienda.lib.options.DbServiceAccessPolicy;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -38,11 +39,16 @@ public class DbGroup {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    private DbGroupPolicy policy;
+    private DbUserAccessPolicy userAccessPolicy;
 
     @ElementCollection
     @CollectionTable(name="ITEM_GROUP_MEMBER", joinColumns = @JoinColumn(name = "ITEM_GROUP_ID"))
     private Set<String> members;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(nullable = false)
+    private DbServiceAccessPolicy serviceAccessPolicy;
 
     public DbGroup() {
 
@@ -73,12 +79,12 @@ public class DbGroup {
         this.owner = owner;
     }
 
-    public DbGroupPolicy getPolicy() {
-        return policy;
+    public DbUserAccessPolicy getUserAccessPolicy() {
+        return userAccessPolicy;
     }
 
-    public DbGroup setPolicy(DbGroupPolicy policy) {
-        this.policy = policy;
+    public DbGroup setUserAccessPolicy(DbUserAccessPolicy userAccessPolicy) {
+        this.userAccessPolicy = userAccessPolicy;
         return this;
     }
 
@@ -129,5 +135,13 @@ public class DbGroup {
         }
 
         editorItems.add(item);
+    }
+
+    public DbServiceAccessPolicy getServiceAccessPolicy() {
+        return serviceAccessPolicy;
+    }
+
+    public void setServiceAccessPolicy(DbServiceAccessPolicy serviceAccessPolicy) {
+        this.serviceAccessPolicy = serviceAccessPolicy;
     }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CompanyService {
     Company create(Company company) throws NotValidCustomException;
@@ -15,6 +16,7 @@ public interface CompanyService {
     Company findByName(String name) throws NotValidCustomException;
     Company updateName(String companyId, String value) throws NotValidCustomException;
     Company updateDescription(String companyId, String value)  throws NotValidCustomException;
+    Company updateCompanyContent(String companyId, Map<String, String> body) throws HttpStatusCodeException;
     Company addManager(String companyId, String userId) throws HttpStatusCodeException;
     void delete(String idStr) throws NotValidCustomException;
     void deleteMember(String companyId, String userId) throws NotValidCustomException;
@@ -23,6 +25,5 @@ public interface CompanyService {
     Member findMemberByIds(String companyId, String userId) throws NotValidCustomException;
     List<Member> findAllMembers(Long cid) throws NotValidCustomException;
     Member updateMember(@Valid Member member) throws NotValidCustomException;
-//    Company updateMemberPolicy(String companyId, String value)  throws NotValidCustomException;
-//    Company updateCompany(@Valid Company company) throws NotValidCustomException;
+
 }

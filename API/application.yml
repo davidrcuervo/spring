@@ -229,14 +229,11 @@ api:
       file:
         name: update/{companyId}/name/{value}
         description: update/{companyId}/description
-#        memberPolicy: update/{companyId}/memberPolicy/{value}
+        content: update/{companyId} # METHOD: PUT | PARAM: Map<String, String> | RESULT: Company
       uri:
         name: ${api.company.uri}/${api.company.update.file.name}
         description: ${api.company.uri}/${api.company.update.file.description}
-#        memberPolicy: ${api.company.uri}/${api.company.update.file.memberPolicy}
-
-#      file: update
-#      uri: ${api.company.uri}/${api.company.update.file}
+        content: ${api.company.uri}/${api.company.update.file.content}
     delete:
       file: delete/{id}
       uri: ${api.company.uri}/${api.company.delete.file}

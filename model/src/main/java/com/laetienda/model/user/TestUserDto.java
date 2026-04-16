@@ -2,8 +2,8 @@ package com.laetienda.model.user;
 
 public class TestUserDto {
 
-    public String userId;
-    public String token;
+    private String userId;
+    private String token;
 
     public TestUserDto(String username, String token) {
         this.userId = username;

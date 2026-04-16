@@ -1,13 +1,11 @@
 package com.laetienda.webapp_test.testApi;
 
-import com.laetienda.lib.exception.NotValidCustomException;
-import com.laetienda.lib.options.DbGroupPolicy;
+import com.laetienda.lib.options.DbUserAccessPolicy;
 import com.laetienda.model.schema.DbGroup;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.model.user.TestUserDto;
 import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.ApiSchemaGroup;
-import com.laetienda.utils.service.api.ApiUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -51,7 +49,7 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
                 "Street 70B No. 87B - 24");
 
         final DbGroup groupFinal = new DbGroup("testGroup_TestSchemaApiImplementation");
-        groupFinal.setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groupFinal.setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
 
         item.addReaderGroup(groupFinal);
 
@@ -69,9 +67,9 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
         assertNotNull(group);
 
         //UPDATE
-        group = apiGroup.update(group.getId(), Map.of("policy", DbGroupPolicy.MANAGE_BY_ALL.toString()));
+        group = apiGroup.update(group.getId(), Map.of("policy", DbUserAccessPolicy.MANAGE_BY_ALL.toString()));
         assertNotNull(group);
-        assertEquals(DbGroupPolicy.MANAGE_BY_ALL, group.getPolicy());
+        assertEquals(DbUserAccessPolicy.MANAGE_BY_ALL, group.getUserAccessPolicy());
 
         //TODO: ADD MEMBER
         group = apiGroup.addMember(group.getId(), users[2].getUserId());

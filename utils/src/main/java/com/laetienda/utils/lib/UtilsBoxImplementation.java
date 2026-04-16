@@ -97,7 +97,7 @@ public class UtilsBoxImplementation implements UtilsBox{
     @Override
     public void deleteTestUsers(TestUserDto[] testUsers) throws HttpStatusCodeException {
         for(int j = 1; j < testUsers.length; j++) {
-            apiUser.delete(testUsers[j].userId, testUsers[j].getToken());
+            apiUser.delete(testUsers[j].getUserId(), testUsers[j].getToken());
         }
     }
 }

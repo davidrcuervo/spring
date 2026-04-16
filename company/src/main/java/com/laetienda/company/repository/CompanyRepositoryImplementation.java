@@ -102,11 +102,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Override
     public Company find(Long id) throws HttpStatusCodeException {
 
-        try {
-            return schema.findById(Company.class, id).getBody();
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        return schema.findById(Company.class, id).getBody();
     }
 
     @Override
@@ -139,6 +135,12 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         log.debug("COMPANY_REPO::findMemberByUserIdNoJwt. $companyId: {} | $user: {}", cid, userId);
         String query = getQueryFindMemberByUserId(cid, userId);
         return findMembersByQueryNoJwt(query);
+    }
+
+    @Override
+    public Member findMemberById(Long memberId) throws HttpStatusCodeException {
+        log.debug("COMPANY_REPO::findMemberById. $id: {}", memberId);
+        return schema.findById(Member.class, memberId).getBody();
     }
 
     private String getQueryFindMemberByUserId(Long cid, String userId) throws HttpStatusCodeException {

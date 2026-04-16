@@ -18,9 +18,10 @@ public interface CompanyRepository {
     List<Member> findAllMembers(Long cid) throws HttpStatusCodeException;
     List<Member> findMemberByUserId(Long companyId, String userId) throws HttpStatusCodeException;
     List<Member> findMemberByUserIdNoJwt(Long cid, String userId) throws HttpStatusCodeException;
+    Member findMemberById(Long memberId) throws HttpStatusCodeException;
     Member addMember(Member member) throws HttpStatusCodeException;
-    Company removeMember(Member member) throws HttpStatusCodeException;
     Member updateMember(Member member) throws HttpStatusCodeException;
+    Company removeMember(Member member) throws HttpStatusCodeException;
     Company updateCompany(Company company) throws HttpStatusCodeException;
 
 }

@@ -116,17 +116,14 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     }
 
     @Override
-    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws NotValidCustomException {
+    public <T> ResponseEntity<T> findById(Class<T> clazz, Long id) throws HttpStatusCodeException {
         String address = env.getProperty("api.schema.findById.uri", "findById");
         log.debug("SCHEMA_API::findById. $id: {} | $clazz: {} | $address: {}", id, clazz.getName(), address);
 
-        try{
-            return client.get().uri(address, id.toString(), getClazzName(clazz))
-                    .accept(MediaType.APPLICATION_JSON)
-                    .retrieve().toEntity(clazz);
-        }catch(Exception e){
-            throw new NotValidCustomException(e);
-        }
+        return client.get().uri(address, id.toString(), getClazzName(clazz))
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve().toEntity(clazz);
+
     }
 
     @Override

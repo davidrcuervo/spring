@@ -27,6 +27,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -53,6 +55,9 @@ class CompanyTests {
     @Value("${api.company.delete.uri}")
     private String deleteAddress;
 
+    @Value("${api.company.update.uri.content}")
+    private String companyUpdateContentAddress;
+
     @Value("${api.company.member.find.uri}")
     private String findMemberAddress; //api/v0/company/member/find/{companyId}/{userId}
 
@@ -73,6 +78,9 @@ class CompanyTests {
 
     @Value("${api.company.friend.uri.add}")
     private String addFriendAddress;
+
+    @Value("${api.company.manager.uri.add}")
+    private String addManagerAddress;
 
 	@Test
 	void health() throws Exception {
@@ -98,8 +106,8 @@ class CompanyTests {
         friend = blockFriend(friend);
         friend = unblockFriend(friend);
         comp = companyAddManager(comp);
-        //TODO: modifyCompanyOwner
-        //TODO: companyRemoveManager
+        comp = modifyCompanyOwner(comp);
+        comp = deleteOldOwnerMember(comp);
         deleteMember(member);
         deleteCompany(comp);
 	}
@@ -419,35 +427,33 @@ class CompanyTests {
     }
 
     private Company companyAddManager(Company comp) throws Exception {
-        String address = env.getProperty("api.company.manager.uri.add");
-        assertNotNull(address);
-
+        final String companyName = comp.getName();
         assertFalse(comp.getEditors().contains(USERS[2].getUserId()));
 
         //BAD_REQUEST: Add manager that is same owner
-        mvc.perform(put(address, comp.getId(), USERS[1].getUserId())
+        mvc.perform(put(addManagerAddress, comp.getId(), USERS[1].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isOk());
 
         //UNAUTHORIZED: Add manager by user that is not manager
-        mvc.perform(put(address, comp.getId(), USERS[2].getUserId())
+        mvc.perform(put(addManagerAddress, comp.getId(), USERS[2].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
                 .andExpect(status().isUnauthorized());
 
         //SUCCESSFUL: Add manager by owner.
-        MvcResult response = mvc.perform(put(address, comp.getId(), USERS[2].getUserId())
+        MvcResult response = mvc.perform(put(addManagerAddress, comp.getId(), USERS[2].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();
         Company result = json.readValue(response.getResponse().getContentAsString(), Company.class);
         DbGroup managers = result.getEditorGroups().stream()
-                .filter(g -> g.getName().equals(comp.getName().strip().toLowerCase() + "_MANAGERS_GROUP"))
+                .filter(g -> g.getName().equals(companyName.strip().toLowerCase() + "_MANAGERS_GROUP"))
                 .findFirst().orElse(null);
         assertNotNull(managers);
         assertTrue(managers.getMembers().contains(USERS[2].getUserId()));
 
         //BAD_REQUEST: Add manager that is already manager
-        mvc.perform(put(address, comp.getId(), USERS[2].getUserId())
+        mvc.perform(put(addManagerAddress, comp.getId(), USERS[2].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                 .andExpect(status().isBadRequest());
 
@@ -465,11 +471,55 @@ class CompanyTests {
                         .content(json.writeValueAsString(member)))
                 .andExpect(status().isForbidden());
 
-        //TODO -.OK.- add another manager by manager (requires extra user).
-        //TODO -.OK.- unblock member by third manager
+        //OK: Add another manager by 2nd manager (requires extra user).
+        Member memb3 = addMember(comp.getId(), USERS[3].getUserId(), USERS[3].getToken());
+        memb3.setStatus(CompanyMemberStatus.ACCEPTED);
+        memb3 = updateMember(memb3, USERS[1].getToken());
+        comp = addManager(memb3, USERS[2].getToken());
 
-        fail();
-        return null;
+        //OK: Block member who is 2nd manager by owner
+        Member memb2 = findMember(comp.getId(), USERS[2].getUserId(), USERS[3].getToken());
+        memb2.setStatus(CompanyMemberStatus.BLOCKED);
+        memb2 = updateMember(memb2, USERS[1].getToken());
+
+        //UNAUTHORIZED: Find company by blocked member
+        mvc.perform(get(findAddress, comp.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        //OK: Unblock member who was 2nd manager by 3rd manager
+        memb2.setStatus(CompanyMemberStatus.ACCEPTED);
+        memb2 = updateMember(memb2, USERS[3].getToken());
+
+        return findCompanyById(comp.getId(), USERS[2].getToken());
+    }
+
+    private Company modifyCompanyOwner(Company comp) throws Exception {
+
+        Member member2 = findMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
+        Map<String, String> body = Map.of("owner", member2.getId().toString());
+
+        Company result = updateCompanyContent(comp.getId(), body, USERS[1].getToken());
+
+        return findCompanyById(comp.getId(), USERS[2].getToken());
+    }
+
+    private Company deleteOldOwnerMember(Company comp) throws Exception {
+        Member member1 = findMember(comp.getId(), USERS[1].getUserId(), USERS[1].getToken());
+        deleteMember(member1, USERS[1].getToken());
+
+        mvc.perform(get(findMemberAddress, comp.getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(get(findMemberAddress, comp.getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        return findCompanyById(comp.getId(), USERS[2].getToken());
     }
 
     @Test
@@ -478,6 +528,27 @@ class CompanyTests {
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
                         .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void createCompanyWithWrongOwner() throws Exception {
+        Company company = new Company(
+                "Test Company createCompanyWithWrongOwner",
+                CompanyMemberPolicy.PUBLIC
+        );
+        company.setOwner(USERS[2].getUserId());
+
+        mvc.perform(post(createAddress)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json.writeValueAsString(company))
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
+                        .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void findCompanyWithInvalidId(){
+        fail("Not yet implemented");
     }
 
 	@Test
@@ -494,6 +565,92 @@ class CompanyTests {
     public void updateCompanyByBlockedMember() throws Exception{
         fail();
     }
+
+    @Test
+    public void updateCompanyContentBadKey() throws Exception{
+        fail("Not yet implemented");
+    }
+
+    @Test
+    public void updateCompanyOwnerByBlockedMember() throws Exception{
+        //TODO: also try by using a non existent member id
+        fail();
+    }
+
+    private Company findCompanyById(Long companyId, String token) throws Exception{
+        MvcResult result = mvc.perform(get(findAddress, companyId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(result.getResponse().getContentAsString(), Company.class);
+    }
+
+    private Company updateCompanyContent(Long companyId, Map<String, String> body, String token) throws Exception{
+        MvcResult resp = mvc.perform(put(companyUpdateContentAddress, companyId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), Company.class);
+    }
+
+    private Member addMember(Long companyId, String userId, String token) throws Exception {
+        MvcResult resp = mvc.perform(put(addMemberAddress, companyId, userId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        return  json.readValue(resp.getResponse().getContentAsString(), Member.class);
+    }
+
+    private Member findMember(Long companyId, String userId, String token) throws Exception {
+        MvcResult resp = mvc.perform(get(findMemberAddress, companyId, userId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), Member.class);
+    }
+
+    private Member updateMember(Member memb, String token) throws Exception {
+        MvcResult resp = mvc.perform(put(updateMemberAddress)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(memb)))
+                .andExpect(status().isOk()).andReturn();
+
+        return  json.readValue(resp.getResponse().getContentAsString(), Member.class);
+    }
+
+    private void deleteMember(Member memb, String token) throws Exception {
+        mvc.perform(delete(deleteMemberAddress, memb.getCompany().getId(), memb.getUserId(), token)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    private Company addManager(Member member, String token) throws Exception {
+        MvcResult resp = mvc.perform(put(addManagerAddress, member.getCompany().getId(), member.getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        Company result = json.readValue(resp.getResponse().getContentAsString(), Company.class);
+
+        DbGroup managers = result.getEditorGroups().stream()
+                .filter(g -> g.getName()
+                        .equals(result.getName().strip().toLowerCase() + "_MANAGERS_GROUP"))
+                .findFirst().orElse(null);
+        assertNotNull(managers);
+        assertTrue(managers.getMembers().contains(member.getUserId()));
+
+        return result;
+    }
+
 
     @BeforeAll
     static public void setUp(@Autowired UtilsBox utils){

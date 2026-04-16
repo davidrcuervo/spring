@@ -2,13 +2,11 @@ package com.laetienda.schema;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.laetienda.lib.options.DbGroupPolicy;
-import com.laetienda.model.kc.KcUser;
+import com.laetienda.lib.options.DbUserAccessPolicy;
+import com.laetienda.lib.options.DbServiceAccessPolicy;
 import com.laetienda.model.schema.DbGroup;
-import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.model.user.TestUserDto;
-import com.laetienda.model.user.Usuario;
 import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.service.api.ApiUser;
 import org.junit.jupiter.api.AfterAll;
@@ -23,11 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -104,6 +98,7 @@ class DbGroupTest {
 
         for(int g = 1; g < groups.length; g++){
             groups[g] = new DbGroup(String.format("testGroup_%d_%s", g, name));
+            groups[g].setServiceAccessPolicy(DbServiceAccessPolicy.NO_SERVICE);
         }
 
         for(int i=1; i < items.length; i++){
@@ -122,7 +117,7 @@ class DbGroupTest {
     }
 
     private DbGroup createFirstGroup() throws Exception {
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         items[1].addReaderGroup(groups[1]);
 
         //SUCCESSFUL: Create group
@@ -153,7 +148,7 @@ class DbGroupTest {
     }
 
     private DbGroup createSecondGroup() throws Exception {
-        groups[2].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[2].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
 
         items[2].addReaderGroup(groups[2]);
         items[2].addReaderGroup(groups[1]);
@@ -257,7 +252,7 @@ class DbGroupTest {
     void createWithWrongUserIdList() throws Exception {
         build(1, "createWithWrongUserIdList");
 
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL).addMember(USERS[0].userId);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL).addMember(USERS[0].getUserId());
         items[1].addReaderGroup(groups[1]);
 
         mvc.perform(post(createUri,clazzName)
@@ -266,7 +261,7 @@ class DbGroupTest {
                         .content(json.writeValueAsString(items[1])))
                 .andExpect(status().isBadRequest());
 
-        groups[1].removeMember(USERS[0].userId);
+        groups[1].removeMember(USERS[0].getUserId());
         groups[1].addMember("not-valid-user-id");
 
         mvc.perform(post(createUri,clazzName)
@@ -309,8 +304,8 @@ class DbGroupTest {
 
         build(2, "createGroupWithRepeatedName");
 
-        groups[1].setName("testDbGroup_createGroupWithRepeatedName").setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
-        groups[2].setName("testDbGroup_createGroupWithRepeatedName").setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setName("testDbGroup_createGroupWithRepeatedName").setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[2].setName("testDbGroup_createGroupWithRepeatedName").setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         items[1].addReaderGroup(groups[1]);
         items[1].addEditorGroup(groups[2]);
 
@@ -344,12 +339,12 @@ class DbGroupTest {
     @Test
     void findAllGroups() throws Exception {
         build(3, "findAllGroups");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
-        groups[2].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
-        groups[2].addMember(USERS[1].userId);
-        groups[3].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
-        groups[3].addMember(USERS[1].userId);
-        groups[3].addMember(USERS[2].userId);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[2].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[2].addMember(USERS[1].getUserId());
+        groups[3].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[3].addMember(USERS[1].getUserId());
+        groups[3].addMember(USERS[2].getUserId());
 
         items[1].addEditorGroup(groups[1]);
         items[1].addReaderGroup(groups[2]);
@@ -414,7 +409,7 @@ class DbGroupTest {
     @Test
     void findAllItems() throws Exception {
         build(3, "findAllItems");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         groups[1].addMember(USERS[2].getUserId());
 
         items[1].addReaderGroup(groups[1]);
@@ -474,7 +469,7 @@ class DbGroupTest {
                         .content(json.writeValueAsString(items[1])))
                 .andExpect(status().isOk()).andReturn();
         items[1] = json.readValue(resp.getResponse().getContentAsString(), ItemTypeA.class);
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         items[1].addReaderGroup(groups[1]);
 
         mvc.perform(put(updateTestItemUri, clazzName)
@@ -490,10 +485,10 @@ class DbGroupTest {
     void updateItemAfterAddingExistingGroup() throws Exception {
         build(2, "updateItemAfterAddingExistingGroup");
 
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         items[1].addEditorGroup(groups[1]);
 
-        groups[2].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[2].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         items[2].addEditorGroup(groups[2]);
 
         MvcResult resp = mvc.perform(post(createUri,clazzName)
@@ -533,7 +528,7 @@ class DbGroupTest {
     void deleteGroupUnauthorized() throws Exception {
         build(1, "deleteGroupUnauthorized");
 
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addEditorGroup(groups[1]);
 
         MvcResult resp = mvc.perform(post(createUri,clazzName)
@@ -566,7 +561,7 @@ class DbGroupTest {
         build(1, "updateGroupName");
         String name = "testGroup_updatedName";
 
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addEditorGroup(groups[1]);
 
         Map<String, String> body = Map.of("name", name);
@@ -609,7 +604,7 @@ class DbGroupTest {
     @Test
     void updateGroupOwner() throws Exception{
         build(1, "updateOwner");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addEditorGroup(groups[1]);
         items[1] = createTestItem(1);
 
@@ -659,8 +654,8 @@ class DbGroupTest {
     @Test
     void updateWithInvalidName() throws Exception{
         build(2,  "updateWithInvalidName");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
-        groups[2].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
+        groups[2].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
 
         items[1].addEditorGroup(groups[1]);
         items[2].addEditorGroup(groups[2]);
@@ -688,7 +683,7 @@ class DbGroupTest {
     @Test
     void updateGroupWithBadOwner() throws Exception{
         build(1, "updateGroupWithBadOwner");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addEditorGroup(groups[1]);
         items[1] = createTestItem(1);
 
@@ -717,7 +712,7 @@ class DbGroupTest {
     @Test
     void updateGroupOwnerByNoOwner() throws Exception{
         build(1, "updateGroupOwnerByNoOwner");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         groups[1].addMember(USERS[2].getUserId());
         items[1].addEditorGroup(groups[1]);
         items[1] = createTestItem(1);
@@ -764,7 +759,7 @@ class DbGroupTest {
     @Test
     void deleteUser()  throws Exception{
         build(1, "deleteUser");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         groups[1].addMember(USERS[2].getUserId());
         items[1].addEditorGroup(groups[1]);
         items[1] = createTestItem(1);
@@ -794,7 +789,7 @@ class DbGroupTest {
     @Test
     void updateWithInvalidPolicy() throws Exception{
         build(1, "updateWithInvalidPolicy");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addEditorGroup(groups[1]);
         items[1] = createTestItem(1);
 
@@ -818,7 +813,7 @@ class DbGroupTest {
     @Test
     void addReaderMember() throws Exception{
         build(1, "readerMember");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addReaderGroup(groups[1]);
         items[1] = createTestItem(1);
 
@@ -851,7 +846,7 @@ class DbGroupTest {
         build(1, "editorMember");
         String newAddress = "17 Myself Street. Apt: 101";
 
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addEditorGroup(groups[1]);
         items[1] = createTestItem(1);
 
@@ -890,7 +885,7 @@ class DbGroupTest {
     @Test
     void addInvalidMember() throws Exception{
         build(1, "invalidMember");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         groups[1].addMember("invalidMember");
         items[1].addReaderGroup(groups[1]);
 
@@ -930,7 +925,7 @@ class DbGroupTest {
     void addMemberByUnauthorizedUser() throws Exception{
         build(1, "addMemberByUnauthorizedUser");
 
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         groups[1].addMember(USERS[2].getUserId());
         items[1].addReaderGroup(groups[1]);
         items[1] = createTestItem(1);
@@ -964,7 +959,7 @@ class DbGroupTest {
     @Test
     void removeMember() throws Exception{
         build(1, "removeMember");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         groups[1].addMember(USERS[2].getUserId());
         items[1].addReaderGroup(groups[1]);
         items[1] = createTestItem(1);
@@ -994,7 +989,7 @@ class DbGroupTest {
     @Test
     void removeMemberByMember() throws Exception{
         build(1, "removeMemberByMember");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         groups[1].addMember(USERS[2].getUserId());
         items[1].addReaderGroup(groups[1]);
         items[1] = createTestItem(1);
@@ -1018,7 +1013,7 @@ class DbGroupTest {
     @Test
     void policy() throws Exception {
         build(1, "policy");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_OWNER_ONLY);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
         groups[1].addMember(USERS[2].getUserId());
         items[1].addReaderGroup(groups[1]);
         items[1] = createTestItem(1);
@@ -1034,7 +1029,7 @@ class DbGroupTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
 
-        Map<String, String> body = Map.of("policy", DbGroupPolicy.MANAGE_BY_ALL.toString());
+        Map<String, String> body = Map.of("userAccessPolicy", DbUserAccessPolicy.MANAGE_BY_ALL.toString());
         resp = mvc.perform(put(updateGroupUri, groups[1].getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON)
@@ -1042,7 +1037,7 @@ class DbGroupTest {
                         .content(json.writeValueAsString(body)))
                 .andExpect(status().isOk()).andReturn();
         groups[1] = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
-        assertEquals(DbGroupPolicy.MANAGE_BY_ALL, groups[1].getPolicy());
+        assertEquals(DbUserAccessPolicy.MANAGE_BY_ALL, groups[1].getUserAccessPolicy());
 
         resp = mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[3].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
@@ -1057,7 +1052,7 @@ class DbGroupTest {
     @Test
     void updatePolicyInvalid() throws Exception{
         build(1, "updatePolicyInvalid");
-        groups[1].setPolicy(DbGroupPolicy.MANAGE_BY_ALL);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
         items[1].addReaderGroup(groups[1]);
         items[1] = createTestItem(1);
 
@@ -1078,6 +1073,68 @@ class DbGroupTest {
         deleteEntries();
     }
 
+    @Test
+    void findByService() throws Exception{
+        build(1, "findByService");
+
+        groups[1].setServiceAccessPolicy(DbServiceAccessPolicy.SERVICE_READ);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        items[1].addReaderGroup(groups[1]);
+
+        items[1] = createTestItem(1);
+        groups[1] = findGroupByName(groups[1].getName(), USERS[0].getToken());
+
+        deleteEntries();
+    }
+
+    @Test
+    void findByServiceUnauthorized() throws Exception{
+        build(1, "findByServiceUnauthorized");
+
+        groups[1].setServiceAccessPolicy(DbServiceAccessPolicy.NO_SERVICE);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
+        items[1].addReaderGroup(groups[1]);
+
+        items[1] = createTestItem(1);
+
+        mvc.perform(get(findGroupByNameUri, groups[1].getName())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[0].getToken()))
+                .andExpect(status().isUnauthorized());
+
+        deleteEntries();
+    }
+
+    @Test
+    void updateByService() throws Exception{
+        build(1, "editByService");
+
+        groups[1].setServiceAccessPolicy(DbServiceAccessPolicy.SERVICE_READ);
+        groups[1].setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
+        items[1].addReaderGroup(groups[1]);
+        items[1] = createTestItem(1);
+
+        groups[1] = findGroupByName(groups[1].getName(), USERS[0].getToken());
+
+        Map<String, String> body = Map.of("serviceAccessPolicy", DbServiceAccessPolicy.SERVICE_WRITE.toString());
+        mvc.perform(put(updateGroupUri, groups[1].getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[0].getToken())
+                        .content(json.writeValueAsString(body))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(put(addGroupMemberUri, groups[1].getId(), USERS[2].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[0].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        groups[1] = updateGroup(groups[1].getId(), body, USERS[1].getToken());
+        groups[1] = addMember(groups[1].getId(), USERS[2].getUserId(), USERS[0].getToken());
+
+        deleteEntries();
+    }
+
     private ItemTypeA createTestItem(int c) throws Exception {
         MvcResult resp = mvc.perform(post(createUri,clazzName)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[c].getToken())
@@ -1086,6 +1143,38 @@ class DbGroupTest {
                         .content(json.writeValueAsString(items[c])))
                 .andExpect(status().isOk()).andReturn();
         return json.readValue(resp.getResponse().getContentAsString(), ItemTypeA.class);
+    }
+
+    private DbGroup findGroupByName(String groupName, String token) throws Exception{
+        MvcResult resp = mvc.perform(get(findGroupByNameUri, groupName)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+        DbGroup result = json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+        assertNotNull(result);
+        assertNotNull(result.getId());
+
+        return result;
+    }
+
+    private DbGroup updateGroup(Long groupId, Map<String, String> body, String token) throws Exception{
+        MvcResult resp = mvc.perform(put(updateGroupUri, groupId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
+    }
+
+    private DbGroup addMember(Long groupId, String userId, String token) throws Exception{
+        MvcResult resp = mvc.perform(put(addGroupMemberUri, groupId, userId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), DbGroup.class);
     }
 
     @BeforeAll
