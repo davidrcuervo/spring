@@ -5,6 +5,7 @@ import com.laetienda.company.repository.FriendRepository;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
+import com.laetienda.lib.options.DbServiceAccessPolicy;
 import com.laetienda.lib.options.DbUserAccessPolicy;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
@@ -37,7 +38,7 @@ public class CompanyServiceImplementation implements CompanyService{
     private final CompanyRepository repo;
     private final FriendRepository repoFriend;
     private final ApiUser apiUser;
-    private final ApiSchemaGroup apiSchemaGroup;
+//    private final ApiSchemaGroup apiSchemaGroup;
     private final ApiSchema apiSchema;
 
 
@@ -46,9 +47,9 @@ public class CompanyServiceImplementation implements CompanyService{
             HttpServletRequest httpServletRequest,
             CompanyRepository companyRepository,
             FriendRepository friendRepository,
+//            ApiSchemaGroup apiSchemaGroup,
             ApiUser apiUser,
-            ApiSchema apiSchema,
-            ApiSchemaGroup apiSchemaGroup
+            ApiSchema apiSchema
     ) {
         this.validator = validator;
         this.request = httpServletRequest;
@@ -56,7 +57,7 @@ public class CompanyServiceImplementation implements CompanyService{
         this.repoFriend = friendRepository;
         this.apiUser = apiUser;
         this.apiSchema = apiSchema;
-        this.apiSchemaGroup = apiSchemaGroup;
+//        this.apiSchemaGroup = apiSchemaGroup;
     }
 
     @Override
@@ -71,17 +72,12 @@ public class CompanyServiceImplementation implements CompanyService{
 
         }catch(HttpStatusCodeException e){
             if(e.getStatusCode() == HttpStatus.NOT_FOUND){
-                String managersGroupName = getManagersGroupName(company);
-
-                DbGroup managers = new DbGroup(managersGroupName);
-                managers.setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
-                company.addEditorGroup(managers);
 
                 Company result = repo.create(company);
-                Member member = new Member(result, userId, CompanyMemberStatus.ACCEPTED);
-                member.addEditorGroup(getManagersGroup(result));
 
+                Member member = new Member(result, userId, CompanyMemberStatus.ACCEPTED);
                 repo.addMember(member);
+
                 return result;
 
             }else{
@@ -92,7 +88,7 @@ public class CompanyServiceImplementation implements CompanyService{
 
     @Override
     public Long isCompanyValid(String companyId) throws HttpStatusCodeException {
-        log.debug("COMPANY_SERVICE::companyId. $companyId: {}", companyId);
+        log.debug("COMPANY_SERVICE::isCompanyValid. $companyId: {}", companyId);
 
         try {
             Long id = Long.parseLong(companyId);
@@ -137,7 +133,6 @@ public class CompanyServiceImplementation implements CompanyService{
         Long cid = isCompanyValid(companyId);
 
         Company comp = repo.find(cid);
-        DbGroup managers = getManagersGroup(comp);
 
         Member ownerMember = findMemberByIds(companyId, comp.getOwner());
         repo.removeMember(ownerMember);
@@ -147,8 +142,7 @@ public class CompanyServiceImplementation implements CompanyService{
             deleteMember(cid, member.getUserId());
         }
 
-        apiSchemaGroup.delete(managers.getId());
-        repo.deleteById(cid);
+        repo.delete(comp);
     }
 
     @Override
@@ -162,10 +156,9 @@ public class CompanyServiceImplementation implements CompanyService{
         log.debug("COMPANY_SERVICE::removeMember. $company: {} | $userId: {}", companyId, userId);
 
         Company comp = repo.find(companyId);
-        DbGroup managers = getManagersGroup(comp);
 
-        if(comp.getOwner().equals(userId) || managers.getOwner().equals(userId)){
-            String m = "Member can't be removed because is member of the company" +
+        if(comp.getOwner().equals(userId)){
+            String m = "Member can't be removed because is owner of the company" +
                     " | $company: %s" +
                     " | $userId: %s";
             String mess = String.format(m, comp.getName(), userId);
@@ -179,17 +172,6 @@ public class CompanyServiceImplementation implements CompanyService{
             repoFriend.delete(f);
         }
 
-        //Remove member from managers if apply
-        if(managers.getMembers().contains(userId)){
-            apiSchemaGroup.removeMember(managers.getId(),  userId);
-        }
-
-        //Remove member from viewers of the company
-        if(comp.getReaders().contains(userId)){
-            comp.removeReader(userId);
-        }
-
-        repo.updateCompany(comp);
         repo.removeMember(member);
     }
 
@@ -213,7 +195,7 @@ public class CompanyServiceImplementation implements CompanyService{
             throw new NotValidCustomException(message, HttpStatus.FORBIDDEN, "member");
         }
 
-        if(!(loggedUserId.equals(userId) || isCompanyManager(uid,  company))){
+        if(!(loggedUserId.equals(userId) || isCompanyManager(loggedUserId,  company))){
             String m = "Member must be added only by managers or self user requesting membrane to company" +
                     " | $companyId: %d" +
                     " | $memberUserId: %s" +
@@ -223,14 +205,12 @@ public class CompanyServiceImplementation implements CompanyService{
             throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, message);
         }
 
-        if(policy == CompanyMemberPolicy.PUBLIC || policy == CompanyMemberPolicy.REGISTRATION_REQUIRED) {
-            status = CompanyMemberStatus.ACCEPTED;
-        }
-
         Member member = new Member(company, uid, status);
-        member.addEditorGroup(getManagersGroup(company));
         company.addMember(member);
-        company.addReader(uid);
+
+        if(policy == CompanyMemberPolicy.PUBLIC || policy == CompanyMemberPolicy.REGISTRATION_REQUIRED) {
+            repo.acceptMember(member);
+        }
 
         return repo.addMember(member);
     }
@@ -245,8 +225,8 @@ public class CompanyServiceImplementation implements CompanyService{
         List<Member> result = repo.findMemberByUserId(cid, uid);
 
         if (result == null || result.isEmpty()) {
-            String message = String.format("COMPANY_SERVICE::findMemberByIds. User is not member of company. $companyId: %d | $user: '%s", cid, uid);
-            log.warn(message);
+            String message = String.format("User is not member of company. $companyId: %d | $user: '%s", cid, uid);
+            log.warn("COMPANY_SERVICE::findMemberByIds. {}", message);
             throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "member");
 
         } else if (result.size() > 1) {
@@ -370,11 +350,7 @@ public class CompanyServiceImplementation implements CompanyService{
         Member member = findMemberIfErrorThrowException(value);
         temp.setOwner(member.getUserId());
 
-        DbGroup managers = getManagersGroup(temp);
-        managers.setOwner(member.getUserId());
-
-        Map<String, String> body = Map.of("owner", member.getUserId());
-        apiSchemaGroup.update(managers.getId(), body);
+        repo.updateCompanyOwner(member);
     }
 
     private void updateMemberStatus(Member old, Member member) throws HttpStatusCodeException {
@@ -390,6 +366,8 @@ public class CompanyServiceImplementation implements CompanyService{
                 log.warn("COMPANY_SERVICE::updateMemberStatus. {}", m);
                 throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, m);
             }
+
+            repo.acceptMember(member);
         }
 
         if(old.getCompany().getOwner().equals(member.getUserId())
@@ -409,35 +387,41 @@ public class CompanyServiceImplementation implements CompanyService{
     @Override
     public Company addManager(String companyId, String userId) throws HttpStatusCodeException {
         log.debug("COMPANY_SERVICE::addManager. $companyId: {} | $userId: {}", companyId, userId);
+
         Long cid = isCompanyValid(companyId);
         Company temp = repo.find(cid);
 
-        String currentUserId = apiUser.getCurrentUserId();
-        DbGroup managers = getManagersGroup(temp);
+        canEditIfNotThrowException(temp);
+        Member member = findMemberIfInvalidThrowException(temp, userId);
 
-        if(!isCompanyManager(currentUserId, temp)){
-            String message = String.format("User, %s, is not manager or owner of the company.", currentUserId);
-            log.warn("COMPANY_SERVICE::addManager. {}", message);
-            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, message);
-        }
+        return repo.addManager(member);
 
-        if(!isValidMember(temp, userId)){
-            String m = "User is not valid member of the company." +
-                    " | $company: %s" +
-                    " | $userId: %s";
-            String mess = String.format(m, temp.getName(), userId);
-            log.warn("COMPANY_SERVICE::addManager. {}", mess);
-            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, mess);
-        }
+//        String currentUserId = apiUser.getCurrentUserId();
 
-        if(managers.getMembers().contains(userId)){
-            String message = String.format("User, %s, is already manager of the company.", userId);
-            log.info("COMPANY_SERVICE::addManager. {}", message);
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, message);
-        }
+//        DbGroup managers = getManagersGroup(temp);
+//        apiSchemaGroup.addMember(managers.getId(), userId);
 
-        apiSchemaGroup.addMember(managers.getId(), userId);
-        return repo.find(temp.getId());
+//        if(!isCompanyManager(currentUserId, temp)){
+//            String message = String.format("User, %s, is not manager or owner of the company.", currentUserId);
+//            log.warn("COMPANY_SERVICE::addManager. {}", message);
+//            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, message);
+//        }
+
+//        if(!isValidMember(temp, userId)){
+//            String m = "User is not valid member of the company." +
+//                    " | $company: %s" +
+//                    " | $userId: %s";
+//            String mess = String.format(m, temp.getName(), userId);
+//            log.warn("COMPANY_SERVICE::addManager. {}", mess);
+//            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, mess);
+//        }
+
+//        if(managers.getMembers().contains(userId)){
+//            String message = String.format("User, %s, is already manager of the company.", userId);
+//            log.info("COMPANY_SERVICE::addManager. {}", message);
+//            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, message);
+//        }
+//        return repo.find(temp.getId());
     }
 
     private Boolean isCompanyNameValid(String value) throws NotValidCustomException{
@@ -466,17 +450,6 @@ public class CompanyServiceImplementation implements CompanyService{
                 repo.updateMember(member);
             }
         }
-    }
-
-    private String getManagersGroupName(@NotNull Company company){
-        return String.format("%s_MANAGERS_GROUP", company.getName().strip().toLowerCase());
-    }
-
-    private DbGroup getManagersGroup(@NotNull Company company){
-        return company.getEditorGroups().stream()
-                .filter(g -> g.getName().equals(getManagersGroupName(company)))
-                .findFirst()
-                .orElse(null);
     }
 
     private void ifNotCompanyManagerThrowUnauthorizedException(Company comp, String userId) throws HttpStatusCodeException{
@@ -522,6 +495,19 @@ public class CompanyServiceImplementation implements CompanyService{
         return member;
     }
 
+    private void canEditIfNotThrowException(Company company) throws HttpStatusCodeException{
+        String loggedUserId = request.getUserPrincipal().getName();
+
+        if(!isCompanyManager(loggedUserId, company)){
+            String m = "Logged user can't edit the company." +
+                    " | $company: %s" +
+                    " | $userId: %s";
+            String mess = String.format(m, company.getName(), loggedUserId);
+            log.warn("COMPANY_SERVICE::canEditIfNotThrowException.. {}", mess);
+            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, mess);
+        }
+    }
+
     private boolean isCompanyManager(String currentUserId, Company company){
         if(!isValidMember(company, currentUserId))
             return false;
@@ -534,6 +520,30 @@ public class CompanyServiceImplementation implements CompanyService{
 
         return company.getEditorGroups().stream()
                 .anyMatch(g -> g.getMembers().contains(currentUserId));
+    }
+
+    private Member findMemberIfInvalidThrowException(Company company, String userId) throws HttpStatusCodeException{
+        log.debug("COMPANY_SERVICE::findMemberIfInvalidThrowException. {}", userId);
+
+        String m = "User is not valid member of the company." +
+                " | $company: %s" +
+                " | $userId: %s";
+        String mess = String.format(m, company.getName(), userId);
+
+        List<Member> members = repo.findMemberByUserId(company.getId(), userId);
+
+        if (members == null || members.size() != 1){
+            log.warn("COMPANY_SERVICE::addManager. {}", mess);
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, mess);
+        }
+
+        Member result  = members.getFirst();
+        if(!result.getStatus().equals(CompanyMemberStatus.ACCEPTED)){
+            log.warn("COMPANY_SERVICE::addManager. {}", mess);
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, mess);
+        }
+
+        return result;
     }
 
     private boolean isValidMember(Company comp, String userId){

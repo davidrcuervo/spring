@@ -4,9 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.lib.options.CompanyMemberStatus;
+import com.laetienda.lib.options.DbServiceAccessPolicy;
+import com.laetienda.lib.options.DbUserAccessPolicy;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
+import com.laetienda.model.schema.DbGroup;
 import com.laetienda.utils.service.api.ApiSchema;
+import com.laetienda.utils.service.api.ApiSchemaGroup;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +37,8 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     private final static Logger log = LoggerFactory.getLogger(CompanyRepositoryImplementation.class);
 
     private final RestClient client;
+    private final ApiSchemaGroup apiSchemaGroup;
+
     @Autowired private ApiSchema schema;
     @Autowired private Environment env;
     @Autowired private ObjectMapper json;
@@ -39,13 +46,30 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Value("${kc.client-registration-id.webapp}")
     String webappClientId;
 
-    public CompanyRepositoryImplementation(RestClient restClient){
+    public CompanyRepositoryImplementation(
+            RestClient restClient,
+            ApiSchemaGroup apiSchemaGroup
+    ){
         this.client= restClient;
+        this.apiSchemaGroup = apiSchemaGroup;
     }
 
     @Override
     public Company create(@NotNull Company company) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::create. $company: {}", company.getName());
+
+        String managersGroupName = getManagersGroupName(company);
+        DbGroup managers = new DbGroup(managersGroupName);
+        managers.setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_ALL);
+        managers.setServiceAccessPolicy(DbServiceAccessPolicy.NO_SERVICE);
+        company.addEditorGroup(managers);
+
+        String readersGroupoName = getReadersGroupName(company);
+        DbGroup readersGroup = new DbGroup(readersGroupoName);
+        readersGroup.setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        readersGroup.setServiceAccessPolicy(DbServiceAccessPolicy.SERVICE_WRITE);
+        company.addReaderGroup(readersGroup);
+
         return schema.create(Company.class, company).getBody();
     }
 
@@ -118,9 +142,41 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
-    public void deleteById(Long id) throws HttpStatusCodeException {
-        log.debug("COMPANY_REPOSITORY::deleteById. $id: {}", id);
-        schema.deleteById(Company.class, id);
+    public Company addManager(Member member) throws HttpStatusCodeException {
+        log.debug("COMPANY_REPOSITORY::addManager. $member: {}", member.getId());
+
+        DbGroup managers = getManagersGroup(member.getCompany());
+        apiSchemaGroup.addMember(managers.getId(), member.getUserId());
+
+        return find(member.getCompany().getId());
+    }
+
+    @Override
+    public void updateCompanyOwner(Member member) throws HttpStatusCodeException {
+        log.debug("COMPANY_REPOSITORY::updateCompanyOwner. $member: {}", member.getId());
+
+        DbGroup managers = getManagersGroup(member.getCompany());
+        DbGroup readers = getReadersGroup(member.getCompany());
+
+        apiSchemaGroup.addMember(managers.getId(), managers.getOwner());
+        apiSchemaGroup.addMember(readers.getId(), readers.getOwner());
+
+        Map<String, String> body = Map.of("owner", member.getUserId());
+        apiSchemaGroup.update(managers.getId(), body);
+        apiSchemaGroup.update(readers.getId(), body);
+    }
+
+    @Override
+    public void delete(Company company) throws HttpStatusCodeException {
+        log.debug("COMPANY_REPOSITORY::delete. $id: {}", company.getId());
+
+        DbGroup managers = getReadersGroup(company);
+        DbGroup readers =  getManagersGroup(company);
+
+        apiSchemaGroup.delete(managers.getId());
+        apiSchemaGroup.delete(readers.getId());
+
+        schema.deleteById(Company.class, company.getId());
     }
 
     @Override
@@ -194,11 +250,19 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
-    public Company removeMember(Member member) throws HttpStatusCodeException {
+    public void removeMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::removeMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
 
+        DbGroup managers = getManagersGroup(member.getCompany());
+        DbGroup readers = getReadersGroup(member.getCompany());
+        apiSchemaGroup.removeMember(readers.getId(), member.getUserId());
+
+        //Remove member from managers if apply
+        if(managers.getMembers().contains(member.getUserId())){
+            apiSchemaGroup.removeMember(managers.getId(),  member.getUserId());
+        }
+
         schema.deleteById(Member.class, member.getId());
-        return find(member.getCompany().getId());
     }
 
     @Override
@@ -225,6 +289,43 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Override
     public Member addMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::addMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
+        member.addEditorGroup(getManagersGroup(member.getCompany()));
+        member.addEditor(member.getUserId());
         return schema.create(Member.class, member).getBody();
+    }
+
+    @Override
+    public void acceptMember(Member member) throws HttpStatusCodeException {
+        log.debug("COMPANY_REPOSITORY::acceptMember. $memberId: {}", member.getId());
+
+        DbGroup readers = getReadersGroup(member.getCompany());
+
+        apiSchemaGroup.setClientRegistrationId(webappClientId);
+        apiSchemaGroup.addMember(readers.getId(), member.getUserId());
+        apiSchemaGroup.setClientRegistrationId(null);
+
+        member.setStatus(CompanyMemberStatus.ACCEPTED);
+    }
+
+    private String getReadersGroupName(@NotNull Company company){
+        return String.format("%s_READERS_GROUP", company.getName().strip().toLowerCase());
+    }
+
+    private DbGroup getReadersGroup(@NotNull Company company){
+        return company.getReaderGroups().stream()
+                .filter(g -> g.getName().equals(getReadersGroupName(company)))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String getManagersGroupName(@NotNull Company company){
+        return String.format("%s_MANAGERS_GROUP", company.getName().strip().toLowerCase());
+    }
+
+    private DbGroup getManagersGroup(@NotNull Company company){
+        return company.getEditorGroups().stream()
+                .filter(g -> g.getName().equals(getManagersGroupName(company)))
+                .findFirst()
+                .orElse(null);
     }
 }

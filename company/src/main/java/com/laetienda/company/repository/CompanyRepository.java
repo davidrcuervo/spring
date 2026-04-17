@@ -14,14 +14,17 @@ public interface CompanyRepository {
     Long isCompanyValid(Long id) throws HttpStatusCodeException;
     Company find(Long id) throws HttpStatusCodeException;
     Company findNoJwt(Long id) throws HttpStatusCodeException;
-    void deleteById(Long id) throws HttpStatusCodeException;
+    Company addManager(Member member) throws HttpStatusCodeException;
+    void updateCompanyOwner(Member member) throws HttpStatusCodeException;
+    void delete(Company company) throws HttpStatusCodeException;
     List<Member> findAllMembers(Long cid) throws HttpStatusCodeException;
     List<Member> findMemberByUserId(Long companyId, String userId) throws HttpStatusCodeException;
     List<Member> findMemberByUserIdNoJwt(Long cid, String userId) throws HttpStatusCodeException;
     Member findMemberById(Long memberId) throws HttpStatusCodeException;
     Member addMember(Member member) throws HttpStatusCodeException;
+    void acceptMember(Member member) throws HttpStatusCodeException;
     Member updateMember(Member member) throws HttpStatusCodeException;
-    Company removeMember(Member member) throws HttpStatusCodeException;
+    void removeMember(Member member) throws HttpStatusCodeException;
     Company updateCompany(Company company) throws HttpStatusCodeException;
 
 }

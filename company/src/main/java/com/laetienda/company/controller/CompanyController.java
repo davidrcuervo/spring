@@ -51,8 +51,8 @@ public class CompanyController {
         return ResponseEntity.ok(service.updateName(companyId, value));
     }
 
-    @PostMapping("${api.company.update.file.description}") //api/v0/company/update/{companyId}/description
-    public ResponseEntity<Company> updateMemberPolicy(@PathVariable String companyId, @RequestBody String description) throws NotValidCustomException {
+    @PutMapping("${api.company.update.file.description}") //api/v0/company/update/{companyId}/description
+    public ResponseEntity<Company> updateDescription(@PathVariable String companyId, @RequestBody String description) throws NotValidCustomException {
         log.info("COMPANY_CONTROLLER::updateDescription. $companyId: {} | $description: {}", companyId, description);
         return ResponseEntity.ok(service.updateDescription(companyId, description));
     }

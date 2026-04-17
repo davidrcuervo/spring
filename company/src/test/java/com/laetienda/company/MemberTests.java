@@ -2,6 +2,7 @@ package com.laetienda.company;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.options.CompanyMemberPolicy;
+import com.laetienda.lib.options.CompanyMemberStatus;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;
@@ -36,17 +37,40 @@ public class MemberTests {
     @Value("${api.company.create.uri}")
     private String createCompanyAddress;
 
+    @Value("${api.company.find.uri}")
+    private String findCompanyByIdAddress;
+
     @Value("${api.company.delete.uri}")
     private String deleteAddress;
 
+    @Value("${api.company.member.find.uri}")
+    private String findMemberAddress;
+
     @Value("${api.company.member.add.uri}")
     private String addMemberAddress;
+
+    @Value("${api.company.member.update.uri}")
+    private String  updateMemberAddress;
 
     @Value("${api.company.manager.uri.add}")
     private String addCompanyManagerAddress;
 
     @Value("${api.company.member.delete.uri}")
     private String deleteMemberAddress;
+
+    @Test
+    public void findCompanyByNewMember() throws Exception {
+        Company comp = getNewCompany(
+                "Test Company findCompanyByNewMember",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Member memb2 = addMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
+        comp = findCompanyById(comp.getId(), USERS[2].getToken());
+
+        deleteCompany(comp, USERS[1].getToken());
+    }
 
     @Test
     public void addMemberByNoManger() throws Exception {
@@ -108,7 +132,27 @@ public class MemberTests {
 
     @Test
     public void updateMemberWithDifferentUserId() throws Exception {
-        fail("Not yet implemented");
+        Company comp = getNewCompany(
+                "Test Company updateMemberWithDifferentUserId",
+                CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
+                USERS[1]
+        );
+
+        Member memb2 = addMember(comp.getId(), USERS[2].getUserId(), USERS[1].getToken());
+        memb2 = findMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
+
+
+        memb2.setStatus(CompanyMemberStatus.ACCEPTED);
+        mvc.perform(put(updateMemberAddress)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(memb2)))
+                .andExpect(status().isUnauthorized());
+
+        memb2 = updateMember(memb2, USERS[1].getToken());
+
+        deleteCompany(comp, USERS[1].getToken());
     }
 
     private Company getNewCompany(String name, CompanyMemberPolicy policy, TestUserDto user) throws Exception{
@@ -125,10 +169,26 @@ public class MemberTests {
         return json.readValue(resp.getResponse().getContentAsString(), Company.class);
     }
 
+    private Company findCompanyById(Long companyId, String token) throws Exception{
+        MvcResult resp = mvc.perform(get(findCompanyByIdAddress, companyId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        return json.readValue(resp.getResponse().getContentAsString(), Company.class);
+    }
+
     private void deleteCompany(Company company, String token) throws Exception {
         mvc.perform(delete(deleteAddress, company.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                         .andExpect(status().isNoContent());
+    }
+
+    private Member findMember(Long companyId, String userId, String token) throws Exception {
+        MvcResult resp = mvc.perform(get(findMemberAddress, companyId, userId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+        return json.readValue(resp.getResponse().getContentAsString(), Member.class);
     }
 
     private Member addMember(Long companyId, String userId, String token) throws Exception{
@@ -138,6 +198,16 @@ public class MemberTests {
                         .andExpect(status().isOk()).andReturn();
 
         return  json.readValue(resp.getResponse().getContentAsString(), Member.class);
+    }
+
+    private Member updateMember(Member member, String token) throws Exception{
+        MvcResult resp = mvc.perform(put(updateMemberAddress)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(member)))
+                .andExpect(status().isOk()).andReturn();
+        return json.readValue(resp.getResponse().getContentAsString(), Member.class);
     }
 
     private void deleteMember(Member member, String token) throws Exception {

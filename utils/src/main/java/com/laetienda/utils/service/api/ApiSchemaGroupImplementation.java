@@ -19,6 +19,8 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
+
 @Component
 public class ApiSchemaGroupImplementation extends ApiRestClientImplementation implements ApiSchemaGroup {
     private final static Logger log =  LoggerFactory.getLogger(ApiSchemaGroupImplementation.class);
@@ -145,6 +147,10 @@ public class ApiSchemaGroupImplementation extends ApiRestClientImplementation im
     public DbGroup addMember(Long groupId, String userId) throws HttpStatusCodeException {
         var temp = client.put().uri(uriAddressAddMember, groupId, userId)
                 .accept(MediaType.APPLICATION_JSON);
+
+        if(super.getClientRegistrationId() != null){
+            temp.attributes(clientRegistrationId(super.getClientRegistrationId()));
+        }
 
         if(super.getJwtToken() != null){
             temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());

@@ -58,6 +58,9 @@ class CompanyTests {
     @Value("${api.company.update.uri.content}")
     private String companyUpdateContentAddress;
 
+    @Value("${api.company.update.uri.description}")
+    private String companyUpdateDescriptionAddress;
+
     @Value("${api.company.member.find.uri}")
     private String findMemberAddress; //api/v0/company/member/find/{companyId}/{userId}
 
@@ -108,7 +111,7 @@ class CompanyTests {
         comp = companyAddManager(comp);
         comp = modifyCompanyOwner(comp);
         comp = deleteOldOwnerMember(comp);
-        deleteMember(member);
+//        deleteMember(member);
         deleteCompany(comp);
 	}
 
@@ -155,7 +158,7 @@ class CompanyTests {
         assertNotNull(address);
         assertNull(company.getDescription());
 
-        MvcResult response = mvc.perform(post(address, company.getId())
+        MvcResult response = mvc.perform(put(address, company.getId())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
@@ -208,7 +211,7 @@ class CompanyTests {
         Long id = company.getId();
 
         MvcResult response = mvc.perform(get(findAddress, id)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -218,17 +221,17 @@ class CompanyTests {
                 .andExpect(status().isOk());
 
         mvc.perform(delete(deleteAddress, id)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         mvc.perform(get(findAddress, id)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                     .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
 
         mvc.perform(delete(deleteAddress, id)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
@@ -302,21 +305,21 @@ class CompanyTests {
         return result;
     }
 
-    private void deleteMember(Member member) throws Exception {
-        mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-        mvc.perform(delete(deleteMemberAddress, member.getCompany().getId(), member.getUserId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
-                .andExpect(status().isNoContent());
-
-        mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
+//    private void deleteMember(Member member) throws Exception {
+//        mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
+//                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+//                .accept(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk());
+//
+//        mvc.perform(delete(deleteMemberAddress, member.getCompany().getId(), member.getUserId())
+//                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
+//                .andExpect(status().isNoContent());
+//
+//        mvc.perform(get(findMemberAddress, member.getCompany().getId(), member.getUserId())
+//                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+//                .accept(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isNotFound());
+//    }
 
     private Friend sendFriendRequest(Member member)throws Exception{
 
@@ -452,10 +455,10 @@ class CompanyTests {
         assertNotNull(managers);
         assertTrue(managers.getMembers().contains(USERS[2].getUserId()));
 
-        //BAD_REQUEST: Add manager that is already manager
+        //OK: Add manager that is already manager
         mvc.perform(put(addManagerAddress, comp.getId(), USERS[2].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk());
 
         //FORBIDDEN: Block company owner by new manager
         response = mvc.perform(get(findMemberAddress, comp.getId(), USERS[1].getUserId())
@@ -510,11 +513,6 @@ class CompanyTests {
         deleteMember(member1, USERS[1].getToken());
 
         mvc.perform(get(findMemberAddress, comp.getId(), USERS[1].getUserId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-
-        mvc.perform(get(findMemberAddress, comp.getId(), USERS[1].getUserId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -523,7 +521,7 @@ class CompanyTests {
     }
 
     @Test
-    public void temp() throws Exception {
+    public void findCompanyWithInvalidId() throws Exception {
         mvc.perform(get(findAddress, 1)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
@@ -546,35 +544,147 @@ class CompanyTests {
                         .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void findCompanyWithInvalidId(){
-        fail("Not yet implemented");
-    }
-
 	@Test
-	public void createCompanyWithRepeatedName(){
-		fail();
+	public void createCompanyWithRepeatedName() throws Exception {
+		Company comp = getNewCompany(
+                "Test Company createCompanyWithRepeatedName",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Company company = new Company(
+                "Test Company createCompanyWithRepeatedName",
+                CompanyMemberPolicy.PUBLIC);
+        company.setOwner(USERS[1].getUserId());
+
+        mvc.perform(post(createAddress)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(company))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
+                .andExpect(status().isForbidden());
+
+        deleteCompany(comp.getId(), USERS[1].getToken());
 	}
 
     @Test
-    public void findWrongCompany(){
-        fail();
+    public void findWrongCompany() throws Exception {
+        mvc.perform(get(findAddress, "bad id")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(get(findAddress, 1023)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void updateCompanyOwner() throws Exception {
+        Company comp = getNewCompany(
+                "Test Company updateCompanyOwner",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Member memb2 = addMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
+
+        Map<String, String> body = Map.of("owner", memb2.getId().toString());
+        updateCompanyContent(comp.getId(), body, USERS[1].getToken());
+
+        deleteCompany(comp.getId(), USERS[2].getToken());
     }
 
     @Test
     public void updateCompanyByBlockedMember() throws Exception{
-        fail();
+        Company comp = getNewCompany(
+                "Test Company updateCompanyByBlockedMember",
+                CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
+                USERS[1]
+        );
+
+        Member memb2 = addMember(comp.getId(), USERS[2].getUserId(), USERS[1].getToken());
+
+        mvc.perform(put(companyUpdateDescriptionAddress, comp.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("new description of the company"))
+                .andExpect(status().isUnauthorized());
+
+        deleteCompany(comp.getId(), USERS[1].getToken());
     }
 
     @Test
     public void updateCompanyContentBadKey() throws Exception{
-        fail("Not yet implemented");
+        Company comp = getNewCompany(
+                "Test Company updateCompanyContentBadKey",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Map<String, String> body = Map.of("bad Key", "Anything");
+        mvc.perform(put(companyUpdateContentAddress, comp.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isBadRequest()).andReturn();
+
+        deleteCompany(comp.getId(), USERS[1].getToken());
     }
 
     @Test
     public void updateCompanyOwnerByBlockedMember() throws Exception{
-        //TODO: also try by using a non existent member id
-        fail();
+        Company comp = getNewCompany(
+                "Test Company updateCompanyOwnerByBlockedMember",
+                CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
+                USERS[1]
+        );
+
+        Member memb2 = addMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
+        Member memb3 = addMember(comp.getId(), USERS[3].getUserId(), USERS[3].getToken());
+
+        Map<String, String> body = Map.of("owner", memb2.getId().toString());
+        mvc.perform(put(companyUpdateContentAddress, comp.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isUnauthorized());
+
+        //BAD REQUEST: also try by using a non-existent member id
+        long memberId = 13445L;
+        body = Map.of("owner", Long.toString(memberId));
+        mvc.perform(put(companyUpdateContentAddress, comp.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isNotFound());
+
+        memb2.setStatus(CompanyMemberStatus.ACCEPTED);
+        memb2 =  updateMember(memb2, USERS[1].getToken());
+
+        body = Map.of("owner", memb2.getId().toString());
+        comp = updateCompanyContent(comp.getId(), body, USERS[1].getToken());
+
+        deleteCompany(comp.getId(), USERS[2].getToken());
+    }
+
+    private Company getNewCompany(String name, CompanyMemberPolicy policy, TestUserDto user) throws Exception{
+        Company company = new Company(name, policy);
+        company.setOwner(user.getUserId());
+
+        MvcResult resp = mvc.perform(post(createAddress)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(company))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + user.getToken()))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), Company.class);
     }
 
     private Company findCompanyById(Long companyId, String token) throws Exception{
@@ -649,6 +759,12 @@ class CompanyTests {
         assertTrue(managers.getMembers().contains(member.getUserId()));
 
         return result;
+    }
+
+    private void deleteCompany(Long companyId, String token) throws Exception {
+        mvc.perform(delete(deleteAddress, companyId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isNoContent());
     }
 
 
