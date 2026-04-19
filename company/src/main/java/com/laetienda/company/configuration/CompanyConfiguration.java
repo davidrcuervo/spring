@@ -38,7 +38,7 @@ public class CompanyConfiguration {
 
     @Bean
     public ApiSchemaGroup getApiSchemaGroup(){
-        return new ApiSchemaGroupImplementation(client,  mapper);
+        return new ApiSchemaGroupImplementation(client);
     }
 
     @Bean

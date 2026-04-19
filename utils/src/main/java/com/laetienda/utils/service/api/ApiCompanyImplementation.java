@@ -1,0 +1,190 @@
+package com.laetienda.utils.service.api;
+
+import com.laetienda.model.company.Company;
+import com.laetienda.model.company.Member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClient;
+
+import java.net.URI;
+import java.util.Map;
+
+@Component
+public class ApiCompanyImplementation extends ApiRestClientImplementation implements ApiCompany{
+    private final static Logger log = LoggerFactory.getLogger(ApiCompanyImplementation.class);
+
+    @Value("${api.company.create.uri}")
+    private String createCompanyFidUri;
+
+    @Value("${api.company.find.uri}")
+    private String findCompanyUri;
+
+    @Value("${api.company.create.uri}")
+    private String createCompanyUri;
+
+    @Value("${api.company.delete.uri}")
+    private String deleteCompanyUri;
+
+    @Value("${api.company.isValid.uri}")
+    private String isValidCompanyUri;
+
+    @Value("${api.company.find.uri}")
+    private String fidCompanyUri;
+
+    @Value("${api.company.findByName.uri}")
+    private String findCompanyByNameUri;
+
+    @Value("${api.company.update.uri.name}")
+    private String updateCompanyNameUri;
+
+    @Value("${api.company.update.uri.description}")
+    private String updateCompanyUriDescription;
+
+    @Value("${api.company.update.uri.content}")
+    private String updateCompanyUriContent;
+
+    @Value("${api.company.member.add.uri}")
+    private String addCompanyMemberUri;
+
+    @Value("${api.company.member.find.uri}")
+    private String findCompanyMemberUri;
+
+    @Value("${api.company.member.update.uri}")
+    private String updateCompanyMemberUri;
+
+    @Value("${api.company.member.delete.uri}")
+    private String deleteCompanyMemberUri;
+
+    public ApiCompanyImplementation(
+            RestClient restClient
+    ) {
+        super(restClient);
+    }
+
+    @Override
+    public Company find(Long id) throws HttpStatusCodeException {
+        return super.get(Company.class, null, findCompanyUri, id);
+    }
+
+    @Override
+    public Company find(Long id, String token) throws HttpStatusCodeException {
+        return super.get(Company.class,
+                a -> a.put("jwtToken", token),
+                findCompanyUri, id);
+    }
+
+    @Override
+    public Company createCompany(Company company) throws HttpStatusCodeException {
+        return super.post(Company.class, company, null, createCompanyUri);
+    }
+
+    @Override
+    public Company createCompany(Company company, String token) throws HttpStatusCodeException {
+        return super.post(Company.class, company,
+                attributes -> attributes.put("jwtToken", token),
+                createCompanyUri
+                );
+    }
+
+    @Override
+    public void deleteCompany(String companyId) throws HttpStatusCodeException {
+        super.delete(
+                null,
+                deleteCompanyUri,
+                companyId
+        );
+    }
+
+    @Override
+    public void deleteCompany(Long companyId, String token) throws HttpStatusCodeException {
+        super.delete(
+                attrs -> attrs.put("jwtToken", token),
+                deleteCompanyUri,
+                companyId, token);
+    }
+
+    @Override
+    public String isValid(Long id, String token) throws HttpStatusCodeException {
+        return super.get(
+                a -> a.put("jwtToken", token),
+                isValidCompanyUri, id
+        );
+    }
+
+    @Override
+    public Company findByName(String name, String token) throws HttpStatusCodeException {
+        return super.get(
+                Company.class,
+                a -> a.put("jwtToken", token),
+                findCompanyByNameUri, name
+        );
+    }
+
+    @Override
+    public Company updateName(Long id, String newName, String token) throws HttpStatusCodeException {
+        return super.put(
+                Company.class,
+                a -> a.put("jwtToken", token),
+                updateCompanyNameUri, id, newName
+        );
+    }
+
+    @Override
+    public Company updateDescription(Long id, String description, String token) throws HttpStatusCodeException {
+        return super.put(
+                Company.class,
+                description,
+                a -> a.put("jwtToken", token),
+                updateCompanyUriDescription, id
+        );
+    }
+
+    @Override
+    public Company updateContent(Long id, Map<String, String> body, String token) throws HttpStatusCodeException {
+        return super.put(
+                Company.class,
+                body,
+                a -> a.put("jwtToken", token),
+                updateCompanyUriContent, id
+        );
+    }
+
+    @Override
+    public Member addMember(Long companyId, String userId, String token) throws HttpStatusCodeException {
+        return super.put(
+                Member.class,
+                a -> a.put("jwtToken", token),
+                addCompanyMemberUri, companyId, userId
+        );
+    }
+
+    @Override
+    public Member findMember(Long companyId, String userId, String token) throws HttpStatusCodeException {
+        return super.get(
+                Member.class,
+                a -> a.put("jwtToken", token),
+                findCompanyMemberUri, companyId, userId
+        );
+    }
+
+    @Override
+    public Member updateMember(Member body, String token) throws HttpStatusCodeException {
+        return super.put(
+                Member.class,
+                body,
+                a -> a.put("jwtToken", token),
+                updateCompanyMemberUri
+        );
+    }
+
+    @Override
+    public void deleteMember(Long companyId, String userId, String token) throws HttpStatusCodeException {
+        super.delete(
+                a -> a.put("jwtToken", token),
+                deleteCompanyMemberUri, companyId, userId
+        );
+    }
+}

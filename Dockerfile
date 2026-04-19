@@ -231,11 +231,18 @@ FROM etwebapp AS etschema
 RUN --mount=type=bind,source=schema,target=src/schema bin/compile.sh schema
 
 ############################################
-## SCHEMA SERVICE
+## MESSENGER SERVICE
 ############################################
 FROM etwebapp AS etmail
 
 RUN --mount=type=bind,source=messenger,target=src/messenger bin/compile.sh messenger
+
+############################################
+## COMPANY SERVICE
+############################################
+FROM etwebapp AS etcompany
+
+RUN --mount=type=bind,source=company,target=src/company bin/compile.sh company
 
 ############################################
 ## FRONTEND SERVICE

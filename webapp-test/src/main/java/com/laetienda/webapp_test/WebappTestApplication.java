@@ -1,10 +1,10 @@
 package com.laetienda.webapp_test;
 
+import com.laetienda.webapp_test.test.TestCompany;
 import com.laetienda.webapp_test.test.Schema;
 import com.laetienda.webapp_test.test.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
@@ -20,12 +20,15 @@ public class WebappTestApplication implements CommandLineRunner, ExitCodeGenerat
 
 	private final User testUser;
 	private final Schema testSchema;
+	private final TestCompany testTestCompany;
 
 	public WebappTestApplication(
 			User testUser,
+			TestCompany testTestCompany,
 			Schema testSchema
 	) {
 		this.testUser = testUser;
+		this.testTestCompany = testTestCompany;
 		this.testSchema = testSchema;
 	}
 
@@ -45,6 +48,7 @@ public class WebappTestApplication implements CommandLineRunner, ExitCodeGenerat
 		try{
 			testUser.run();
 			testSchema.run();
+			testTestCompany.run();
 			this.exitCode = 0;
 			this.message = "Congratulations!. All tests completed successfully.";
 		}catch(HttpStatusCodeException e){

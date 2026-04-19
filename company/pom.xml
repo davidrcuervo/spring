@@ -67,5 +67,35 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>container</id>
+			<properties>
+				<name>container.target.dir</name>
+			</properties>
+
+			<build>
+				<directory>${container.target.dir}</directory>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<targetPath>${container.target.dir}/classes</targetPath>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<!-- This moves the final JAR -->
+							<outputDirectory>${container.target.dir}</outputDirectory>
+							<finalName>company</finalName>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

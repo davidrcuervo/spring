@@ -223,6 +223,40 @@ services:
     volumes:
       - ./application.yml:/opt/webapp/etc/application.yml
 
+  etcompany:
+    image: etcompany:1.0
+    user: webappuser
+    working_dir: /opt/webapp
+    entrypoint: [ "./bin/safestart.sh" ]
+    command:
+      - company
+      - ${PORT_COMPANY}
+    secrets:
+      - jasypt-password
+    depends_on:
+      etuser:
+        condition: service_healthy
+      etschema:
+        condition: service_healthy
+    networks:
+      - backend
+    ports:
+      - "8084:8084"
+    env_file:
+      - .env
+    environment:
+      - HOME=/opt/webapp
+    healthcheck:
+      test: [ "CMD","curl","--fail","http://etcompany:8083/actuator/health" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
+    build:
+      target: etcompany
+    volumes:
+      - ./application.yml:/opt/webapp/etc/application.yml
+
   frontend:
     image: frontend:1.0
     user: webappuser

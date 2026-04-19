@@ -1,6 +1,7 @@
 package com.laetienda.company;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.company.repository.CompanyRepository;
 import com.laetienda.lib.options.CompanyFriendStatus;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
@@ -45,6 +46,7 @@ class CompanyTests {
 	@Autowired MockMvc mvc;
 	@Autowired ObjectMapper json;
 	@Autowired private ApiUser apiUser;
+    @Autowired private CompanyTestMvcRepository repo;
 
 	@Value("${api.company.create.uri}")
 	private String createAddress;
@@ -578,6 +580,18 @@ class CompanyTests {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test void updateCompanyName() throws Exception {
+
+        Company company = repo.create(
+                "Test Company updateCompanyName",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        company = repo.updateName(company.getId(), "Test Company newUpdateCompanyName", USERS[1].getToken());
+        repo.deleteCompany(company.getId(), USERS[1].getToken());
     }
 
     @Test

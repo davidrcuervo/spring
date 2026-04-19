@@ -70,7 +70,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         readersGroup.setServiceAccessPolicy(DbServiceAccessPolicy.SERVICE_WRITE);
         company.addReaderGroup(readersGroup);
 
-        return schema.create(Company.class, company).getBody();
+        return schema.create(Company.class, company);
     }
 
     @Override
@@ -111,13 +111,16 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         body.put("name", name);
         String clazzName = schema.getClazzName(Company.class);
 
-        try{
+        try {
             return client.post().uri(address, clazzName)
                     .attributes(clientRegistrationId(webappClientId))
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
                     .body(json.writeValueAsBytes(body))
                     .retrieve().toEntity(Company.class).getBody();
+        }catch(HttpStatusCodeException e){
+            throw e;
+
         }catch(Exception e){
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -287,11 +290,23 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
+    public Company updateCompanyName(String newName, Company company) throws HttpStatusCodeException{
+        DbGroup managers = getManagersGroup(company);
+        DbGroup readers = getReadersGroup(company);
+
+        company.setName(newName);
+        apiSchemaGroup.update(managers.getId(), Map.of("name", getManagersGroupName(company)));
+        apiSchemaGroup.update(readers.getId(), Map.of("name", getReadersGroupName(company)));
+
+        return this.updateCompany(company);
+    }
+
+    @Override
     public Member addMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::addMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
         member.addEditorGroup(getManagersGroup(member.getCompany()));
         member.addEditor(member.getUserId());
-        return schema.create(Member.class, member).getBody();
+        return schema.create(Member.class, member);
     }
 
     @Override
@@ -300,32 +315,35 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
 
         DbGroup readers = getReadersGroup(member.getCompany());
 
-        apiSchemaGroup.setClientRegistrationId(webappClientId);
-        apiSchemaGroup.addMember(readers.getId(), member.getUserId());
-        apiSchemaGroup.setClientRegistrationId(null);
+        apiSchemaGroup.addMemberByService(readers.getId(), member.getUserId());
 
         member.setStatus(CompanyMemberStatus.ACCEPTED);
     }
 
-    private String getReadersGroupName(@NotNull Company company){
+    private String getReadersGroupName(Company company){
         return String.format("%s_READERS_GROUP", company.getName().strip().toLowerCase());
     }
 
-    private DbGroup getReadersGroup(@NotNull Company company){
+    private DbGroup getReadersGroup(Company company){
         return company.getReaderGroups().stream()
                 .filter(g -> g.getName().equals(getReadersGroupName(company)))
                 .findFirst()
                 .orElse(null);
     }
 
-    private String getManagersGroupName(@NotNull Company company){
+    private String getManagersGroupName(Company company){
         return String.format("%s_MANAGERS_GROUP", company.getName().strip().toLowerCase());
     }
 
-    private DbGroup getManagersGroup(@NotNull Company company){
-        return company.getEditorGroups().stream()
-                .filter(g -> g.getName().equals(getManagersGroupName(company)))
-                .findFirst()
-                .orElse(null);
+    private DbGroup getManagersGroup(Company company){
+        List<DbGroup> temp = company.getEditorGroups().stream()
+                .filter(g -> {
+                    String gName = g.getName();
+                    String mgName = getManagersGroupName(company);
+                    return gName.equals(mgName);
+                })
+                .toList();
+
+        return temp.getFirst();
     }
 }

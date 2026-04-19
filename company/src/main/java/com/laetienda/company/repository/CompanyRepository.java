@@ -26,5 +26,6 @@ public interface CompanyRepository {
     Member updateMember(Member member) throws HttpStatusCodeException;
     void removeMember(Member member) throws HttpStatusCodeException;
     Company updateCompany(Company company) throws HttpStatusCodeException;
+    Company updateCompanyName(String newName, Company company) throws HttpStatusCodeException;
 
 }

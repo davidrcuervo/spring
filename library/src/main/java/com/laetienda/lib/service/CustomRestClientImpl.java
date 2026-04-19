@@ -44,6 +44,10 @@ public class CustomRestClientImpl implements CustomRestClient{
 
                 Jwt jwt = jwtAuthenticationToken.getToken();
                 request.getHeaders().setBearerAuth(jwt.getTokenValue());
+
+            }else if(request.getAttributes().get("jwtToken") instanceof String token){
+                request.getHeaders().setBearerAuth(token);
+
             }else{
                 log.debug("RESTCLIENT_CONFIGURATION::intercept. Token is not instance of any token");
             }

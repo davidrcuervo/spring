@@ -69,18 +69,6 @@ public class CompanyController {
         return ResponseEntity.ok(service.addManager(companyId, userId));
     }
 
-//    @PostMapping("${api.company.update.file.memberPolicy}") //api/v0/company/update/{companyId}/description
-//    public ResponseEntity<Company> updateDescription(@PathVariable String companyId, @RequestBody String value) throws NotValidCustomException {
-//        log.info("COMPANY_CONTROLLER::updateMemberPolicy. $companyId: {} | $value: {}", companyId, value);
-//        return ResponseEntity.ok(service.updateMemberPolicy(companyId, value));
-//    }
-
-//    @PutMapping("${api.company.update.file}") //api/v0/company/update
-//    public ResponseEntity<Company> update(@RequestBody @Valid Company company) throws NotValidCustomException {
-//        log.info("COMPANY_CONTROLLER::update. $company: {}", company.getName());
-//        return ResponseEntity.ok(service.updateCompany(company));
-//    }
-
     @DeleteMapping("${api.company.delete.file}") //api/v0/company/delete/{id}
     public ResponseEntity<Void> delete(@PathVariable String id) throws NotValidCustomException {
         log.info("COMPANY_CONTROLLER::delete $id: {}", id);

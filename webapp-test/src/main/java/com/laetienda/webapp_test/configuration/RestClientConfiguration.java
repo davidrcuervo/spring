@@ -17,12 +17,13 @@ public class RestClientConfiguration {
     @Bean
     public RestClient getRestClient(
         RestClient.Builder builder,
-        OAuth2AuthorizedClientManager authorizedClientManager
+        OAuth2AuthorizedClientManager authorizedClientManager,
+        CustomRestClient customRestClient
     ){
         OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 
         return builder
-                .requestInterceptor(getCustomRestClient().oauth2Interceptor(authorizedClientManager))
+                .requestInterceptor(customRestClient.oauth2Interceptor(authorizedClientManager))
                 .requestInterceptor(interceptor)
                 .build();
     }

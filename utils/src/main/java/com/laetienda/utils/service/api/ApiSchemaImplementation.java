@@ -36,6 +36,7 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     private String webappClientId;
 
     public ApiSchemaImplementation(RestClient restClient){
+        super(restClient);
         this.client = restClient;
     }
 
@@ -65,25 +66,19 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     }
 
     @Override
-    public <T> ResponseEntity<T> create(Class<T> clazz, DbItem item) throws HttpStatusCodeException {
+    public <T extends DbItem> T create(Class<T> clazz, T item) throws HttpStatusCodeException {
         String address = env.getProperty("api.schema.create.uri", "create");
         log.debug("SCHEMA_API::create. $clazz: {}", clazz.getName());
 
-        try {
-            var temp = client.post().uri(address, getClazzName(clazz))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body(json.writeValueAsBytes(item));
+        return super.post(clazz, item, null, address, getClazzName(clazz));
+    }
 
-            if(super.getJwtToken() != null){
-                temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
-            }
+    public <T extends DbItem> T create(Class<T> clazz, T item, String token) throws HttpStatusCodeException {
+        String address = env.getProperty("api.schema.create.uri", "create");
 
-            return temp.retrieve().toEntity(clazz);
-        }catch(JsonProcessingException e){
-            log.warn("SCHEMA_API::create. {}", e.getMessage());
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        return super.post(clazz, item,
+                a -> a.put("jwtToken", token),
+                address, getClazzName(clazz));
     }
 
     @Override
@@ -165,18 +160,25 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     }
 
     @Override
-    public <T> ResponseEntity<String> deleteById(Class<T> clazz, Long id) throws HttpStatusCodeException {
+    public <T extends DbItem> void deleteById(Class<T> clazz, Long id) throws HttpStatusCodeException {
         String address = env.getProperty("api.schema.deleteById.uri", "delete/{id}");
         log.debug("SCHEMA_API::deleteById. $idStr: {} | $clazz: {} | $address: {}", id, clazz.getName(), address);
 
-        var temp = client.delete().uri(address, id, getClazzName(clazz))
-                .accept(MediaType.APPLICATION_JSON);
+        super.delete(
+                null,
+                address,
+                id, getClazzName(clazz));
+    }
 
-        if(super.getJwtToken() != null){
-            temp.header(HttpHeaders.AUTHORIZATION, "Bearer " + super.getJwtToken());
-        }
+    @Override
+    public <T extends DbItem> void deleteById(Class<T> clazz, Long id, String token) throws HttpStatusCodeException {
+        String address = env.getProperty("api.schema.deleteById.uri", "delete/{id}");
 
-        return temp.retrieve().toEntity(String.class);
+        super.delete(
+                a -> a.put("jwtToken", token),
+                address,
+                id,
+                getClazzName(clazz));
     }
 
     @Override

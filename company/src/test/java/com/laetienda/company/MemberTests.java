@@ -20,7 +20,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
+
+import static org.assertj.core.api.Fail.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,12 +35,13 @@ public class MemberTests {
 
     @Autowired private ObjectMapper json;
     @Autowired private MockMvc mvc;
+    @Autowired private CompanyTestMvcRepository repo;
 
     @Value("${api.company.create.uri}")
     private String createCompanyAddress;
 
     @Value("${api.company.find.uri}")
-    private String findCompanyByIdAddress;
+    private String apiCompanyFindUri;
 
     @Value("${api.company.delete.uri}")
     private String deleteAddress;
@@ -59,6 +62,35 @@ public class MemberTests {
     private String deleteMemberAddress;
 
     @Test
+    public void cycle() throws Exception {
+        Company company = repo.create(
+                "Test Company companyMemberCycle",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Member member1 = repo.findMember(company.getId(), USERS[1].getUserId(), USERS[1].getToken());
+        Member member2 = repo.addMember(company.getId(), USERS[2].getUserId(), USERS[1].getToken());
+
+        company = repo.updateCompanyContent(company.getId(), Map.of("owner", member2.getId().toString()), USERS[1].getToken());
+
+        member1.setStatus(CompanyMemberStatus.BLOCKED);
+        member1 = repo.updateMember(member1, USERS[2].getToken());
+
+        repo.deleteMember(company.getId(), USERS[1].getUserId(), USERS[1].getToken());
+        mvc.perform(get(findMemberAddress, company.getId(), USERS[1].getUserId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        repo.deleteCompany(company.getId(), USERS[2].getToken());
+
+        mvc.perform(get(apiCompanyFindUri, company.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken()))
+                        .andExpect(status().isNotFound());
+    }
+
+    @Test
     public void findCompanyByNewMember() throws Exception {
         Company comp = getNewCompany(
                 "Test Company findCompanyByNewMember",
@@ -70,6 +102,55 @@ public class MemberTests {
         comp = findCompanyById(comp.getId(), USERS[2].getToken());
 
         deleteCompany(comp, USERS[1].getToken());
+    }
+
+    @Test
+    public void blockMember() throws Exception {
+        Company comp = repo.create(
+                "Test Company blockMember",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Member member2 = repo.addMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
+//        Member member1 = repo.findMember(comp.getId(), USERS[1].getUserId(), USERS[2].getToken());
+        comp = repo.findCompany(comp.getId(), USERS[2].getToken());
+
+        member2.setStatus(CompanyMemberStatus.BLOCKED);
+        member2 = repo.updateMember(member2, USERS[2].getToken());
+
+        mvc.perform(get(repo.apiCompanyFindUri, comp.getId())
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
+                        .andExpect(status().isUnauthorized());
+
+//        mvc.perform(get(repo.apiCompanyMemberFindUri, comp.getId(), USERS[1].getUserId())
+//                        .accept(MediaType.APPLICATION_JSON)
+//                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken()))
+//                .andExpect(status().isUnauthorized());
+
+        repo.deleteCompany(comp.getId(), USERS[1].getToken());
+    }
+
+    @Test
+    public void updateMemberUserId() throws Exception {
+        Company company = repo.create(
+                "Test Company updateMemberUserId",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Member member1 = repo.findMember(company.getId(), USERS[1].getUserId(), USERS[1].getToken());
+        member1.setUserId(USERS[2].getUserId());
+
+        mvc.perform(put(updateMemberAddress, company.getId(), USERS[1].getUserId(), USERS[1].getToken())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(member1)))
+                .andExpect(status().isBadRequest());
+
+        repo.deleteCompany(company.getId(), USERS[1].getToken());
     }
 
     @Test
@@ -170,7 +251,7 @@ public class MemberTests {
     }
 
     private Company findCompanyById(Long companyId, String token) throws Exception{
-        MvcResult resp = mvc.perform(get(findCompanyByIdAddress, companyId)
+        MvcResult resp = mvc.perform(get(apiCompanyFindUri, companyId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()).andReturn();

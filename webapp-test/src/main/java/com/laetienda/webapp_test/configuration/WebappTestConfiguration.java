@@ -14,17 +14,14 @@ public class WebappTestConfiguration {
 
     private final RestClient httpClient;
     private final OAuth2AuthorizedClientManager authorizedClientManager;
-    private final ObjectMapper objectMapper;
 
     public WebappTestConfiguration(
             RestClient restClient,
-            OAuth2AuthorizedClientManager authorizedClientManager,
-            ObjectMapper objectMapper
+            OAuth2AuthorizedClientManager authorizedClientManager
     ){
         this.httpClient = restClient;
         this.authorizedClientManager = authorizedClientManager;
-        this.objectMapper = objectMapper;
-    }
+            }
 
     @Bean
     public ApiUser getUserApi(){
@@ -43,7 +40,11 @@ public class WebappTestConfiguration {
 
     @Bean
     public ApiSchemaGroup getApiSchemaGroup(){
-        return new ApiSchemaGroupImplementation(httpClient,  objectMapper);
+        return new ApiSchemaGroupImplementation(httpClient);
     }
 
+    @Bean
+    public ApiCompany getApiCompany(){
+        return new ApiCompanyImplementation(httpClient);
+    }
 }

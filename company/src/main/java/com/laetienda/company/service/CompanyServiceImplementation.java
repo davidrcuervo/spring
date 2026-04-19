@@ -76,6 +76,7 @@ public class CompanyServiceImplementation implements CompanyService{
                 Company result = repo.create(company);
 
                 Member member = new Member(result, userId, CompanyMemberStatus.ACCEPTED);
+                repo.acceptMember(member);
                 repo.addMember(member);
 
                 return result;
@@ -287,9 +288,8 @@ public class CompanyServiceImplementation implements CompanyService{
 
         Long cid = isCompanyValid(companyId);
         Company temp = repo.find(cid);
-        temp.setName(value);
 
-        return repo.updateCompany(temp);
+        return repo.updateCompanyName(value, temp);
     }
 
     @Override

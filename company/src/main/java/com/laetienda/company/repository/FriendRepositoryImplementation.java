@@ -63,7 +63,7 @@ public class FriendRepositoryImplementation implements FriendRepository {
     @Override
     public Friend create(Friend friend) throws NotValidCustomException {
         log.debug("FRIEND_REPOSITORY::create. $companyId: {} | $memberUserId: {} | buddyUserId: {}", friend.getMember().getCompany().getId(), friend.getMember().getUserId(), friend.getBuddy().getUserId());
-        return apiSchema.create(Friend.class, friend).getBody();
+        return apiSchema.create(Friend.class, friend);
     }
 
     @Override

@@ -210,31 +210,31 @@ api:
       test: ${api.mail.uri.folder}/${api.mail.file.test}
       send: ${api.mail.uri.folder}/${api.mail.file.send}
   company:
-    url: http://company:${PORT_COMPANY}
+    url: http://etcompany:${PORT_COMPANY}
     folder: /api/v0/company
     uri: ${api.company.url}${api.company.folder}
-    create:
+    create: # METHOD: post | BODY: company | CODE: 200 | RESP: company
       file: create
       uri: ${api.company.uri}/${api.company.create.file}
-    isValid:
+    isValid: # METHOD: get | CODE: 200 | RESP: string (CompanyId)
       file: isValid/{companyId}
       uri: ${api.company.uri}/${api.company.isValid.file}
-    find:
+    find: # METHOD: get | BODY: null | CODE: 200 | RESP: company
       file: find/{id}
       uri: ${api.company.uri}/${api.company.find.file}
     findByName:
       file: findByName/{name}
       uri: ${api.company.uri}/${api.company.findByName.file}
-    update:
+    update: # METHOD: put | CODE: 200 | RESP: company
       file:
-        name: update/{companyId}/name/{value}
-        description: update/{companyId}/description
-        content: update/{companyId} # METHOD: PUT | PARAM: Map<String, String> | RESULT: Company
+        name: update/{companyId}/name/{value} # BODY: null
+        description: update/{companyId}/description # BODY: null
+        content: update/{companyId} # BODY: Map<String, String>
       uri:
         name: ${api.company.uri}/${api.company.update.file.name}
         description: ${api.company.uri}/${api.company.update.file.description}
         content: ${api.company.uri}/${api.company.update.file.content}
-    delete:
+    delete: # METHOD: delete | CODE: 204 | RESP: void
       file: delete/{id}
       uri: ${api.company.uri}/${api.company.delete.file}
     manager:

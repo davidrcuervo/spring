@@ -1,5 +1,6 @@
 package com.laetienda.webapp_test.testApi;
 
+import com.laetienda.lib.options.DbServiceAccessPolicy;
 import com.laetienda.lib.options.DbUserAccessPolicy;
 import com.laetienda.model.schema.DbGroup;
 import com.laetienda.model.schema.ItemTypeA;
@@ -50,61 +51,62 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
 
         final DbGroup groupFinal = new DbGroup("testGroup_TestSchemaApiImplementation");
         groupFinal.setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
+        groupFinal.setServiceAccessPolicy(DbServiceAccessPolicy.NO_SERVICE);
 
         item.addReaderGroup(groupFinal);
 
-        apiGroup.setJwtToken(users[1].getToken());
-        apiSchema.setJwtToken(users[1].getToken());
-
         //CREATE
-        item = apiSchema.create(ItemTypeA.class, item).getBody();
+        item = apiSchema.create(ItemTypeA.class, item, users[1].getToken());
         assertNotNull(item);
         assertTrue(item.getReaderGroups().stream()
                 .anyMatch(g -> g.getName().equals(groupFinal.getName())));
 
         //FIND BY NAME
-        DbGroup group = apiGroup.findByName(groupFinal.getName());
+        DbGroup group = apiGroup.findByName(groupFinal.getName(), users[1].getToken());
         assertNotNull(group);
 
         //UPDATE
-        group = apiGroup.update(group.getId(), Map.of("policy", DbUserAccessPolicy.MANAGE_BY_ALL.toString()));
+        group = apiGroup.update(group.getId(),
+                Map.of("userAccessPolicy", DbUserAccessPolicy.MANAGE_BY_ALL.toString()),
+                users[1].getToken()
+        );
         assertNotNull(group);
         assertEquals(DbUserAccessPolicy.MANAGE_BY_ALL, group.getUserAccessPolicy());
 
         //TODO: ADD MEMBER
-        group = apiGroup.addMember(group.getId(), users[2].getUserId());
+        group = apiGroup.addMember(group.getId(), users[2].getUserId(), users[1].getToken());
         assertNotNull(group);
         assertTrue(group.getMembers().contains(users[2].getUserId()));
 
         //TODO: REMOVE MEMBER
-        apiGroup.setJwtToken(users[2].getToken());
-        group=apiGroup.removeMember(group.getId(), users[2].getUserId());
+//        apiGroup.setJwtToken(users[2].getToken());
+        group=apiGroup.removeMember(group.getId(), users[2].getUserId(), users[2].getToken());
         assertNotNull(group);
         assertFalse(group.getMembers().contains(users[2].getUserId()));
 
         HttpStatusCodeException exception = assertThrows(HttpStatusCodeException.class,
-                () -> apiGroup.findByName(groupFinal.getName()));
+                () -> apiGroup.findByName(groupFinal.getName()), users[2].getToken());
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
 
         //TODO: FIND ALL
-        apiGroup.setJwtToken(users[1].getToken());
-        List<DbGroup> results = apiGroup.findAll();
+//        apiGroup.setJwtToken(users[1].getToken());
+        List<DbGroup> results = apiGroup.findAll(users[1].getToken());
         assertNotNull(results);
         assertEquals(1, results.size());
 
         //DELETE ITEM
-        apiSchema.deleteById(ItemTypeA.class, item.getId());
+        apiSchema.deleteById(ItemTypeA.class, item.getId(), users[1].getToken());
 
         //TODO: FIND ORPHANS
-        results = apiGroup.getOrphans();
+        results = apiGroup.getOrphans(users[1].getToken());
         assertNotNull(results);
         assertEquals(1, results.size());
 
         //DELETE GROUP
-        apiGroup.delete(group.getId());
+        apiGroup.delete(group.getId(),  users[1].getToken());
 
         exception = assertThrows(HttpStatusCodeException.class,
-                () -> apiGroup.findByName(groupFinal.getName()));
+                () -> apiGroup.findByName(groupFinal.getName(),  users[1].getToken()));
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
 
         log.info("SCHEMA_TEST::groups | Test finished successfully.");
