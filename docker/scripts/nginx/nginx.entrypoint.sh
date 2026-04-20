@@ -79,4 +79,9 @@ if [ -z "$WEBAPP_PUBLIC_ADDRESS" ]; then
   exit 1
 fi
 
+if [ -z "$WEBAPP_PUBLIC_PORT" ]; then
+  echo "ERROR: env variable WEBAPP_PUBLIC_PORT is unset" >&2
+  exit 1
+fi
+
 run

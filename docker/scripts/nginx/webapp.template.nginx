@@ -6,11 +6,11 @@ upstream webapp {
 server {
     listen 80;
     server_name ${WEBAPP_PUBLIC_ADDRESS};
-    return 301 https://${DOLLAR}host${DOLLAR}request_uri;
+    return 301 https://${DOLLAR}host:${WEBAPP_PUBLIC_PORT}${DOLLAR}request_uri;
 }
 
 server{
-    listen 443 ssl;
+    listen ${WEBAPP_PUBLIC_PORT} ssl;
     server_name ${WEBAPP_PUBLIC_ADDRESS};
 
     ssl_certificate /opt/docker/certs/webapp.crt;

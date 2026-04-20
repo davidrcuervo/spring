@@ -83,9 +83,9 @@ services:
       start_period: 40s
     build:
       target: keycloaketcnf
-#    volumes:
-#      - ./scripts/keycloak/kc.config.sh:/opt/keycloak/kc.config.sh
-#      - ./scripts/keycloak/kc.check.sh:/opt/keycloak/kc.check.sh
+    volumes:
+      - ./docker/scripts/keycloak/kc.config.sh:/opt/keycloak/kc.config.sh
+#      - ./docker/scripts/keycloak/kc.check.sh:/opt/keycloak/kc.check.sh
 
   etnginx:
     image: etnginx:1.24
@@ -104,11 +104,13 @@ services:
           - ${WEBAPP_PUBLIC_ADDRESS}
     ports:
       - "80:80"
-      - "443:443"
+      - "${WEBAPP_PUBLIC_PORT}:${WEBAPP_PUBLIC_PORT}"
     healthcheck:
-      test: ["CMD","curl","--fail","--insecure","https://auth.webapp.com/nginx/health"]
+      test: ["CMD","curl","--fail","--insecure","https://${KC_PUBLIC_ADDRESS}:${WEBAPP_PUBLIC_PORT}/nginx/health"]
     build:
       target: etnginx
+    volumes:
+      - ./docker/scripts/nginx:/opt/nginx
 
   etjava:
     image: etjava:1.0

@@ -23,9 +23,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -34,8 +31,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserControllerTest {
-    private final static Logger log = LoggerFactory.getLogger(UserControllerTest.class);
+class UserTest {
+    private final static Logger log = LoggerFactory.getLogger(UserTest.class);
     private final String userPassword = "secretPassword";
 
     @Autowired private MockMvc mvc;
