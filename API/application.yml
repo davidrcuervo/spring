@@ -1,4 +1,22 @@
 api:
+  frontend:
+    url: https://${WEBAPP_PUBLIC_ADDRESS}:${WEBAPP_PUBLIC_PORT}
+    home:
+      uri: =${api.frontend.url}/home.html
+    users: users.html
+    user:
+      folder: user
+      account:
+        file: account.html
+        path: ${api.frontend.user.folder}/${api.frontend.user.account.file}
+      find: find.html/{username}
+      test: test.html/{username}
+      manager:
+        file: manager
+        test:
+          file: test.html
+          uri: ${api.frontend.url}/${api.frontend.user.manager}/${api.frontend.manger.test.file}
+
   kc:
     url: https://${KC_PUBLIC_ADDRESS}:${WEBAPP_PUBLIC_PORT}
     realm:
