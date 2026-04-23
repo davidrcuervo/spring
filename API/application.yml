@@ -1,22 +1,32 @@
-api:
-  frontend:
-    url: https://${WEBAPP_PUBLIC_ADDRESS}:${WEBAPP_PUBLIC_PORT}
-    home:
-      uri: =${api.frontend.url}/home.html
-    users: users.html
+seo:
+  url: https://${WEBAPP_PUBLIC_ADDRESS}:${WEBAPP_PUBLIC_PORT}
+  signIn: /signin.html #QUERY_PARAMETER: redirect //signin.html?redirect={currentUri}
+  logout: /logout
+  home:
+    file: /home.html
+    uri: ${seo.url}${seo.home.file}
+  user:
+    all: users.html
+    file: user.html
+    folder: /user
+    find:
+      file: /find.html/{username}
+      path: ${seo.user.folder}${seo.user.find.file}
+    test:
+      file: /test.html/{username}
+      path: ${seo.user.folder}${seo.user.test.file}
+  manage:
+    file: /manage.html
+    folder: /manage
     user:
-      folder: user
-      account:
-        file: account.html
-        path: ${api.frontend.user.folder}/${api.frontend.user.account.file}
-      find: find.html/{username}
-      test: test.html/{username}
-      manager:
-        file: manager
-        test:
-          file: test.html
-          uri: ${api.frontend.url}/${api.frontend.user.manager}/${api.frontend.manger.test.file}
+      file: /user.html
+      path: ${seo.manage.folder}${seo.manage.user.file.file}
+    test:
+      file: /test.html
+      path: ${seo.manage.folder}${seo.manage.test.file}
 
+
+api:
   kc:
     url: https://${KC_PUBLIC_ADDRESS}:${WEBAPP_PUBLIC_PORT}
     realm:

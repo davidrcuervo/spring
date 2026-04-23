@@ -1,0 +1,20 @@
+server:
+  port: ${PORT_FRONTEND}
+
+spring:
+  application:
+    name: Frontend
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            provider: keycloaket
+            authorization-grant-type: authorization_code
+            client-id: ${KC_FRONTEND_CLIENT_ID}
+            client-secret: ${KC_FRONTEND_CLIENT_ENC_PASSWORD}
+            scope: openid,profile
+        provider:
+          keycloaket:
+            issuer-uri: ${api.kc.realm.uri}
+            user-name-attribute: preferred_username

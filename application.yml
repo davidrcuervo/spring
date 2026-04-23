@@ -4,13 +4,13 @@ webapp:
     admin:
       username: ${APP_USER_ADMIN_USERNAME}
       password: ${APP_USER_ADMIN_ENC_PASSWORD}
-      userId: ea612e60-72fd-4110-8878-d3c06021658a
+      userId: 93996e6b-5ae9-4adb-96f2-dcac80149750
     test:
       username: ${APP_USER_TEST_USERNAME}
       password: ${APP_USER_TEST_ENC_PASSWORD}
-      userId: 5b863898-418c-48f2-befe-2fd89e3a812f
+      userId: 8e21b638-2f32-4a87-b367-620e1a2560d5
     service:
-      userId: 92374f01-4646-4379-bcf9-31f56def0a45
+      userId: 53beeefb-1103-4b8d-95da-81b9f85180c6
   messenger:
     enable: true
 
