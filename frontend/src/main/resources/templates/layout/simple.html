@@ -12,6 +12,7 @@
     <!-- STYLES -->
     <link th:href="@{/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet" />
     <link th:href="@{/bootstrap/icons/1.13.1/bootstrap-icons.min.css}" rel="stylesheet" />
+    <link th:href="@{/styles/simple.css}" rel="stylesheet" />
 
     <!-- SCRIPTS -->
     <script th:src="@{/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
@@ -19,76 +20,78 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-md bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" th:href="@{${@tt.href('seo.home.file')}}"><i class="bi-house-fill"></i> La eTienda</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+
+                <!-- Brand -->
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-shop"></i>
+                    La eTienda
+                </a>
+                <button class="navbar-toggler mb-2" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse row" id="navbarSupportedContent">
 
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 col-lg">
-                        <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="#">Wiki</a>
-                        </li>
-
-                        <li class="nav-item" th:with="link=${@tt.href('seo.home.file')}">
-                            <a class="nav-link"
-                               th:href="@{${link}}"
-                               th:classappend="${@tt.isActive(link) ? 'active' : ''}"
-                            >
-                                Home
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link disabled">Disabled</a>
-                        </li>
-                    </ul>
-
-                    <form class="col-lg">
-                        <div class="input-group">
-                            <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-                            <button class="btn btn-outline-secondary" type="submit"><i class="bi-search"></i></button>
-                        </div>
+                <!-- Collapse on small screen -->
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <form class="mx-auto w-100 mb-2 px-md-3 nav-search-form">
+                        <input class="form-control" type="search" placeholder="What do you want to do today?" aria-label="Search"/>
                     </form>
 
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 col-lg">
-                        <li class="nav-item" sec:authorize="!isAuthenticated()">
-                            <a class="nav-link" aria-current="page"
+                    <!-- NOT logged in: show Login button -->
+                    <div sec:authorize="!isAuthenticated()">
+                        <div class="d-grid d-md-block mb-2 flex-shrink-0">
+                            <a class="btn btn-outline-success mb-2"
                                th:href="@{${@tt.href('seo.signIn')}(redirect=${@tt.uri})}"
                             >
-                                Sing In
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                Log In
                             </a>
-                        </li>
-                        <li class="nav-item dropdown mx-lg-auto" sec:authorize="isAuthenticated()">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" href="#"
-                               th:classappend="${activemainmenu == 'userandsettings' ? 'active':'
-                               '}"
-                            >
-                                User & Settings
+                        </div>
+                    </div>
+
+                    <!-- Logged in -->
+                    <div sec:authorize="isAuthenticated()">
+
+                        <!-- NOT collapsed (md+): show dropdown -->
+                        <div class="d-none d-md-block">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-fill"></i>
+                                    <span th:text="${#authentication.name}">Username</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" th:href="@{${@tt.href('seo.manage.file')}}">
+                                        <i class="bi bi-gear"></i>
+                                        Settings
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" th:href="@{${@tt.href('seo.logout')}}">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        Log Out
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Collapsed (small screens): just list the options -->
+                        <div class="d-md-none">
+                            <a class="btn btn-outline-secondary w-100 mb-2" th:href="@{${@tt.href('seo.manage.file')}}">
+                                <i class="bi bi-gear"></i>
+                                Settings
                             </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li>
-                                    <a class="dropdown-item" th:href="@{${@tt.href('seo.logout')}}"
-                                    >
-                                        <i class="bi-person-fill"></i> Log Out
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" th:href="@{${@tt.href('seo.manage.file')}}"
-                                    >
-                                        <i class="bi-gear-fill"></i> Settings
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                            <a class="btn btn-outline-danger w-100" th:href="@{${@tt.href('seo.logout')}}">
+                                <i class="bi bi-box-arrow-right"></i>
+                                Log Out
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
-
     </header>
     <main>
         <div layout:fragment="content">
@@ -98,7 +101,7 @@
     <footer>
         <div>URI: <span th:text="${@tt.uri}">home.html</span></div>
         <div>seo.home.file: <span th:text="${@tt.href('seo.home.file')}">/asdf</span></div>
-        <div sec:authorize="hasAuthority('manager')">
+        <div sec:authorize="hasAuthority('role_manager')">
             User is manager
         </div>
         <div th:if="${encodedSessionId} != null">
@@ -112,7 +115,7 @@
             <div>csrf.token: <span th:text="${_csrf.token}">Token</span></div>
         </div>
         <div>
-            User: <span th:text="${#authentication.getPrincipal()}">Username</span>
+            User: <span th:text="${#authentication.name}">Username</span>
         </div>
     </footer>
 
