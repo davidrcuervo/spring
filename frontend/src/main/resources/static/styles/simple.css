@@ -1,5 +1,5 @@
 @media (min-width: 768px) {
-    .nav-search-form {
+    .w-md-50 {
         width: 50% !important;
     }
 }

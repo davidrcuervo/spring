@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <!-- STYLES -->
+    <link href="bootstrap/5.3.8/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="styles/simple.css" rel="stylesheet" />
+    <link href="bootstrap/icons/1.13.1/bootstrap-icons.min.css" rel="stylesheet" />
+
+    <!-- SCRIPTS -->
+    <script src="bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+
+</head>
+<body>
+<header>
+    <nav class="navbar bg-body-tertiary" data-bs-theme="dark">
+
+        <a class="navbar-brand mx-2" href="#">
+            <i class="bi bi-shop"></i>
+            La eTienda
+        </a>
+
+        <div class="navbar-item dropdown order-md-last mx-2">
+            <a class="dropdown-toggle btn btn-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-fill"></i>
+                <span th:text="${#authentication.name}">Username</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#">
+                    <i class="bi bi-gear"></i>
+                    Settings
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Log Out
+                </a></li>
+            </ul>
+        </div>
+
+        <form class="w-100 w-md-50 m-1" role="search">
+            <input class="form-control" type="search" placeholder="Search" aria-label="Search"/>
+        </form>
+
+    </nav>
+</header>
+<main>
+    <div class="d-flex flex-column">
+        <h1 class="text-center my-2">Manage</h1>
+        <a class="mx-3 my-1 btn btn-primary">
+            <i class="bi bi-person-gear"></i>
+            User profile
+        </a>
+        <a class="mx-3 my-1 btn btn-primary">
+            <i class="bi bi-building-gear"></i>
+            Companies
+        </a>
+    </div>
+</main>
+<footer>
+</footer>
+
+</body>
+</html>

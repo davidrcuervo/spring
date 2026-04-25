@@ -96,7 +96,7 @@ public class UserController {
     }
 
     //TODO: FOR TESTING PORPUSE. MUST BE REMOVED
-//    @GetMapping("${api.frontend.user.test}") //user/test.html/{username}
+//    @GetMapping("${api.frontend.user.test}") //user/mock.html/{username}
 //    private String testUser(@PathVariable String username, HttpServletRequest request, Model model, Principal principal){
 //        log.trace("USER_CONTROLLER::test $username: {}", username);
 //
@@ -123,7 +123,7 @@ public class UserController {
 //        }
 //
 //        //Send request to User Resource server
-////        String address = env.getProperty("api.usuario.test.uri"); //http://usuarioet:{port}/api/v0/user/test.html
+////        String address = env.getProperty("api.usuario.test.uri"); //http://usuarioet:{port}/api/v0/user/mock.html
 //        String address = env.getProperty("api.kcUser.login.uri"); //http://usuarioet:{port}login.html/login.html
 //        log.trace("USER_CONTROLLER::test $address: {}", address);
 //        String result = client.get()

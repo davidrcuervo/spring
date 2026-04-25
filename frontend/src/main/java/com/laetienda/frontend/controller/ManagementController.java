@@ -150,7 +150,7 @@ public class ManagementController {
 //        }
 //    }
 
-//    @GetMapping("${seo.manage.test.file}")//manage/test.html
+//    @GetMapping("${seo.manage.test.file}")//manage/mock.html
 //    public String test(Model model, Principal principal){
 //        log.trace("MANAGEMENT_CONTROLLER::test. $username: {}", principal.getName());
 //
