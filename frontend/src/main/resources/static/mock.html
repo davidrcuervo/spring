@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-    <title>Test</title>
+    <title>La eTienda | Mockup site</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
@@ -29,7 +29,7 @@
                 <span th:text="${#authentication.name}">Username</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#">
+                <li><a class="dropdown-item" href="#Settings">
                     <i class="bi bi-gear"></i>
                     Settings
                 </a></li>
@@ -46,18 +46,143 @@
         </form>
 
     </nav>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="#home" th:href="@{${@tt.href('seo.home.file')}">
+                <i class="bi bi-house-door-fill"></i>
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="#setting" th:href="@{${@tt.href('seo.manage.file')}}">
+                Settings
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="#companies" th:href="@{${@tt.href('seo.company.manage.file')}}">
+                Companies
+            </a>
+        </li>
+        <li  class="breadcrumb-item active" aria-current="page">
+              Cortes de la villa
+        </li>
+      </ol>
+    </nav>
 </header>
 <main>
-    <div class="d-flex flex-column">
-        <h1 class="text-center my-2">Manage</h1>
-        <a class="mx-3 my-1 btn btn-primary">
-            <i class="bi bi-person-gear"></i>
-            User profile
-        </a>
-        <a class="mx-3 my-1 btn btn-primary">
-            <i class="bi bi-building-gear"></i>
-            Companies
-        </a>
+    <!-- SETTINGS -->
+    <div id="Settings">
+        <h1 class="text-center my-2">Settings</h1>
+        <div class="row row-cols-1 row-cols-md-6">
+            <div class="card border-0">
+                <img src="bootstrap/icons/1.13.1/person-gear.svg"
+                     class="card-img-top d-none d-md-block"
+                     alt="User profile settings">
+                <div class="card-body">
+                <a class="btn btn-primary stretched-link w-100">
+                    <i class="bi bi-person-gear d-md-none"></i>
+                    User profile
+                </a>
+                </div>
+            </div>
+            <div class="card border-0">
+                <img src="bootstrap/icons/1.13.1/building-gear.svg"
+                     class="card-img-top d-none d-md-block"
+                     alt="Companies settings">
+                <div class="card-body">
+                    <a class="btn btn-primary stretched-link w-100"
+                       href="#companies" th:href=""
+                       title="Manage Companies" th:title=""
+                    >
+                        <i class="bi bi-building-gear d-md-none"></i>
+                        Companies
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPANIES -->
+    <div id="companies">
+        <h1 class="text-center my-2">Companies</h1>
+
+        <!-- COMPANIES | For Mobile -->
+        <div class="d-md-none mx-3">
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action"
+                   href="#CortesDeLaVilla" th:href=""
+                   title="Cortes de la Villa" th:title=""
+                   alt="Cortes de la villa" th:alt=""
+                >
+                    Cortes de la Villa
+                </a>
+                <a class="list-group-item list-group-item-action"
+                   href="#Cafeteros" th:href=""
+                   title="Cafeteros" th:title=""
+                   alt="Cafeteros" th:alt=""
+                >
+                    Cafeteros
+                </a>
+            </div>
+            <a class="btn btn-primary w-100 my-2"
+               href="#addComapy" th:href=""
+               title="Add new Company" th:title=""
+               alt="Add new Company" th:alt=""
+            >
+                <i class="bi bi-building-add"></i>
+                Create Company
+            </a>
+        </div>
+
+        <!-- COMPANIES | For desktop -->
+        <div class="d-none d-md-block">
+            <div class="row row-cols-6">
+                <div class="card border-0">
+                    <img src="bootstrap/icons/1.13.1/image.svg"
+                         class="card-img-top"
+                         alt="Cortes de la villa">
+                    <div class="card-body">
+                        <a class="stretched-link link-dark link-underline link-underline-opacity-0 link-underline-opacity-100-hover text-center d-md-block"
+                           href="#CortesDeLaVilla" th:href=""
+                           title="Cortes de la Villa" th:href=""
+                        >
+                            Cortes de la Villa
+                        </a>
+                    </div>
+                </div>
+                <div class="card border-0">
+                    <img src="bootstrap/icons/1.13.1/image.svg"
+                         class="card-img-top"
+                         alt="Cortes de la villa">
+                    <div class="card-body">
+                        <a class="stretched-link link-dark  link-underline link-underline-opacity-0 link-underline-opacity-100-hover text-center d-md-block"
+                           href="#Cafeteros" th:href=""
+                           title="Cafeteros" th:href=""
+                        >
+                            Cafeteros
+                        </a>
+                    </div>
+                </div>
+                <div class="card border-0">
+                    <img src="bootstrap/icons/1.13.1/building-add.svg"
+                         class="card-img-top"
+                         alt="Cortes de la villa">
+                    <div class="card-body">
+                        <a class="stretched-link btn btn-primary"
+                           href="#createCompany" th:href=""
+                           title="Create new company" th:href=""
+                        >
+                            Create new company
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPANY -->
+    <div id="CortesDeLaVilla">
+        <h1 class="text-center my-2">Cortes de la Villa</h1>
     </div>
 </main>
 <footer>
