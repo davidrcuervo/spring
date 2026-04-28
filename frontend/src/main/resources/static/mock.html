@@ -7,11 +7,13 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <!-- STYLES -->
     <link href="bootstrap/5.3.8/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="styles/simple.css" rel="stylesheet" />
     <link href="bootstrap/icons/1.13.1/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="styles/style-md.css" rel="stylesheet" />
+    <link href="styles/style.css" rel="stylesheet" />
 
     <!-- SCRIPTS -->
     <script src="bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts/script.js"></script>
 
 </head>
 <body>
@@ -73,31 +75,32 @@
     <!-- SETTINGS -->
     <div id="Settings">
         <h1 class="text-center my-2">Settings</h1>
-        <div class="row row-cols-1 row-cols-md-6">
-            <div class="card border-0">
-                <img src="bootstrap/icons/1.13.1/person-gear.svg"
-                     class="card-img-top d-none d-md-block"
-                     alt="User profile settings">
-                <div class="card-body">
-                <a class="btn btn-primary stretched-link w-100">
-                    <i class="bi bi-person-gear d-md-none"></i>
-                    User profile
-                </a>
+        <div class="row mx-1">
+            <div class="card card-hover col-md-2 col-xl-1 m-1">
+                <div class="card-body text-center">
+                    <a class="text-decoration-none text-dark stretched-link"
+                       href="/manage/users/{userId}"
+                    >
+                        <i class="bi bi-person-gear d-md-none"></i>
+                        User profile
+                    </a>
                 </div>
+                <img src="bootstrap/icons/1.13.1/person-gear.svg"
+                     class="card-img-bottom w-50 d-none d-md-block"
+                     alt="User profile settings">
             </div>
-            <div class="card border-0">
-                <img src="bootstrap/icons/1.13.1/building-gear.svg"
-                     class="card-img-top d-none d-md-block"
-                     alt="Companies settings">
-                <div class="card-body">
-                    <a class="btn btn-primary stretched-link w-100"
-                       href="#companies" th:href=""
-                       title="Manage Companies" th:title=""
+            <div class="card card-hover col-md-2 col-xl-1 m-1">
+                <div class="card-body text-center">
+                    <a class="text-decoration-none text-dark stretched-link"
+                       href="/manage/companies"
                     >
                         <i class="bi bi-building-gear d-md-none"></i>
                         Companies
                     </a>
                 </div>
+                <img src="bootstrap/icons/1.13.1/building-gear.svg"
+                     class="card-img-bottom w-50 d-none d-md-block"
+                     alt="User profile settings">
             </div>
         </div>
     </div>
@@ -106,76 +109,45 @@
     <div id="companies">
         <h1 class="text-center my-2">Companies</h1>
 
-        <!-- COMPANIES | For Mobile -->
-        <div class="d-md-none mx-3">
-            <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action"
-                   href="#CortesDeLaVilla" th:href=""
-                   title="Cortes de la Villa" th:title=""
-                   alt="Cortes de la villa" th:alt=""
-                >
-                    Cortes de la Villa
-                </a>
-                <a class="list-group-item list-group-item-action"
-                   href="#Cafeteros" th:href=""
-                   title="Cafeteros" th:title=""
-                   alt="Cafeteros" th:alt=""
-                >
-                    Cafeteros
-                </a>
+        <div class="row mx-1">
+            <div class="card card-hover col-md-2 col-xl-1 m-1">
+                <div class="card-body text-center">
+                    <a class="text-decoration-none text-dark stretched-link"
+                       href="/manage/company/1"
+                    >
+                        Cortes de la Villa
+                    </a>
+                </div>
+                <img src="bootstrap/icons/1.13.1/image.svg"
+                     class="card-img-bottom w-50 d-none d-md-block"
+                     alt="Cortes de la villa">
             </div>
-            <a class="btn btn-primary w-100 my-2"
-               href="#addComapy" th:href=""
-               title="Add new Company" th:title=""
-               alt="Add new Company" th:alt=""
-            >
-                <i class="bi bi-building-add"></i>
-                Create Company
-            </a>
-        </div>
-
-        <!-- COMPANIES | For desktop -->
-        <div class="d-none d-md-block">
-            <div class="row row-cols-6">
-                <div class="card border-0">
-                    <img src="bootstrap/icons/1.13.1/image.svg"
-                         class="card-img-top"
-                         alt="Cortes de la villa">
-                    <div class="card-body">
-                        <a class="stretched-link link-dark link-underline link-underline-opacity-0 link-underline-opacity-100-hover text-center d-md-block"
-                           href="#CortesDeLaVilla" th:href=""
-                           title="Cortes de la Villa" th:href=""
-                        >
-                            Cortes de la Villa
-                        </a>
-                    </div>
+            <div class="card card-hover col-md-2 col-xl-1 m-1">
+                <div class="card-body text-center">
+                    <a class="text-decoration-none text-dark stretched-link"
+                       href="/manage/company/2"
+                    >
+                        Cafeteros
+                    </a>
                 </div>
-                <div class="card border-0">
-                    <img src="bootstrap/icons/1.13.1/image.svg"
-                         class="card-img-top"
-                         alt="Cortes de la villa">
-                    <div class="card-body">
-                        <a class="stretched-link link-dark  link-underline link-underline-opacity-0 link-underline-opacity-100-hover text-center d-md-block"
-                           href="#Cafeteros" th:href=""
-                           title="Cafeteros" th:href=""
-                        >
-                            Cafeteros
-                        </a>
-                    </div>
+                <img src="bootstrap/icons/1.13.1/image.svg"
+                     class="card-img-bottom w-50 d-none d-md-block"
+                     alt="Cafeteros">
+            </div>
+            <div class="card card-hover border-primary col-md-2 col-xl-1 m-1">
+                <div class="card-body text-center">
+                    <a class="text-decoration-none text-primary stretched-link"
+                       href="#createCompany"
+                    >
+                        <i class="bi bi-building-add"></i>
+                        Create Company
+                    </a>
                 </div>
-                <div class="card border-0">
-                    <img src="bootstrap/icons/1.13.1/building-add.svg"
-                         class="card-img-top"
-                         alt="Cortes de la villa">
-                    <div class="card-body">
-                        <a class="stretched-link btn btn-primary"
-                           href="#createCompany" th:href=""
-                           title="Create new company" th:href=""
-                        >
-                            Create new company
-                        </a>
-                    </div>
-                </div>
+                <svg class="bi text-primary w-50 d-none d-md-block"
+                     fill="currentColor"
+                     role="img" aria-label="building-add">
+                    <use href="#building-add"/>
+                </svg>
             </div>
         </div>
     </div>
@@ -183,6 +155,101 @@
     <!-- COMPANY -->
     <div id="CortesDeLaVilla">
         <h1 class="text-center my-2">Cortes de la Villa</h1>
+        <form class="mx-1"
+              post="/manage/company/{companyId}/update/name?redirect=/manage/company/{companyId}"
+              id="companyNameForm"
+        >
+            <div class="row">
+                <label class="col-12 col-md-2 col-form-label text-md-end"
+                        for="companyNameInput">
+                    Company name:
+                </label>
+
+                <div class="col-12 col-md-10">
+                    <div class="input-group has-validation">
+                        <input type="text" id="companyNameInput"
+                               class="form-control is-invalid"
+                               placeholder="Insert the name of the new company"
+                               value="Cortes de la Villa"
+                               aria-describedby="inputGroupPrepend3 companyNameInputValidation"
+                               readonly required
+                        >
+                        <!-- Edit button -->
+                        <button class="btn btn-outline-primary"
+                                id="companyNameInputEditBtn"
+                                for="companyNameInput"
+                                type="button"
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                            <span class="d-none d-md-inline">
+                                Edit
+                            </span>
+                        </button>
+                        <!-- Cancel button -->
+                        <button class="btn btn-outline-danger d-none"
+                                id="companyNameInputCancelBtn"
+                                for="companyNameInput"
+                                type="button"
+                        >
+                            <i class="bi bi-x-circle-fill"></i>
+                            <span class="d-none d-md-inline">
+                                Cancel
+                            </span>
+                        </button>
+                        <!-- Save button -->
+                        <button class="btn btn-outline-success d-none"
+                                id="companyNameInputSaveBtn"
+                                type="button"
+                                data-bs-toggle="modal"
+                                data-bs-target="#companyNameInputModal"
+                        >
+                            <i class="bi bi-floppy"></i>
+                            <span class="d-none d-md-inline">
+                                Save
+                            </span>
+                        </button>
+                        <div id="companyNameInputValidation"
+                                class="is-invalid invalid-feedback"
+                        >
+                            Not accepted :(
+                        </div>
+                        <!-- Modal -->
+                        <div class="modal fade" id="companyNameInputModal"
+                             tabindex="-1"
+                             aria-labelledby="companyNameInputModalLabel" aria-hidden="true"
+                        >
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="companyNameInputModalLabel">Update company name</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to modify your company name?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                        <button type="submit" class="btn btn-primary">Yes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- SVG -->
+    <div class="d-none">
+        <svg xmlns="http://www.w3.org/2000/svg">
+            <!-- each icon is a <symbol> with its own id -->
+            <symbol id="building-add" viewBox="0 0 16 16">
+                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0"/>
+                <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6.5a.5.5 0 0 1-1 0V1H3v14h3v-2.5a.5.5 0 0 1 .5-.5H8v4H3a1 1 0 0 1-1-1z"/>
+                <path d="M4.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-6 3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-6 3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
+            </symbol>
+        </svg>
     </div>
 </main>
 <footer>
