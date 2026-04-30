@@ -1,19 +1,21 @@
 <!DOCTYPE HTML>
-<html lang="en">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
 <head>
     <title>La eTienda | Mockup site</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <!-- STYLES -->
-    <link href="bootstrap/5.3.8/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="bootstrap/icons/1.13.1/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="styles/style-md.css" rel="stylesheet" />
-    <link href="styles/style.css" rel="stylesheet" />
+    <link th:href="@{/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet" />
+    <link th:href="@{/bootstrap/icons/1.13.1/bootstrap-icons.min.css}" rel="stylesheet" />
+    <link th:href="@{/styles/style-md.css}" rel="stylesheet" />
+    <link th:href="@{/styles/style.css}" rel="stylesheet" />
 
     <!-- SCRIPTS -->
-    <script src="bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
-    <script src="scripts/script.js"></script>
+    <script th:src="@{/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+    <script type="module" th:src="@{/scripts/Company.js}"></script>
 
 </head>
 <body>
@@ -51,7 +53,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
-            <a href="#home" th:href="@{${@tt.href('seo.home.file')}">
+            <a href="#home" th:href="@{${@tt.href('seo.home.file')}}">
                 <i class="bi bi-house-door-fill"></i>
             </a>
         </li>
@@ -85,7 +87,7 @@
                         User profile
                     </a>
                 </div>
-                <img src="bootstrap/icons/1.13.1/person-gear.svg"
+                <img th:src="@{/bootstrap/icons/1.13.1/person-gear.svg}"
                      class="card-img-bottom w-50 d-none d-md-block"
                      alt="User profile settings">
             </div>
@@ -98,7 +100,7 @@
                         Companies
                     </a>
                 </div>
-                <img src="bootstrap/icons/1.13.1/building-gear.svg"
+                <img th:src="@{/bootstrap/icons/1.13.1/building-gear.svg}"
                      class="card-img-bottom w-50 d-none d-md-block"
                      alt="User profile settings">
             </div>
@@ -118,7 +120,7 @@
                         Cortes de la Villa
                     </a>
                 </div>
-                <img src="bootstrap/icons/1.13.1/image.svg"
+                <img th:src="@{bootstrap/icons/1.13.1/image.svg}"
                      class="card-img-bottom w-50 d-none d-md-block"
                      alt="Cortes de la villa">
             </div>
@@ -130,7 +132,7 @@
                         Cafeteros
                     </a>
                 </div>
-                <img src="bootstrap/icons/1.13.1/image.svg"
+                <img th:src="@{/bootstrap/icons/1.13.1/image.svg}"
                      class="card-img-bottom w-50 d-none d-md-block"
                      alt="Cafeteros">
             </div>
@@ -139,11 +141,13 @@
                     <a class="text-decoration-none text-primary stretched-link"
                        href="#createCompany"
                     >
-                        <i class="bi bi-building-add"></i>
+                        <i class="bi bi-building-add d-md-none"></i>
                         Create Company
                     </a>
                 </div>
-                <svg class="bi text-primary w-50 d-none d-md-block"
+                <svg class="bi text-primary d-none d-md-block"
+                     height="4em"
+                     width="4em"
                      fill="currentColor"
                      role="img" aria-label="building-add">
                     <use href="#building-add"/>
@@ -155,88 +159,56 @@
     <!-- COMPANY -->
     <div id="CortesDeLaVilla">
         <h1 class="text-center my-2">Cortes de la Villa</h1>
+        <!-- Update Company name -->
         <form class="mx-1"
-              post="/manage/company/{companyId}/update/name?redirect=/manage/company/{companyId}"
+              action="/manage/company/{companyId}/update/name?redirect=/manage/company/{companyId}"
+              method="post"
               id="companyNameForm"
         >
-            <div class="row">
-                <label class="col-12 col-md-2 col-form-label text-md-end"
-                        for="companyNameInput">
-                    Company name:
-                </label>
-
-                <div class="col-12 col-md-10">
-                    <div class="input-group has-validation">
-                        <input type="text" id="companyNameInput"
-                               class="form-control is-invalid"
-                               placeholder="Insert the name of the new company"
-                               value="Cortes de la Villa"
-                               aria-describedby="inputGroupPrepend3 companyNameInputValidation"
-                               readonly required
-                        >
-                        <!-- Edit button -->
-                        <button class="btn btn-outline-primary"
-                                id="companyNameInputEditBtn"
-                                for="companyNameInput"
-                                type="button"
-                        >
-                            <i class="bi bi-pencil-square"></i>
-                            <span class="d-none d-md-inline">
-                                Edit
-                            </span>
-                        </button>
-                        <!-- Cancel button -->
-                        <button class="btn btn-outline-danger d-none"
-                                id="companyNameInputCancelBtn"
-                                for="companyNameInput"
-                                type="button"
-                        >
-                            <i class="bi bi-x-circle-fill"></i>
-                            <span class="d-none d-md-inline">
-                                Cancel
-                            </span>
-                        </button>
-                        <!-- Save button -->
-                        <button class="btn btn-outline-success d-none"
-                                id="companyNameInputSaveBtn"
-                                type="button"
-                                data-bs-toggle="modal"
-                                data-bs-target="#companyNameInputModal"
-                        >
-                            <i class="bi bi-floppy"></i>
-                            <span class="d-none d-md-inline">
-                                Save
-                            </span>
-                        </button>
-                        <div id="companyNameInputValidation"
-                                class="is-invalid invalid-feedback"
-                        >
-                            Not accepted :(
-                        </div>
-                        <!-- Modal -->
-                        <div class="modal fade" id="companyNameInputModal"
-                             tabindex="-1"
-                             aria-labelledby="companyNameInputModalLabel" aria-hidden="true"
-                        >
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h1 class="modal-title fs-5" id="companyNameInputModalLabel">Update company name</h1>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        Are you sure you want to modify your company name?
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                                        <button type="submit" class="btn btn-primary">Yes</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <th:block th:replace="~{layout/bootstrap.html :: singleInputForm(
+                id='companyNameForm',
+                label='Company Name',
+                placeholder='Insert the name of the company.',
+                value='Cortes de la Villa',
+                title='Update Company Name',
+                modal='Are you sure you want to modify the name of the company?',
+                error=null,
+                onInputBefore=null
+            )}"></th:block>
+        </form>
+        <!-- Update company vanityUrl -->
+        <form class="mx-1"
+              action="/manage/company/{companyId}/update/vanityUrl?redirect=/manage/company/{companyId}"
+              method="post"
+              id="companyVanityUrlForm"
+        >
+            <div th:replace="~{layout/bootstrap.html :: singleInputForm(
+                id='companyVanityUrl',
+                label='Vanity URL',
+                placeholder='How do you want your company to look like on internet.',
+                value='villaCortes',
+                title='Update Company Vanity URL',
+                modal='Are you sure you want to modify your company vanity URL? Users will have to modify their bookmarks, and links on social networks should be updated.',
+                error='White spaces and symbols are forbidden, only alphanumeric characters are accepted',
+                onInputBefore=|${@tt.href('seo.url')}/|
+            )}"></div>
+        </form>
+        <!-- Update owner -->
+        <form class="mx-1"
+              action="/manage/company/{companyId}/update/owner?redirect=/manage/company/{companyId}"
+              method="post"
+              id="companyOwnerForm"
+        >
+            <th:block th:replace="~{layout/bootstrap.html :: dataListInput(
+                id='companyOwner',
+                label='Owner',
+                placeholder='Select the owner of the company.',
+                value='Lyda Cortes',
+                options=${ {'Lyda Cortes', 'Eliana Cortes', 'David Cuervo'} },
+                modalTitle='Update Company Owner',
+                modalBody='Are you sure you want other person the owns the company? You can not undo this modification, only owner can modify the owner.',
+                error='Proposed user does not have a valid email address.'
+            )}"></th:block>
         </form>
     </div>
 

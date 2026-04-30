@@ -21,6 +21,7 @@ public class FrontendLdapSecurityConfiguration {
                         requestMatchers("/home", "/", "/home.html", "/index", "/index.html", "/user/signup.html").permitAll().
                         requestMatchers("/bootstrap/**", "/styles/**", "/scripts/**").permitAll().
                         requestMatchers("/login**").permitAll().
+                        requestMatchers("/mock.html").hasAuthority("role_manager").
                         anyRequest().authenticated()
                 );
         http.oauth2Login(Customizer.withDefaults());

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- Button - Edit -->
+<th:block th:fragment="editButton(for)">
+    <button class="btn btn-outline-primary"
+            th:for="${for}"
+            type="button"
+    >
+        <i class="bi bi-pencil-square"></i>
+        <span class="d-none d-md-inline">
+            Edit
+        </span>
+    </button>
+</th:block>
+
+<!-- Button - Cancel -->
+<th:block th:fragment="cancelButton(for)">
+    <button class="btn btn-outline-danger d-none"
+            th:for="${for}"
+            type="button"
+    >
+        <i class="bi bi-x-circle-fill"></i>
+        <span class="d-none d-md-inline">
+            Cancel
+        </span>
+    </button>
+</th:block>
+
+<!-- Button - Save -->
+<th:block th:fragment="saveButton(target)">
+    <button class="btn btn-outline-success d-none"
+            type="button"
+            data-bs-toggle="modal"
+            th:data-bs-target="|#${target}|"
+    >
+        <i class="bi bi-floppy"></i>
+        <span class="d-none d-md-inline">
+            Save
+        </span>
+    </button>
+</th:block>
+
+<!-- Modal -->>
+<th:block th:fragment="modal(id, title, body)">
+    <div class="modal fade"
+         th:id="${id}"
+         tabindex="-1"
+         th:aria-labelledby="|${id}Label|"
+         aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5"
+                        th:id="|${id}Label|"
+                    >
+                        <span th:text="${title}">Title</span>
+                    </h1>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                    ></button>
+                </div>
+                <div class="modal-body">
+                    <span th:text="${body}">Text body message</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                    >
+                        No
+                    </button>
+                    <button type="submit"
+                            class="btn btn-primary"
+                    >
+                        Yes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- input -->
+<th:block th:fragment="input(
+    id,
+    type,
+    label,
+    placeholder,
+    value,
+    options,
+    modalTitle,
+    modalBody,
+    error,
+    onInputBefore
+)">
+    <div class="row" th:with="modalId=${id} + 'InputModal'">
+        <label class="col-12 col-md-2 col-form-label text-md-end"
+               th:for="|${id}Input|">
+            <span th:text="${label}">Label</span>:
+        </label>
+        <div class="col-12 col-md-10">
+            <div class="input-group"
+                 th:classappend="${error == null ? '' : 'has-validation'}"
+            >
+                <span th:if="${onInputBefore != null}"
+                      class="input-group-text d-none d-md-flex"
+                      th:text="${onInputBefore}"
+                >
+                    OnInputBefore text
+                </span>
+                <input class="form-control"
+                       th:type="${type == 'text' ? 'text' : ''}"
+                       th:list="${type == 'datalist' ? id + 'Options' : ''}"
+                       th:id="|${id}Input|"
+                       th:classappend="${error != null ? 'is-invalid' : ''}"
+                       th:placeholder="${placeholder}"
+                       th:value="${value != null ? value : ''}"
+                       th:aria-describedby="${error == null ? '' : 'inputGroupPrepend3 ' + id + 'InputValidation'}"
+                       readonly required
+                >
+                <th:block th:if="${options != null}">
+                    <datalist th:id="|${id}Options|">
+                        <option th:each="option : ${options}" th:value="${option}"></option>
+                    </datalist>
+                </th:block>
+
+                <!-- Edit button -->
+                <th:block th:replace="~{::editButton(for=|${id}Input|)}"></th:block>
+
+                <!-- Cancel button -->
+                <th:block th:replace="~{::cancelButton(for=|${id}Input|)}"></th:block>
+
+                <!-- Save button -->
+                <th:block th:replace="~{::saveButton(target=${modalId})}"></th:block>
+
+                <!-- validation -->
+                <div th:if="${error != null}"
+                     th:id="|${id}InputValidation|"
+                     class="is-invalid invalid-feedback"
+                >
+                    <span th:text="${error}">Not Accepted :(</span>
+                </div>
+            </div>
+        </div>
+        <div th:replace="~{::modal(
+            id=${modalId},
+            title=${modalTitle},
+            body=${modalBody}
+        )}"></div>
+    </div>
+</th:block>
+
+<!-- input text -->
+<th:block th:fragment="singleInputForm(
+    id,
+    label,
+    placeholder,
+    value,
+    title,
+    modal,
+    error,
+    onInputBefore
+)">
+    <th:block th:replace="~{::input(
+        id=${id},
+        type='text',
+        label=${label},
+        placeholder=${placeholder},
+        value=${value},
+        options=null,
+        modalTitle=${title},
+        modalBody=${modal},
+        error=${error},
+        onInputBefore=${onInputBefore}
+    )}"></th:block>
+</th:block>
+
+<th:block th:fragment="dataListInput(
+    id,
+    label,
+    placeholder,
+    value,
+    options,
+    modalTitle,
+    modalBody,
+    error
+)">
+    <th:block th:replace="~{::input(
+        id=${id},
+        type='datalist',
+        label=${label},
+        placeholder=${placeholder},
+        value=${value},
+        options=${options},
+        modalTitle=${modalTitle},
+        modalBody=${modalBody},
+        error=${error},
+        onInputBefore=null
+    )}"></th:block>
+</th:block>
+</body>
