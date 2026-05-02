@@ -240,6 +240,8 @@ services:
         condition: service_healthy
       etschema:
         condition: service_healthy
+      etmail:
+        condition: service_healthy
     networks:
       - backend
     ports:
@@ -249,7 +251,7 @@ services:
     environment:
       - HOME=/opt/webapp
     healthcheck:
-      test: [ "CMD","curl","--fail","http://etcompany:8083/actuator/health" ]
+      test: [ "CMD","curl","--fail","http://etcompany:8084/actuator/health" ]
       interval: 20s
       timeout: 10s
       retries: 5

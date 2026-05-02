@@ -165,15 +165,18 @@
               method="post"
               id="companyNameForm"
         >
-            <th:block th:replace="~{layout/bootstrap.html :: singleInputForm(
+            <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedback(
                 id='companyNameForm',
+                type='text',
                 label='Company Name',
                 placeholder='Insert the name of the company.',
                 value='Cortes de la Villa',
-                title='Update Company Name',
-                modal='Are you sure you want to modify the name of the company?',
-                error=null,
-                onInputBefore=null
+                options=null,
+                modalTitle='Update Company Name',
+                modalBody='Are you sure you want to modify the name of the company?',
+                onInputBefore=null,
+                success=null,
+                error=null
             )}"></th:block>
         </form>
         <!-- Update company vanityUrl -->
@@ -182,15 +185,18 @@
               method="post"
               id="companyVanityUrlForm"
         >
-            <div th:replace="~{layout/bootstrap.html :: singleInputForm(
+            <div th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedback(
                 id='companyVanityUrl',
+                type='text',
                 label='Vanity URL',
                 placeholder='How do you want your company to look like on internet.',
                 value='villaCortes',
-                title='Update Company Vanity URL',
-                modal='Are you sure you want to modify your company vanity URL? Users will have to modify their bookmarks, and links on social networks should be updated.',
-                error='White spaces and symbols are forbidden, only alphanumeric characters are accepted',
-                onInputBefore=|${@tt.href('seo.url')}/|
+                options=null,
+                modalTitle='Update Company Vanity URL',
+                modalBody='Are you sure you want to modify your company vanity URL? Users will have to modify their bookmarks, and links on social networks should be updated.',
+                onInputBefore=|${@tt.href('seo.url')}/|,
+                success='This message should not be displayed',
+                error='White spaces and symbols are forbidden, only alphanumeric characters are accepted'
             )}"></div>
         </form>
         <!-- Update owner -->
@@ -199,15 +205,18 @@
               method="post"
               id="companyOwnerForm"
         >
-            <th:block th:replace="~{layout/bootstrap.html :: dataListInput(
+            <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedback(
                 id='companyOwner',
+                type='datalist',
                 label='Owner',
                 placeholder='Select the owner of the company.',
                 value='Lyda Cortes',
                 options=${ {'Lyda Cortes', 'Eliana Cortes', 'David Cuervo'} },
                 modalTitle='Update Company Owner',
                 modalBody='Are you sure you want other person the owns the company? You can not undo this modification, only owner can modify the owner.',
-                error='Proposed user does not have a valid email address.'
+                onInputBefore=null,
+                success='The owner of the company has been updated successfully!!',
+                error=null
             )}"></th:block>
         </form>
     </div>

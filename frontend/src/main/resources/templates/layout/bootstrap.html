@@ -90,8 +90,113 @@
     </div>
 </th:block>
 
-<!-- input -->
+<!-- Label -->
+<th:block th:fragment="label(id, label)">
+    <label class="col-12 col-md-2 col-form-label text-md-end"
+           th:for="${id}">
+        <span th:text="${label}">Label</span>:
+    </label>
+</th:block>
+
+<!-- Form Input Validation -->
+<th:block th:fragment="validation(id, error, success)">
+    <!-- if error -->
+    <div th:if="${error != null}"
+         th:id="|${id}InputValidation|"
+         class="is-invalid invalid-feedback"
+    >
+        <span th:text="${error}">Not Accepted :(</span>
+    </div>
+    <!-- if success -->
+    <div th:if="${error == null && success != null}"
+         th:id="|${id}InputValidation|"
+         class="is-valid valid-feedback"
+    >
+        <span th:text="${success}">Not Accepted :(</span>
+    </div>
+</th:block>
+
+<!-- Input -->
 <th:block th:fragment="input(
+    id,
+    type,
+    placeholder,
+    value,
+    options,
+    onInputBefore,
+    success,
+    error,
+    attributes
+)">
+    <span th:if="${onInputBefore != null}"
+          class="input-group-text d-none d-md-flex"
+          th:text="${onInputBefore}"
+    >
+        OnInputBefore text
+    </span>
+    <input class="form-control"
+           th:type="${type == 'datalist' ? null : type}"
+           th:list="${type == 'datalist' ? id + 'Options' : null}"
+           th:id="${id}"
+           th:classappend="${error != null ? 'is-invalid' :
+                                            success != null ? 'is-valid' : null}"
+           th:placeholder="${placeholder}"
+           th:value="${value != null ? value : null}"
+           th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'InputValidation'}"
+           th:required="${attributes != null and #lists.contains(attributes, 'required')}"
+           th:readonly="${attributes != null and #lists.contains(attributes, 'readonly')}"
+    >
+    <th:block th:if="${options != null}">
+        <datalist th:id="|${id}Options|">
+            <option th:each="option : ${options}" th:value="${option}"></option>
+        </datalist>
+    </th:block>
+</th:block>
+
+<!-- inputWithFeedback -->
+<th:block th:fragment="inputWithFeedback(
+    id,
+    type,
+    label,
+    placeholder,
+    value,
+    options,
+    onInputBefore,
+    success,
+    error
+)">
+    <div class="row">
+        <th:block th:replace="~{::label(
+            id=|${id}Input|,
+            label=${label}
+        )}"></th:block>
+    </div>
+    <div class="col-12 col-md-10">
+        <div class="input-group"
+             th:classappend="${error != null || success != null ? 'has-validation' : null}"
+        >
+            <th:block th:replace="~{::input(
+                    id=|${id}Input|,
+                    type=${type},
+                    placeholder=${placeholder},
+                    value=${value},
+                    options=${options},
+                    onInputBefore=${onInputBefore},
+                    success=${success},
+                    error=${error},
+                    attributes=${ {'required', 'readonly'} }
+                )}"></th:block>
+            <th:block th:replace="~{::validation(
+                id=${id},
+                error=${error},
+                success=${success}
+            )}"></th:block>
+        </div>
+    </div>
+</th:block>
+
+<!-- inputWithButtonsAndFeedback -->
+<th:block th:fragment="inputWithButtonsAndFeedback(
     id,
     type,
     label,
@@ -100,39 +205,30 @@
     options,
     modalTitle,
     modalBody,
-    error,
-    onInputBefore
+    onInputBefore,
+    success,
+    error
 )">
     <div class="row" th:with="modalId=${id} + 'InputModal'">
-        <label class="col-12 col-md-2 col-form-label text-md-end"
-               th:for="|${id}Input|">
-            <span th:text="${label}">Label</span>:
-        </label>
+        <th:block th:replace="~{::label(
+            id=|${id}Input|,
+            label=${label}
+        )}"></th:block>
         <div class="col-12 col-md-10">
             <div class="input-group"
-                 th:classappend="${error == null ? '' : 'has-validation'}"
+                 th:classappend="${error != null || success != null ? 'has-validation' : null}"
             >
-                <span th:if="${onInputBefore != null}"
-                      class="input-group-text d-none d-md-flex"
-                      th:text="${onInputBefore}"
-                >
-                    OnInputBefore text
-                </span>
-                <input class="form-control"
-                       th:type="${type == 'text' ? 'text' : ''}"
-                       th:list="${type == 'datalist' ? id + 'Options' : ''}"
-                       th:id="|${id}Input|"
-                       th:classappend="${error != null ? 'is-invalid' : ''}"
-                       th:placeholder="${placeholder}"
-                       th:value="${value != null ? value : ''}"
-                       th:aria-describedby="${error == null ? '' : 'inputGroupPrepend3 ' + id + 'InputValidation'}"
-                       readonly required
-                >
-                <th:block th:if="${options != null}">
-                    <datalist th:id="|${id}Options|">
-                        <option th:each="option : ${options}" th:value="${option}"></option>
-                    </datalist>
-                </th:block>
+                <th:block th:replace="~{::input(
+                    id=|${id}Input|,
+                    type=${type},
+                    placeholder=${placeholder},
+                    value=${value},
+                    options=${options},
+                    onInputBefore=${onInputBefore},
+                    success=${success},
+                    error=${error},
+                    attributes=${ {'required', 'readonly'} }
+                )}"></th:block>
 
                 <!-- Edit button -->
                 <th:block th:replace="~{::editButton(for=|${id}Input|)}"></th:block>
@@ -144,12 +240,11 @@
                 <th:block th:replace="~{::saveButton(target=${modalId})}"></th:block>
 
                 <!-- validation -->
-                <div th:if="${error != null}"
-                     th:id="|${id}InputValidation|"
-                     class="is-invalid invalid-feedback"
-                >
-                    <span th:text="${error}">Not Accepted :(</span>
-                </div>
+                <th:block th:replace="~{::validation(
+                    id=${id},
+                    error=${error},
+                    success=${success}
+                )}"></th:block>
             </div>
         </div>
         <div th:replace="~{::modal(
@@ -160,52 +255,4 @@
     </div>
 </th:block>
 
-<!-- input text -->
-<th:block th:fragment="singleInputForm(
-    id,
-    label,
-    placeholder,
-    value,
-    title,
-    modal,
-    error,
-    onInputBefore
-)">
-    <th:block th:replace="~{::input(
-        id=${id},
-        type='text',
-        label=${label},
-        placeholder=${placeholder},
-        value=${value},
-        options=null,
-        modalTitle=${title},
-        modalBody=${modal},
-        error=${error},
-        onInputBefore=${onInputBefore}
-    )}"></th:block>
-</th:block>
-
-<th:block th:fragment="dataListInput(
-    id,
-    label,
-    placeholder,
-    value,
-    options,
-    modalTitle,
-    modalBody,
-    error
-)">
-    <th:block th:replace="~{::input(
-        id=${id},
-        type='datalist',
-        label=${label},
-        placeholder=${placeholder},
-        value=${value},
-        options=${options},
-        modalTitle=${modalTitle},
-        modalBody=${modalBody},
-        error=${error},
-        onInputBefore=null
-    )}"></th:block>
-</th:block>
 </body>
