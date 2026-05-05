@@ -29,7 +29,6 @@ export default class SingleInput {
             this.saveBtn.classList.add('d-none');
             this.cancelBtn.classList.add('d-none');
             this.input.value = this.value;
-
     }
 
     onSubmit(e){

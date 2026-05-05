@@ -1,15 +1,21 @@
-# Frontend
-## Template test.html
-### Navigation menu
+Why the code in @frontend/src/main/resources/templates/Root/mock.html generates double label when it is expected only label:
 
-+ the navigation bar, has 3 main components:
-  + Brand
-  + Search
-  + Login.
-+ It has 2 main rendering options.
-  + Collapsed
-  + No collapsed
-+ When user is logged in and the navigation is not collapsed, the login button converts in a expand menu that contains 2 options:
-+ Settings
-+ Log out
-+ When user is logged and navigation is collapsed, the expand menu button should disappear, and just list the 2 options Settings​ and Log out​ below the search box
+```html
+<!-- Update Company name -->
+        <form class="mx-1"
+              action="/manage/company/{companyId}/update/name?redirect=/manage/company/{companyId}"
+              method="post"
+              id="companyNameForm"
+        >
+            
+    <div class="row">
+        
+    <label for="companyNameFormInput"
+           class="col-12 col-md-2 col-form-label text-md-end"
+    >
+        <span>Company Name</span>
+    </label>
+<label for="companyNameFormInput"
+           class="form-label"
+    >Company Nameaslkasdfasdf</label>
+```

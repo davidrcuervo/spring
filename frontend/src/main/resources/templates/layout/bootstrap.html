@@ -7,6 +7,30 @@
     <title>Title</title>
 </head>
 <body>
+
+<!-- Card with link -->
+<th:block th:fragment="cardWithLinkHover(title, icon, link, alt)">
+    <div class="card card-hover col-md-2 m-1">
+        <div class="card-body text-center">
+            <a class="text-decoration-none stretched-link"
+               th:href="@{${link}}"
+               th:alt="${alt}"
+            >
+                <i th:class="|bi bi-${icon} d-md-none|"></i>
+                <span th:text="${title}">Card title</span>
+            </a>
+        </div>
+        <svg class="bi d-none d-md-block"
+             height="4em"
+             width="4em"
+             fill="currentColor"
+             role="img"
+        >
+            <use th:href="@{|/bootstrap/icons/1.13.1/bootstrap-icons.svg#${icon}|}"/>
+        </svg>
+    </div>
+</th:block>
+
 <!-- Button - Edit -->
 <th:block th:fragment="editButton(for)">
     <button class="btn btn-outline-primary"
@@ -91,10 +115,13 @@
 </th:block>
 
 <!-- Label -->
-<th:block th:fragment="label(id, label)">
-    <label class="col-12 col-md-2 col-form-label text-md-end"
-           th:for="${id}">
-        <span th:text="${label}">Label</span>:
+<th:block th:fragment="label(id, type, label)">
+    <label th:if="${label != null}"
+           th:for="${id}"
+           th:class="|${type == 'checkbox' ? 'form-check-label' : 'col-form-label'} col-12 col-md-2 text-md-end|"
+           th:text="|${label}|"
+    >
+        label
     </label>
 </th:block>
 
@@ -134,18 +161,48 @@
     >
         OnInputBefore text
     </span>
-    <input class="form-control"
+    <input th:if="${type == 'text' or type == 'datalist' or type == 'checkbox'}"
+           th:class="${type == 'checkbox' ? 'form-check-input' : 'form-control'}"
            th:type="${type == 'datalist' ? null : type}"
            th:list="${type == 'datalist' ? id + 'Options' : null}"
            th:id="${id}"
            th:classappend="${error != null ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
            th:placeholder="${placeholder}"
-           th:value="${value != null ? value : null}"
-           th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'InputValidation'}"
+           th:value="${value}"
+           th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'Validation'}"
            th:required="${attributes != null and #lists.contains(attributes, 'required')}"
+           th:disabled="${attributes != null and #lists.contains(attributes, 'disabled')}"
            th:readonly="${attributes != null and #lists.contains(attributes, 'readonly')}"
+           th:checked="${type == 'checkbox' and attributes != null and #lists.contains(attributes, 'checked')}"
     >
+    <textarea th:if="${type == 'textarea'}"
+              class = "form-control" rows="3"
+              th:id="${id}"
+              th:classappend="${error != null ? 'is-invalid' :
+                                            success != null ? 'is-valid' : null}"
+              th:text="${value}"
+              th:placeholder = "${placeholder}"
+              th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'Validation'}"
+              th:required="${attributes != null and #lists.contains(attributes, 'required')}"
+              th:readonly="${attributes != null and #lists.contains(attributes, 'readonly')}"
+    >
+    </textarea>
+    <select th:if="${type == 'select'}"
+            class="form-select"
+            th:id="${id}"
+            th:aria-label="${placeholder}"
+            th:classappend="${error != null ? 'is-invalid' :
+                                            success != null ? 'is-valid' : null}"
+    >
+        <option th:each="option : ${options}"
+                value="${option}"
+                th:text="${option}"
+                th:selected="${option == value}"
+        >
+        </option>
+
+    </select>
     <th:block th:if="${options != null}">
         <datalist th:id="|${id}Options|">
             <option th:each="option : ${options}" th:value="${option}"></option>
@@ -153,7 +210,7 @@
     </th:block>
 </th:block>
 
-<!-- inputWithFeedback -->
+<!-- input with feedback -->
 <th:block th:fragment="inputWithFeedback(
     id,
     type,
@@ -161,42 +218,129 @@
     placeholder,
     value,
     options,
+    success,
+    error,
+    attributes
+)">
+    <th:block th:replace="~{::label(
+        id = ${id},
+        type = ${type},
+        label = ${label}
+    )}"></th:block>
+    <th:block th:replace="~{::input(
+        id = ${id},
+        type = ${type},
+        placeholder = ${placeholder},
+        value = ${value},
+        options = ${options},
+        onInputBefore = ${onInputBefore},
+        success = ${success},
+        error = ${error},
+        attributes = ${attributes}
+    )}"></th:block>
+    <th:block th:replace="~{::validation(
+        id = ${id},
+        error = ${error},
+        success = ${success}
+    )}"></th:block>
+</th:block>
+
+<!-- input with feedback + responsive -->
+<th:block th:fragment="inputWithFeedbackAndResponsive(
+    id,
+    type,
+    label,
+    placeholder,
+    value,
+    options,
     onInputBefore,
+    attributes,
     success,
     error
 )">
-    <div class="row">
+    <div class="row mb-3">
         <th:block th:replace="~{::label(
-            id=|${id}Input|,
+            id = ${id},
+            type=${type},
             label=${label}
         )}"></th:block>
-    </div>
-    <div class="col-12 col-md-10">
-        <div class="input-group"
-             th:classappend="${error != null || success != null ? 'has-validation' : null}"
-        >
-            <th:block th:replace="~{::input(
-                    id=|${id}Input|,
-                    type=${type},
-                    placeholder=${placeholder},
-                    value=${value},
-                    options=${options},
-                    onInputBefore=${onInputBefore},
-                    success=${success},
-                    error=${error},
-                    attributes=${ {'required', 'readonly'} }
-                )}"></th:block>
-            <th:block th:replace="~{::validation(
-                id=${id},
-                error=${error},
-                success=${success}
-            )}"></th:block>
+        <div class="col-12 col-md-10">
+            <div class="input-group"
+                 th:classappend="${error != null || success != null ? 'has-validation' : null}"
+            >
+                <th:block th:replace="~{::input(
+                            id=${id},
+                            type=${type},
+                            placeholder=${placeholder},
+                            value=${value},
+                            options=${options},
+                            onInputBefore=${onInputBefore},
+                            success=${success},
+                            error=${error},
+                            attributes=${attributes}
+                        )}">
+                </th:block>
+                <th:block th:replace="~{::validation(
+                        id=${id},
+                        error=${error},
+                        success=${success}
+                    )}">
+                </th:block>
+            </div>
         </div>
     </div>
 </th:block>
 
-<!-- inputWithButtonsAndFeedback -->
-<th:block th:fragment="inputWithButtonsAndFeedback(
+<!-- input With Update Button + Feedback + Responsive -->
+<th:block th:fragment="inputWithSaveButtonAndFeedbackAndResponsive(
+    id,
+    type,
+    label,
+    placeholder,
+    value,
+    options,
+    onInputBefore,
+    attributes,
+    success,
+    error
+)">
+    <div class="row mb-3">
+        <th:block th:replace="~{::label(
+            id=${id},
+            type=${type},
+            label=${label}
+        )}"></th:block>
+        <div class="col-12 col-md-10">
+            <div class="input-group"
+                 th:classappend="${error != null || success != null ? 'has-validation' : null}"
+            >
+                <th:block th:replace="~{::input(
+                        id=${id},
+                        type=${type},
+                        placeholder=${placeholder},
+                        value=${value},
+                        options=${options},
+                        onInputBefore=${onInputBefore},
+                        success=${success},
+                        error=${error},
+                        attributes=${attributes}
+                    )}"></th:block>
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="bi bi-floppy"></i>
+                    <span class="d-none d-md-inline">Save</span>
+                </button>
+                <th:block th:replace="~{::validation(
+                    id=${id},
+                    error=${error},
+                    success=${success}
+                )}"></th:block>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- input With Buttons + Feedback + Responsive -->
+<th:block th:fragment="inputWithButtonsAndFeedbackAndResponsive(
     id,
     type,
     label,
@@ -209,9 +353,10 @@
     success,
     error
 )">
-    <div class="row" th:with="modalId=${id} + 'InputModal'">
+    <div class="row mb-3" th:with="modalId=${id} + 'InputModal'">
         <th:block th:replace="~{::label(
             id=|${id}Input|,
+            type = ${type},
             label=${label}
         )}"></th:block>
         <div class="col-12 col-md-10">

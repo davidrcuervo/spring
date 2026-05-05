@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: Frontend
+  thymeleaf:
+    cache: false
   security:
     oauth2:
       client:

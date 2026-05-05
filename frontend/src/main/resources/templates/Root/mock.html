@@ -73,37 +73,23 @@
       </ol>
     </nav>
 </header>
-<main>
+<main class="container">
     <!-- SETTINGS -->
     <div id="Settings">
         <h1 class="text-center my-2">Settings</h1>
-        <div class="row mx-1">
-            <div class="card card-hover col-md-2 col-xl-1 m-1">
-                <div class="card-body text-center">
-                    <a class="text-decoration-none text-dark stretched-link"
-                       href="/manage/users/{userId}"
-                    >
-                        <i class="bi bi-person-gear d-md-none"></i>
-                        User profile
-                    </a>
-                </div>
-                <img th:src="@{/bootstrap/icons/1.13.1/person-gear.svg}"
-                     class="card-img-bottom w-50 d-none d-md-block"
-                     alt="User profile settings">
-            </div>
-            <div class="card card-hover col-md-2 col-xl-1 m-1">
-                <div class="card-body text-center">
-                    <a class="text-decoration-none text-dark stretched-link"
-                       href="/manage/companies"
-                    >
-                        <i class="bi bi-building-gear d-md-none"></i>
-                        Companies
-                    </a>
-                </div>
-                <img th:src="@{/bootstrap/icons/1.13.1/building-gear.svg}"
-                     class="card-img-bottom w-50 d-none d-md-block"
-                     alt="User profile settings">
-            </div>
+        <div class="row">
+            <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
+                title='User profile',
+                icon='person-gear',
+                link='/manage/user/{userId}',
+                alt='Manage user profile'
+            )}"></th:block>
+            <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
+                title='Companies',
+                icon='building-gear',
+                link='/manage/companies',
+                alt='Manage companies'
+            )}"></th:block>
         </div>
     </div>
 
@@ -111,48 +97,25 @@
     <div id="companies">
         <h1 class="text-center my-2">Companies</h1>
 
-        <div class="row mx-1">
-            <div class="card card-hover col-md-2 col-xl-1 m-1">
-                <div class="card-body text-center">
-                    <a class="text-decoration-none text-dark stretched-link"
-                       href="/manage/company/1"
-                    >
-                        Cortes de la Villa
-                    </a>
-                </div>
-                <img th:src="@{bootstrap/icons/1.13.1/image.svg}"
-                     class="card-img-bottom w-50 d-none d-md-block"
-                     alt="Cortes de la villa">
-            </div>
-            <div class="card card-hover col-md-2 col-xl-1 m-1">
-                <div class="card-body text-center">
-                    <a class="text-decoration-none text-dark stretched-link"
-                       href="/manage/company/2"
-                    >
-                        Cafeteros
-                    </a>
-                </div>
-                <img th:src="@{/bootstrap/icons/1.13.1/image.svg}"
-                     class="card-img-bottom w-50 d-none d-md-block"
-                     alt="Cafeteros">
-            </div>
-            <div class="card card-hover border-primary col-md-2 col-xl-1 m-1">
-                <div class="card-body text-center">
-                    <a class="text-decoration-none text-primary stretched-link"
-                       href="#createCompany"
-                    >
-                        <i class="bi bi-building-add d-md-none"></i>
-                        Create Company
-                    </a>
-                </div>
-                <svg class="bi text-primary d-none d-md-block"
-                     height="4em"
-                     width="4em"
-                     fill="currentColor"
-                     role="img" aria-label="building-add">
-                    <use href="#building-add"/>
-                </svg>
-            </div>
+        <div class="row">
+            <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
+                title='Cortes de la Villa',
+                icon='image',
+                link='/manage/company/{vanityUrl}',
+                alt='Manage Cortes de la Villa'
+            )}"></th:block>
+            <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
+                title='Cafeteros',
+                icon='image',
+                link='/manage/company/{vanityUrl}',
+                alt='Manage Cafeteros'
+            )}"></th:block>
+            <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
+                title='Create Company',
+                icon='building-add',
+                link='/manage/company/create',
+                alt='Create new company'
+            )}"></th:block>
         </div>
     </div>
 
@@ -160,12 +123,11 @@
     <div id="CortesDeLaVilla">
         <h1 class="text-center my-2">Cortes de la Villa</h1>
         <!-- Update Company name -->
-        <form class="mx-1"
-              action="/manage/company/{companyId}/update/name?redirect=/manage/company/{companyId}"
+        <form action="/manage/company/{companyId}/update/name?redirect=/manage/company/{companyId}"
               method="post"
               id="companyNameForm"
         >
-            <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedback(
+            <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
                 id='companyNameForm',
                 type='text',
                 label='Company Name',
@@ -180,12 +142,11 @@
             )}"></th:block>
         </form>
         <!-- Update company vanityUrl -->
-        <form class="mx-1"
-              action="/manage/company/{companyId}/update/vanityUrl?redirect=/manage/company/{companyId}"
+        <form action="/manage/company/{companyId}/update/vanityUrl?redirect=/manage/company/{companyId}"
               method="post"
               id="companyVanityUrlForm"
         >
-            <div th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedback(
+            <div th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
                 id='companyVanityUrl',
                 type='text',
                 label='Vanity URL',
@@ -200,12 +161,11 @@
             )}"></div>
         </form>
         <!-- Update owner -->
-        <form class="mx-1"
-              action="/manage/company/{companyId}/update/owner?redirect=/manage/company/{companyId}"
+        <form action="/manage/company/{companyId}/update/owner?redirect=/manage/company/{companyId}"
               method="post"
               id="companyOwnerForm"
         >
-            <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedback(
+            <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
                 id='companyOwner',
                 type='datalist',
                 label='Owner',
@@ -219,19 +179,204 @@
                 error=null
             )}"></th:block>
         </form>
+        <!-- Update Member policy -->
+        <form action="/manage/company/{companyId}/update/policy"
+              method="post"
+              id="companyPolicyForm"
+        >
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithSaveButtonAndFeedbackAndResponsive(
+                id = 'companyPolicy',
+                type = 'select',
+                label = 'Company policy',
+                placeholder = 'Select the policy for new members of the company',
+                value = 'PUBLIC',
+                options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
+                onInputBefore = null,
+                attributes = null,
+                success = null,
+                error = 'Policy of company can not be modified.'
+            )}"></th:block>
+        </form>
+        <!-- Update description -->
+        <form action="/manage/company/{companyId}/update/description?redirect=/manage/company/{companyId}"
+              method="post"
+        >
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithSaveButtonAndFeedbackAndResponsive(
+                id='updateCompanyDescription',
+                type='textarea',
+                label='Description',
+                placeholder='Insert the description of the company.',
+                value='Hostel to stay in Villa de Leyva. Next to the main park of the town.',
+                options = null,
+                onInputBefore=null,
+                attributes = null,
+                success=null,
+                error='Description is to short'
+            )}"></th:block>
+        </form>
+        <!-- Members -->
+        <table class="table table-borderless table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Member name</th>
+                    <th scope="col" class="text-center">Manager</th>
+                    <th scope="col" class="text-center">Enabled</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr th:with="userId='user1'">
+                    <td th:text="${'Lyda Cortes'}">Member Name</td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/addManager/"
+                              method="post"
+                              class="checkBoxWithModal"
+                        >
+                            <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
+                                id = |${userId}ManagerCheckBoxInput|,
+                                type = checkbox,
+                                label = null,
+                                placeholder = null,
+                                value = ${userId},
+                                options = null,
+                                attributes = ${ {'checked'} },
+                                success = 'Manager added successfully',
+                                error = null
+                            )}"></th:block>
+                            <th:block th:replace="~{layout/bootstrap.html :: modal(
+                                id=|${userId}ManagerCheckBoxModal|,
+                                title='Modify company manager',
+                                body='You are about to modify manager of the company. Do you want to continue?'
+                            )}"></th:block>
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/blockUser/"
+                              method="post"
+                              class="checkBoxWithModal"
+                        >
+                            <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
+                                id = |${userId}AcceptMemberCheckBox|,
+                                type = checkbox,
+                                label = null,
+                                placeholder = null,
+                                value = ${userId},
+                                options = null,
+                                attributes = ${ {'checked'} },
+                                success = null,
+                                error = 'Member does have valid email address.'
+                            )}"></th:block>
+                            <th:block th:replace="~{layout/bootstrap.html :: modal(
+                                id=|${userId}AcceptMemberCheckBoxModal|,
+                                title='Modify member access (accept | block)',
+                                body='You are about to accept/block user. Do you want to continue?'
+                            )}"></th:block>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:with="userId='user2'">
+                    <td th:text="${'David Ricardo Cuervo Ochoa Avila Rodrigez'}">Member Name</td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/addManager/"
+                              method="post"
+                        >
+                            <input type="checkbox"
+                                   th:id="|${userId}EnabledCheckBoxInput|"
+                                   th:value="${userId}"
+                            >
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/blockUser/">
+                            <input type="checkbox" value="userId2" checked>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- SVG -->
-    <div class="d-none">
-        <svg xmlns="http://www.w3.org/2000/svg">
-            <!-- each icon is a <symbol> with its own id -->
-            <symbol id="building-add" viewBox="0 0 16 16">
-                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0"/>
-                <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6.5a.5.5 0 0 1-1 0V1H3v14h3v-2.5a.5.5 0 0 1 .5-.5H8v4H3a1 1 0 0 1-1-1z"/>
-                <path d="M4.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-6 3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm-6 3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm3 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
-            </symbol>
-        </svg>
+    <!-- CREATE COMPANY -->
+    <div>
+        <h1 class="text-center">Create new company</h1>
+        <form action="/manage/company/create"
+              method="post"
+        >
+            <!-- Company name -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyName',
+                type = 'text',
+                label = 'Company name',
+                placeholder = 'Insert the name of the company.',
+                value = null,
+                options = null,
+                onInputBefore = null,
+                attributes = ${ {'required'} },
+                success =null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company name -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyVanityUrl',
+                type = 'text',
+                label = 'Vanity URL',
+                placeholder = 'How do you want your company to look like on internet.',
+                value = null,
+                options = null,
+                onInputBefore = |${@tt.href('seo.url')}/|,
+                attributes = null,
+                success = null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company Owner -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyOwner',
+                type = 'text',
+                label = 'Owner',
+                placeholder = 'Type the username of the owner of the company.',
+                value = 'Lyda Cortes',
+                options = null,
+                onInputBefore = null,
+                attributes = ${ {'readonly' , 'disabled'} },
+                success = null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company policy -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyPolicy',
+                type = 'select',
+                label = 'Policy',
+                placeholder = 'Select the policy for new members of the company',
+                value = 'Lyda Cortes',
+                options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
+                onInputBefore = null,
+                attributes = null,
+                success = null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company policy -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyDescription',
+                type = 'textarea',
+                label = 'Description',
+                placeholder = 'Type the description of the company.',
+                value = null,
+                options = null,
+                onInputBefore = null,
+                attributes = null,
+                success = null,
+                error = null
+            )}"></th:block>
+            <button type="submit" class="btn btn-primary col-12 offset-md-4 col-md-4">
+                <i class="bi bi-building-add"></i>
+                Create
+            </button>
+        </form>
     </div>
+
 </main>
 <footer>
 </footer>

@@ -1,4 +1,13 @@
 .card-hover:hover{
     background-color: var(--bs-secondary-bg);
+    color: var(--bs-primary);
+}
+
+.card-hover:hover a{
+    color: var(--bs-primary);
+}
+
+.card-hover a{
+    color: var(--bs-dark);
 }
 
