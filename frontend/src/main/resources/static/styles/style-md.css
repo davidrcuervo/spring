@@ -2,4 +2,8 @@
     .w-md-50 {
         width: 50% !important;
     }
+
+    img.clip-path-md-circle{
+        clip-path: circle(40%);
+    }
 }

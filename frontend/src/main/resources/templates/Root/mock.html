@@ -73,7 +73,7 @@
       </ol>
     </nav>
 </header>
-<main class="container">
+<main class="container mb-5">
     <!-- SETTINGS -->
     <div id="Settings">
         <h1 class="text-center my-2">Settings</h1>
@@ -119,7 +119,7 @@
         </div>
     </div>
 
-    <!-- COMPANY -->
+    <!-- EDIT COMPANY -->
     <div id="CortesDeLaVilla">
         <h1 class="text-center my-2">Cortes de la Villa</h1>
         <!-- Update Company name -->
@@ -377,6 +377,85 @@
         </form>
     </div>
 
+    <!-- COMPANY FOR PUBLIC -->
+    <div>
+        <h1 class="text-center">Cortes de la Villa</h1>
+        <!-- Company logo and registration -->
+        <div class="d-md-flex justify-content-between bg-secondary"
+             style="--bs-bg-opacity: 0.1;"
+        >
+            <img class="w-100 px-3 px-md-0 clip-path-md-circle"
+                 th:src="@{/bootstrap/icons/1.13.1/image.svg}"
+                 alt="image"
+            >
+            <div class="align-self-end me-md-3 pb-3">
+                <p class="text-center text-md-end">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac laoreet quam, id aliquet nisl. Etiam id eros ligula. Aenean euismod, enim sed mollis feugiat, magna massa cursus leo, ut maximus metus eros non ante.</p>
+                <form
+                        class="text-center text-md-end"
+                        th:action="@{/company/{vanityUrl}/register}"
+                        method="post"
+                >
+                    <button class="btn btn-primary"
+                            type="submit"
+                            name="submit"
+                            th:value="${userId}"
+                    >
+                        <i class="bi bi-plus-circle"></i>
+                        Register Now
+                    </button>
+                </form>
+            </div>
+        </div>
+        <!-- Search products and services -->
+        <form class="my-2 w-md-50 mx-auto"
+              th:action="@{/company/{vanityUrl}/search}"
+              method="post"
+        >
+            <div class="input-group">
+                <input type="text"
+                       class="form-control rounded-pill rounded-end-0"
+                       placeholder="Search products and services"
+                       aria-label="Search products and services"
+                       aria-describedby="searchProductsBtn"
+                >
+                <button id="searchProductsBtn"
+                        class="btn btn-outline-secondary rounded-pill rounded-start-0"
+                        type="submit"
+                        name="submit"
+                        th:value="${companyId}"
+                >
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+        <!-- Services & products -->
+        <div class="row">
+            <div class="d-flex align-items-start border d-md-block col-md-3">
+                <img th:src="@{/bootstrap/icons/1.13.1/image.svg}"
+                     class="card-img-top w-100"
+                     alt="image"
+                >
+                <div class="ms-2">
+                    <h5 class="card-title">Card title</h5>
+                    <h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card’s content.</p>
+                    <a href="#" class="card-link">Learn more</a>
+                </div>
+            </div>
+            <div class="d-flex align-items-start border d-md-block col-md-3">
+                <img th:src="@{/bootstrap/icons/1.13.1/image.svg}"
+                     class="card-img-top w-100"
+                     alt="image"
+                >
+                <div class="ms-2">
+                    <h5 class="card-title">Card title</h5>
+                    <h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card’s content.</p>
+                    <a href="#" class="card-link">Learn more</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 <footer>
 </footer>
