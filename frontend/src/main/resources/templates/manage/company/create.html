@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}"
+>
+<head>
+    <title>Create company</title>
+</head>
+<body>
+    <main layout:fragment="content" class="container mb-5">
+        <h1 class="text-center">Create new company</h1>
+        <form action="@{${@tt.href('seo.manage.company.create')}}"
+              method="post"
+        >
+            <!-- Company name -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyName',
+                type = 'text',
+                label = 'Company name',
+                placeholder = 'Insert the name of the company.',
+                value = null,
+                options = null,
+                onInputBefore = null,
+                attributes = ${ {'required'} },
+                success =null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company name -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyVanityUrl',
+                type = 'text',
+                label = 'Vanity URL',
+                placeholder = 'How do you want your company to look like on internet.',
+                value = null,
+                options = null,
+                onInputBefore = |${@tt.href('seo.url')}/|,
+                attributes = null,
+                success = null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company Owner -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyOwner',
+                type = 'text',
+                label = 'Owner',
+                placeholder = 'Type the username of the owner of the company.',
+                value = 'Lyda Cortes',
+                options = null,
+                onInputBefore = null,
+                attributes = ${ {'readonly' , 'disabled'} },
+                success = null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company policy -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyPolicy',
+                type = 'select',
+                label = 'Policy',
+                placeholder = 'Select the policy for new members of the company',
+                value = 'Lyda Cortes',
+                options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
+                onInputBefore = null,
+                attributes = null,
+                success = null,
+                error = null
+            )}"></th:block>
+
+            <!-- Company policy -->
+            <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
+                id = 'createCompanyDescription',
+                type = 'textarea',
+                label = 'Description',
+                placeholder = 'Type the description of the company.',
+                value = null,
+                options = null,
+                onInputBefore = null,
+                attributes = null,
+                success = null,
+                error = null
+            )}"></th:block>
+            <button type="submit" class="btn btn-primary col-12 offset-md-4 col-md-4">
+                <i class="bi bi-building-add"></i>
+                Create
+            </button>
+        </form>
+    </main>
+</body>
+</html>

@@ -1,40 +1,17 @@
-package com.laetienda.frontend.controller;
+package com.laetienda.frontend.controller.manage;
 
-import com.laetienda.lib.exception.CustomRestClientExceptionDeprecated;
-import com.laetienda.frontend.model.Form;
-import com.laetienda.frontend.repository.FormRepository;
-import com.laetienda.utils.service.RestClientService;
-import com.laetienda.lib.model.Mistake;
-import com.laetienda.lib.options.HtmlFormAction;
-import com.laetienda.model.user.Group;
-import com.laetienda.model.user.GroupList;
-import com.laetienda.model.user.Usuario;
-import com.laetienda.model.user.UsuarioList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.web.client.RestClient;
-
-import java.security.Principal;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("${seo.manage.folder}") //manage
-public class ManagementController {
-    final private static Logger log = LoggerFactory.getLogger(ManagementController.class);
+public class FrontendManageController {
+    final private static Logger log = LoggerFactory.getLogger(FrontendManageController.class);
 
 //    @Value("${api.user.findall}")
 //    private String urlFindAllUsers;
@@ -65,12 +42,12 @@ public class ManagementController {
 
     @GetMapping("/{viewPath}") //manage/{viewPath}
     public String getView(@PathVariable String viewPath, Model model, HttpSession session){
-        log.trace("$viewPath: {}", viewPath);
-        model.addAttribute("activemainmenu", "userandsettings");
-        model.addAttribute("activesidemenu",viewPath);
-        model.addAttribute("sessionId", session.getId());
-        model.addAttribute("encodedSessionId", Base64.getEncoder().encodeToString(session.getId().getBytes()));
-        return "management/" + viewPath;
+        log.trace("CONTROLLER_MANAGE::getView | $viewPath: {}", viewPath);
+//        model.addAttribute("activemainmenu", "userandsettings");
+//        model.addAttribute("activesidemenu",viewPath);
+//        model.addAttribute("sessionId", session.getId());
+//        model.addAttribute("encodedSessionId", Base64.getEncoder().encodeToString(session.getId().getBytes()));
+        return "manage/" + viewPath;
     }
 
 //    @GetMapping("${api.frontend.manage.users.file}")

@@ -5,14 +5,17 @@ import com.laetienda.model.kc.KcUser;
 import com.laetienda.model.user.Usuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClient;
 
-public interface ApiUser {
-    String isUsernameValid(String username) throws NotValidCustomException;
+public interface ApiUser extends ApiRestClient {
+    String isUsernameValid(String username) throws HttpStatusCodeException;
     String isUserIdValid(String userId) throws HttpStatusCodeException;
     Boolean userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException;
+    KcUser getCurrentUser() throws HttpStatusCodeException;
+    KcUser getCurrentUser(String jwtToken) throws HttpStatusCodeException;
     KcUser create(Usuario usuario, String clientRegistrationId) throws HttpStatusCodeException;
     void enable(String userId, String clientRegistrationId) throws HttpStatusCodeException;
-    ResponseEntity<Void> delete(String userId, String jwtToken) throws HttpStatusCodeException;
+    void delete(String userId, String jwtToken) throws HttpStatusCodeException;
     String getToken(String username, String password) throws  HttpStatusCodeException;
     String getCurrentUserId() throws HttpStatusCodeException;
     String getEmailAddress(String userId, String clientRegistrationId) throws HttpStatusCodeException;

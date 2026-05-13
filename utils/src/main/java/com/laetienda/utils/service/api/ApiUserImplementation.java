@@ -18,10 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -29,99 +26,148 @@ import java.util.function.Consumer;
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 @Component
-public class ApiUserImplementation implements ApiUser{
+public class ApiUserImplementation extends ApiRestClientImplementation implements ApiUser{
     private final static Logger log = LoggerFactory.getLogger(ApiUserImplementation.class);
-    private final RestClient client;
 
-    @Autowired Environment env;
-    @Autowired ObjectMapper json;
+    Environment env;
+    ObjectMapper json;
+    RestClient client;
 
-    @Value("${kc.client-registration-id.webapp}") String webappClientId;
+    @Value("${kc.client-registration-id.webapp}")
+    private String webappClientId;
 
-    public ApiUserImplementation(RestClient restClient){
+    @Value("${api.kcUser.find.uri}")
+    private String findUri;
+
+    @Value("${api.kcUser.isUsernameValid.uri}")
+    private String isUsernameValidUri;
+
+    @Value("${api.kcUser.isUserIdValid.uri}")
+    private String isUserIdValidUri;
+
+    @Value("${api.kcUser.uri.userIdExists}")
+    private String userIdExistsUri;
+
+    @Value("${api.kcUser.uri.create}")
+    private String createUri;
+
+    @Value("${api.kcUser.uri.enable}")
+    private String enableUri;
+
+    @Value("${api.kcUser.uri.delete}")
+    private String deleteUri;
+
+    @Value("${api.kcUser.token.uri}")
+    private String tokenUri;
+
+    @Value("${api.kcUser.uri.findEmailAddress}")
+    private String findEmailAddressUri;
+
+    public ApiUserImplementation(
+            RestClient restClient,
+            Environment environment,
+            ObjectMapper objectMapper
+    ){
+        super(restClient);
         this.client = restClient;
+        this.json = objectMapper;
+        this.env = environment;
     }
 
     @Override
-    public String isUsernameValid(String username) throws NotValidCustomException {
-        String address = env.getProperty("api.kcUser.isUsernameValid.uri", "#");
-        log.debug("API_USER::isValidUser. $username: {} | $address: {}", username, address);
-        try {
-            return client.get().uri(address, username)
-                    .attributes(clientRegistrationId(webappClientId))
-                    .retrieve().toEntity(String.class).getBody();
-        }catch(Exception e){
-            throw new NotValidCustomException(e);
-        }
+    public String isUsernameValid(String username) throws HttpStatusCodeException {
+        log.debug("API_USER::isValidUser. $username: {} | $address: {}", username, isUsernameValidUri);
+        return super.get(null, isUsernameValidUri, username);
     }
 
     @Override
     public String isUserIdValid(String userId) throws HttpStatusCodeException {
-        String address = env.getProperty("api.kcUser.isUserIdValid.uri", "#");
-
-        return client.get().uri(address, userId)
-                .attributes(clientRegistrationId(webappClientId))
-                .retrieve().toEntity(String.class).getBody();
+        log.debug("API_USER::isUserIdValid | $address: {}", isUserIdValidUri);
+        return super.get(null, isUserIdValidUri, userId);
     }
 
     @Override
     public Boolean userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException {
-        String address =  env.getProperty("api.kcUser.uri.userIdExists", "/userIdExists/{userId}");
-        log.debug("API_USER::userIdExists. $userId: {} | $address: {}", userId, address);
+        log.debug("API_USER::userIdExists. $userId: {} | $address: {}", userId, userIdExistsUri);
+        String response = super.get(
+                clientRegistrationId(clientRegistrationId),
+                userIdExistsUri, userId
+        );
 
-        client.get().uri(address, userId)
-                .attributes(clientRegistrationId(clientRegistrationId))
-                .retrieve().toEntity(Boolean.class).getBody();
-        return true;
+        return Boolean.parseBoolean(response);
+    }
+
+    @Override
+    public KcUser getCurrentUser() throws HttpStatusCodeException {
+        log.debug("API_USER::getCurrentUser | ");
+
+        try {
+            String response = super.get(null, findUri);
+            return json.readValue(response, KcUser.class);
+        } catch (JsonProcessingException e) {
+            log.error("API_USER::getCurrentUser. | $error: {}", e.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Override
+    public KcUser getCurrentUser(String jwtToken) throws HttpStatusCodeException {
+        log.debug("API_USER::getCurrentUser | $token: {}", jwtToken);
+
+        try {
+            String response = super.get(a -> a.put("jwtToken", jwtToken), findUri);
+            return json.readValue(response, KcUser.class);
+        } catch (JsonProcessingException e) {
+            log.error("API_USER::getCurrentUser | $error: {}", e.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 
     @Override
     public KcUser create(Usuario usuario, String clientRegistrationId) throws HttpStatusCodeException {
-        String address = env.getProperty("api.kcUser.uri.create", "/create");
-        log.debug("API_USER::create. $address: {}", address);
+        log.debug("API_USER::create. $address: {}", createUri);
 
         try {
-            return client.post().uri(address)
-                    .attributes(clientRegistrationId(clientRegistrationId))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body(json.writeValueAsBytes(usuario))
-                    .retrieve().toEntity(KcUser.class).getBody();
+            String response = super.post(
+                    json.writeValueAsString(usuario),
+                    clientRegistrationId(clientRegistrationId),
+                    createUri
+            );
+
+            return json.readValue(response, KcUser.class);
         } catch (JsonProcessingException e) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
     @Override
     public void enable(String userId, String clientRegistrationId) throws HttpStatusCodeException {
-        String address = env.getProperty("api.kcUser.uri.enable", "/enable/{userId}");
-        log.debug("API_USER::enable. $userId: {} | $address: {}", userId, address);
-
-        client.put().uri(address, userId)
-                .attributes(clientRegistrationId(clientRegistrationId))
-                .retrieve().toBodilessEntity();
+        log.debug("API_USER::enable. $userId: {} | $address: {}", userId, enableUri);
+        super.put(
+                clientRegistrationId(clientRegistrationId),
+                enableUri, userId
+        );
     }
 
     @Override
-    public ResponseEntity<Void> delete(String userId, String jwtToken) throws HttpStatusCodeException {
-        String address = env.getProperty("api.kcUser.uri.delete", "/delete/{userId}");
-        log.debug("API_USER::delete. $userId: {}, $address: {}", userId, address);
+    public void delete(String userId, String jwtToken) throws HttpStatusCodeException {
+        log.debug("API_USER::delete. $userId: {}, $address: {}", userId, deleteUri);
 
-        return client.delete().uri(address, userId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken)
-                .retrieve().toEntity(void.class);
+        super.delete(
+                a -> a.put("jwtToken", jwtToken),
+                deleteUri, userId
+        );
     }
 
     @Override
     public String getToken(String username, String password) throws HttpStatusCodeException {
-        String address = env.getProperty("api.kcUser.token.uri", "/token");
-        log.debug("USER_API::getToken. $username: {} | $address: {}", username, address);
+        log.debug("USER_API::getToken. $username: {} | $address: {}", username, tokenUri);
 
         MultiValueMap<String, String> credentials = new LinkedMultiValueMap<>();
         credentials.add("username",username);
         credentials.add("password",password);
 
-        ResponseEntity<String> resp = client.post().uri(address)
+        ResponseEntity<String> resp = client.post().uri(tokenUri)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(credentials)
                 .retrieve().toEntity(String.class);
@@ -138,22 +184,16 @@ public class ApiUserImplementation implements ApiUser{
 
     @Override
     public String getEmailAddress(String userId, String clientRegistrationId) throws HttpStatusCodeException {
-        String address = env.getProperty("api.kcUser.uri.findEmailAddress", "/findEmailAddress/{userId}");
-        log.debug("API_USER::getEmailAddress. $userId: {} | $address: {}", userId, address);
+        log.debug("API_USER::getEmailAddress. $userId: {} | $address: {}", userId, findEmailAddressUri);
 
-        var tempClient = client.get().uri(address, userId)
-                .accept(MediaType.APPLICATION_JSON);
-
-        if(clientRegistrationId != null){
-            log.debug("API_USER::getEmailAddress by using clientRegistrationId");
-            tempClient = tempClient.attributes(clientRegistrationId(clientRegistrationId));
-        }
-
-        return tempClient.retrieve().toEntity(String.class).getBody();
+        return super.get(
+                clientRegistrationId(clientRegistrationId),
+                findEmailAddressUri, userId
+        );
     }
 
     @Override
     public String getEmailAddress(String userId) throws HttpStatusCodeException {
-        return  getEmailAddress(userId, null);
+        return super.get(null,  findEmailAddressUri, userId);
     }
 }

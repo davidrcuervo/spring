@@ -12,7 +12,8 @@
     <!-- STYLES -->
     <link th:href="@{/bootstrap/5.3.8/css/bootstrap.min.css}" rel="stylesheet" />
     <link th:href="@{/bootstrap/icons/1.13.1/bootstrap-icons.min.css}" rel="stylesheet" />
-    <link th:href="@{/styles/simple.css}" rel="stylesheet" />
+    <link th:href="@{/styles/style-md.css}" rel="stylesheet" />
+    <link th:href="@{/styles/style.css}" rel="stylesheet" />
 
     <!-- SCRIPTS -->
     <script th:src="@{/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
@@ -21,54 +22,89 @@
 <body>
     <header>
         <nav class="navbar bg-body-tertiary" data-bs-theme="dark">
-            <!-- Brand -->
-            <a class="navbar-brand mx-2" th:href="@{${@tt.href('seo.home.file')}}" href="#">
+
+            <a class="navbar-brand mx-2" href="#">
                 <i class="bi bi-shop"></i>
                 La eTienda
             </a>
 
-            <!-- NOT logged in: show Login button -->
-            <div sec:authorize="!isAuthenticated()" class="order-md-last mx-2">
-                <div class="navbar-item">
-                    <a class="btn btn-primary"
-                       th:href="@{${@tt.href('seo.signIn')}(redirect=${@tt.uri})}"
-                    >
-                        <i class="bi bi-box-arrow-in-right"></i>
-                        Log In
-                    </a>
-                </div>
-            </div>
+            <th:block sec:authorize="!isAuthenticated()">
+                <ul class="navbar-nav order-md-last mx-2">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{${@tt.href('seo.signIn')}(redirect=${@tt.path})}">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Sing In
+                        </a>
+                    </li>
+                </ul>
+            </th:block>
 
-            <!-- Logged in -->
-            <div sec:authorize="isAuthenticated()" class="order-md-last mx-2">
-                <div class="navbar-item dropdown">
+            <th:block sec:authorize="isAuthenticated()">
+                <div class="navbar-item dropdown order-md-last mx-2">
                     <a class="dropdown-toggle btn btn-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-fill"></i>
                         <span th:text="${#authentication.name}">Username</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" th:href="@{${@tt.href('seo.manage.file')}}">
+                        <li>
+                            <a class="dropdown-item"
+                               th:href="@{${@tt.href('seo.manage.file')}}"
+                            >
                             <i class="bi bi-gear"></i>
                             Settings
-                        </a></li>
+                            </a>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{${@tt.href('seo.logout')}}">
+                        <li>
+                            <a class="dropdown-item"
+                               th:href="${@tt.href('seo.logout')}">
                             <i class="bi bi-box-arrow-right"></i>
                             Log Out
-                        </a></li>
+                            </a>
+                        </li>
                     </ul>
                 </div>
-            </div>
+            </th:block>
 
-            <form class="w-100 w-md-50 m-1">
-                <input class="form-control" type="search" placeholder="What do you want to do today?" aria-label="Search"/>
+            <form class="w-100 w-md-50 m-1" role="search">
+                <input class="form-control"
+                       type="search"
+                       placeholder="What do you want to do today?"
+                       aria-label="Search"
+                />
             </form>
         </nav>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="#home" th:href="@{${@tt.href('seo.home.file')}}">
+                        <i class="bi bi-house-door-fill"></i>
+                    </a>
+                </li>
+
+                <th:block th:with="segments = ${@tt.segments}">
+                    <li class="breadcrumb-item"
+                        th:each="i : ${#numbers.sequence(0, segments.size()-1)}"
+                        th:with="segment=${segments.get(i)}, path = ${@tt.getSegmentPath(segments, i)}"
+                        th:classappend="${@tt.isActive(path) ? 'active' : null}"
+                        th:aria-current="${@tt.isActive(path) ? 'page' : null}"
+                    >
+                        <a th:href="@{${path}}"
+                           th:unless="${@tt.isActive(path)}"
+                        >
+                            <span th:text="${segment}"></span>
+                        </a>
+
+                        <span th:if="${@tt.isActive(path)}"
+                              th:text="${segment}"
+                        ></span>
+                    </li>
+                </th:block>
+            </ol>
+        </nav>
     </header>
-    <main>
-        <div layout:fragment="content">
-            <h1>Hello world!!!</h1>
-        </div>
+    <main layout:fragment="content">
+        <h1>Main</h1>
     </main>
     <footer>
         <div>URI: <span th:text="${@tt.uri}">home.html</span></div>

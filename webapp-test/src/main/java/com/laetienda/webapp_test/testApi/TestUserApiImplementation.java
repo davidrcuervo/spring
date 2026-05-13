@@ -5,10 +5,7 @@ import com.laetienda.model.user.Usuario;
 import com.laetienda.utils.service.api.ApiUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -17,72 +14,63 @@ import static org.junit.jupiter.api.Assertions.*;
 @Service
 public class TestUserApiImplementation implements TestUserApi {
     private final static Logger log = LoggerFactory.getLogger(TestUserApiImplementation.class);
-    private final String userPassword = "secretPassword";
 
-    @Autowired private ApiUser apiUser;
+    final private ApiUser apiUser;
 
-    @Value("${kc.client-registration-id.webapp}")
-    private String clientRegistrationId;
-
-    @Value("${webapp.user.test.userId}")
-    private String testUserId;
-
-    @Override
-    public void cycle() throws HttpStatusCodeException, AssertionError {
-        log.info("TEST_USER_API::cycle | Test starting...");
-
-        Usuario usuario = new Usuario("testUserApiImplementation",
-                "User", "Api", "Test",
-                "testuserapiimplementation@mail.com", false,
-                userPassword, userPassword
-        );
-
-        //SUCCESSFUL: Create new user
-        KcUser user = apiUser.create(usuario, clientRegistrationId);
-        assertNotNull(user.getId());
-        apiUser.userIdExists(user.getId(), clientRegistrationId);
-
-        //FORBIDDEN: Create same user twice
-        HttpStatusCodeException e = assertThrows(HttpStatusCodeException.class, () -> {
-            apiUser.create(usuario, clientRegistrationId);
-        });
-        assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
-
-        //GET_TOKEN::BAD_REQUEST.
-        e =  assertThrows(HttpStatusCodeException.class, () -> {
-            apiUser.getToken(user.getUsername(), userPassword);
-        });
-        assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-
-        //ENABLE::SUCCESSFUL
-        apiUser.enable(user.getId(), clientRegistrationId);
-        String jwtToken = apiUser.getToken(user.getUsername(), userPassword);
-
-        //SUCCESSFUL: Delete user
-        ResponseEntity<Void> resp = apiUser.delete(user.getId(), jwtToken);
-        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
-
-        //NOT FOUND: Find if user exists
-        e = assertThrows(HttpStatusCodeException.class, () -> {
-            apiUser.userIdExists(user.getId(), clientRegistrationId);
-        });
-        assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
-
-        log.info("TEST_USER_API::cycle | Test finishes successfully.");
+    public TestUserApiImplementation(ApiUser apiUser) {
+        this.apiUser = apiUser;
     }
 
     @Override
-    public void findEmailAddress() throws HttpStatusCodeException {
-        log.info("TEST_API_USER::findEmailAddress | Test starting...");
+    public KcUser create(Usuario usuario, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_USER::create | $username: {}", usuario != null ? usuario.getUsername() : "null");
+        KcUser result = apiUser.create(usuario, clientRegistrationId);
+        assertNotNull(result);
+        return result;
+    }
 
-        HttpStatusCodeException e = assertThrows(HttpStatusCodeException.class, () -> {
-           apiUser.getEmailAddress(testUserId);
-        });
+    @Override
+    public Boolean userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_USER::userIdExists | $userId: {}", userId);
+        apiUser.userIdExists(userId, clientRegistrationId);
+        return true;
+    }
+
+    @Override
+    public String getToken(String username, String password) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_USER::getToken | $username: {}", username);
+        return apiUser.getToken(username, password);
+    }
+
+    @Override
+    public void enable(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_USER::enable | $userId: {}", userId);
+        apiUser.enable(userId, clientRegistrationId);
+    }
+
+    @Override
+    public String getEmailAddress(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_USER::getEmailAddress | $userId: {}", userId);
+
+        HttpStatusCodeException e = assertThrows(
+                HttpStatusCodeException.class,
+                () -> apiUser.getEmailAddress(userId)
+        );
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
 
-        String emailAddress = apiUser.getEmailAddress(testUserId, clientRegistrationId);
-        log.trace("TEST_API_USER::findEmailAddress. $emailAddress : {}", emailAddress);
+        return apiUser.getEmailAddress(userId, clientRegistrationId);
+    }
 
-        log.info("TEST_API_USER::findEmailAddress | Test finished successfully.");
+    @Override
+    public void delete(String userId, String jwtToken, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_USER::delete | $userId: {}", userId);
+        apiUser.delete(userId, jwtToken);
+
+        //NOT FOUND: Find if user exists
+        HttpStatusCodeException e = assertThrows(
+                HttpStatusCodeException.class,
+                () -> userIdExists(userId, clientRegistrationId)
+        );
+        assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
     }
 }

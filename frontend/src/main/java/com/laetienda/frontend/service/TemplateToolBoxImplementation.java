@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
 @Service("tt")
 public class TemplateToolBoxImplementation implements TemplateToolBox {
     final static private Logger log = LoggerFactory.getLogger(TemplateToolBoxImplementation.class);
@@ -45,6 +47,26 @@ public class TemplateToolBoxImplementation implements TemplateToolBox {
     public boolean isActive(String link){
         log.debug("SERVICE_TEMPLATE::isValid | $path: {}", link);
         return getPath().equals(link);
+    }
+
+    @Override
+    public List<String> getSegments(){
+        log.debug("SERVITE_TEMPLATE::getSegments");
+
+        return buildCurrentUri().getPathSegments().stream()
+                .map(s -> s.replace(".html", ""))
+                .toList();
+    }
+
+    public String getSegmentPath(List<String> segments, int index){
+        log.debug("SERVICE_TEMPLATE::getSegmentPath | $index: {}", index);
+
+        StringBuilder result = new StringBuilder();
+        for(int c = 0; c <= index; c++ ){
+            result.append("/").append(segments.get(c));
+        }
+
+        return result.append(".html").toString();
     }
 
     private UriComponents buildCurrentUri(){

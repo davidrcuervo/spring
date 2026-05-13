@@ -1,22 +1,15 @@
 package com.laetienda.utils.service.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.laetienda.model.schema.DbItem;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver;
-import org.springframework.util.TypeUtils;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 public abstract class ApiRestClientImplementation implements ApiRestClient {
 
@@ -102,6 +95,24 @@ public abstract class ApiRestClientImplementation implements ApiRestClient {
     }
 
     @Override
+    public String post(
+            String jsonBody,
+            Consumer<Map<String, Object>> attrs,
+            String address,
+            Object... uriVariables
+    ) throws HttpStatusCodeException {
+        return client.post()
+                .uri(address, uriVariables)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .attributes(attrs != null ? attrs : a -> {})
+                .body(jsonBody)
+                .retrieve()
+                .toEntity(String.class)
+                .getBody();
+    }
+
+    @Override
     public <T extends DbItem> T put(
             Class<T> responseType,
             Consumer<Map<String, Object>> attributes,
@@ -169,6 +180,17 @@ public abstract class ApiRestClientImplementation implements ApiRestClient {
                 .retrieve()
                 .toEntity(responseType)
                 .getBody();
+    }
+
+    @Override
+    public void put(
+            Consumer<Map<String, Object>> attributes,
+            String address, Object... uriVariables
+    ) throws HttpStatusCodeException {
+        client.put().uri(address, uriVariables)
+                .attributes(attributes != null ? attributes : a -> {})
+                .retrieve()
+                .toBodilessEntity();
     }
 
     @Override

@@ -32,6 +32,13 @@ public interface ApiRestClient {
             Object... uriVariables
     ) throws HttpStatusCodeException;
 
+    String post(
+            String jsonBody,
+            Consumer<Map<String, Object>> attrs,
+            String address,
+            Object... uriVariables
+    ) throws HttpStatusCodeException;
+
     <T extends DbItem> T put(
             Class<T> responseType,
             Consumer<Map<String, Object>> attributes,
@@ -59,6 +66,11 @@ public interface ApiRestClient {
             Consumer<Map<String, Object>> attributes,
             String address, Object... uriVariables
     ) throws   HttpStatusCodeException;
+
+    void put(
+            Consumer<Map<String, Object>> attributes,
+            String address, Object... uriVariables
+    ) throws HttpStatusCodeException;
 
     void delete(
             Consumer<Map<String, Object>> attrs,

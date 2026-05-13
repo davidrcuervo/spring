@@ -21,10 +21,14 @@ seo:
     user:
       file: /user.html
       path: ${seo.manage.folder}${seo.manage.user.file.file}
+    company:
+      folder: ${seo.manage.folder}/company
+      all: ${seo.manage.folder}/company.html
+      create: ${seo.manage.company.folder}/create.html
+      find: ${seo.manage.company.folder}/{vanityUrl}.html
     test:
       file: /test.html
       path: ${seo.manage.folder}${seo.manage.test.file}
-
 
 api:
   kc:

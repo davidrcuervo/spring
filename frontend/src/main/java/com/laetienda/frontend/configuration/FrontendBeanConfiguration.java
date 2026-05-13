@@ -1,5 +1,6 @@
 package com.laetienda.frontend.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.repository.FormRepositoryImpl;
 import com.laetienda.frontend.repository.ThankyouPageRepoImpl;
@@ -15,6 +16,7 @@ import com.laetienda.utils.service.api.ApiUserImplementation;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
@@ -24,17 +26,23 @@ public class FrontendBeanConfiguration {
 
 	private final RestTemplateBuilder restTemplateBuilder;
 	private final RestClient client;
+    private final Environment env;
+	private final ObjectMapper json;
 	private final OAuth2AuthorizedClientManager authorizedClientManager;
 
 	public FrontendBeanConfiguration(
 			OAuth2AuthorizedClientManager authorizedClientManager,
 			RestTemplateBuilder restTemplateBuilder,
-			RestClient restClient
+			RestClient restClient,
+			Environment environment,
+			ObjectMapper objectMapper
 	) {
 		this.authorizedClientManager = authorizedClientManager;
 		this.restTemplateBuilder = restTemplateBuilder;
 		this.client = restClient;
-	}
+        this.env = environment;
+		this.json = objectMapper;
+    }
 
     @Bean
 	public RestTemplate restTemplate() {
@@ -63,7 +71,7 @@ public class FrontendBeanConfiguration {
 
 	@Bean
 	public ApiUser getApiUser() {
-		return new ApiUserImplementation(client);
+		return new ApiUserImplementation(client, env, json);
 	}
 
 	@Bean

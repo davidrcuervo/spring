@@ -1,5 +1,6 @@
 package com.laetienda.messenger.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.ApiSchemaImplementation;
 import com.laetienda.utils.service.api.ApiUser;
@@ -7,6 +8,7 @@ import com.laetienda.utils.service.api.ApiUserImplementation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 //import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClient;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -19,9 +21,17 @@ import java.nio.charset.StandardCharsets;
 public class MessengerConfiguration {
 
     private final RestClient client;
+    private final Environment env;
+    private final ObjectMapper json;
 
-    public MessengerConfiguration(RestClient restClient){
+    public MessengerConfiguration(
+            RestClient restClient,
+            Environment environment,
+            ObjectMapper objectMapper
+    ){
         this.client = restClient;
+        this.env = environment;
+        this.json = objectMapper;
     }
 
     @Bean
@@ -31,7 +41,7 @@ public class MessengerConfiguration {
 
     @Bean
     public ApiUser getApiUser(){
-        return new ApiUserImplementation(client);
+        return new ApiUserImplementation(client, env, json);
     }
 
 //    @Bean
