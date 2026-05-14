@@ -30,10 +30,17 @@ public class TestUserApiImplementation implements TestUserApi {
     }
 
     @Override
-    public Boolean userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+    public KcUser getUserWithToken(String token) throws HttpStatusCodeException {
+        log.debug("TEST_USER::getUserWithToken | $token: private");
+        KcUser result = apiUser.getCurrentUserWithToken(token);
+        assertNotNull(result);
+        return result;
+    }
+
+    @Override
+    public void userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_USER::userIdExists | $userId: {}", userId);
         apiUser.userIdExists(userId, clientRegistrationId);
-        return true;
     }
 
     @Override
@@ -43,13 +50,21 @@ public class TestUserApiImplementation implements TestUserApi {
     }
 
     @Override
-    public void enable(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+    public void enable(String userId, String username, String password, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_USER::enable | $userId: {}", userId);
+
+        //GET_TOKEN::BAD_REQUEST.
+        HttpStatusCodeException e =  assertThrows(
+                HttpStatusCodeException.class,
+                () -> getToken(username, password)
+        );
+        assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+
         apiUser.enable(userId, clientRegistrationId);
     }
 
     @Override
-    public String getEmailAddress(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
+    public void getEmailAddress(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_USER::getEmailAddress | $userId: {}", userId);
 
         HttpStatusCodeException e = assertThrows(
@@ -57,8 +72,12 @@ public class TestUserApiImplementation implements TestUserApi {
                 () -> apiUser.getEmailAddress(userId)
         );
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
-
-        return apiUser.getEmailAddress(userId, clientRegistrationId);
+        String result = apiUser.getEmailAddress(userId, clientRegistrationId);
+        assertNotNull(result);
+        assertTrue(
+                result.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$"),
+                "getEmailAddress is no a valid email address"
+        );
     }
 
     @Override

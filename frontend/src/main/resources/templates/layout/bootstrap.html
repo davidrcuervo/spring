@@ -148,6 +148,7 @@
     id,
     type,
     placeholder,
+    name,
     value,
     options,
     onInputBefore,
@@ -169,6 +170,7 @@
            th:classappend="${error != null ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
            th:placeholder="${placeholder}"
+           th:name="${name}"
            th:value="${value}"
            th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'Validation'}"
            th:required="${attributes != null and #lists.contains(attributes, 'required')}"
@@ -181,6 +183,7 @@
               th:id="${id}"
               th:classappend="${error != null ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
+              th:name="${name}"
               th:text="${value}"
               th:placeholder = "${placeholder}"
               th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'Validation'}"
@@ -191,19 +194,20 @@
     <select th:if="${type == 'select'}"
             class="form-select"
             th:id="${id}"
+            th:name="${name}"
             th:aria-label="${placeholder}"
             th:classappend="${error != null ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
     >
         <option th:each="option : ${options}"
-                value="${option}"
+                th:value="${option}"
                 th:text="${option}"
                 th:selected="${option == value}"
         >
         </option>
 
     </select>
-    <th:block th:if="${options != null}">
+    <th:block th:if="${type == datalist and options != null}">
         <datalist th:id="|${id}Options|">
             <option th:each="option : ${options}" th:value="${option}"></option>
         </datalist>
@@ -216,6 +220,7 @@
     type,
     label,
     placeholder,
+    name,
     value,
     options,
     success,
@@ -232,6 +237,7 @@
         type = ${type},
         placeholder = ${placeholder},
         value = ${value},
+        name = ${name},
         options = ${options},
         onInputBefore = ${onInputBefore},
         success = ${success},
@@ -251,6 +257,7 @@
     type,
     label,
     placeholder,
+    name,
     value,
     options,
     onInputBefore,
@@ -272,6 +279,7 @@
                             id=${id},
                             type=${type},
                             placeholder=${placeholder},
+                            name=${name},
                             value=${value},
                             options=${options},
                             onInputBefore=${onInputBefore},
@@ -297,6 +305,7 @@
     type,
     label,
     placeholder,
+    name,
     value,
     options,
     onInputBefore,
@@ -318,6 +327,7 @@
                         id=${id},
                         type=${type},
                         placeholder=${placeholder},
+                        name=${name},
                         value=${value},
                         options=${options},
                         onInputBefore=${onInputBefore},
@@ -345,6 +355,7 @@
     type,
     label,
     placeholder,
+    name,
     value,
     options,
     modalTitle,
@@ -367,6 +378,7 @@
                     id=|${id}Input|,
                     type=${type},
                     placeholder=${placeholder},
+                    name=${name},
                     value=${value},
                     options=${options},
                     onInputBefore=${onInputBefore},

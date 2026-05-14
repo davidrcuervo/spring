@@ -11,8 +11,7 @@ import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.lib.UtilsBoxImplementation;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.utils.service.RestClientServiceImpl;
-import com.laetienda.utils.service.api.ApiUser;
-import com.laetienda.utils.service.api.ApiUserImplementation;
+import com.laetienda.utils.service.api.*;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,9 +68,14 @@ public class FrontendBeanConfiguration {
 		return new RestClientServiceImpl();
 	}
 
-	@Bean
+	@Bean("usr")
 	public ApiUser getApiUser() {
 		return new ApiUserImplementation(client, env, json);
+	}
+
+	@Bean("comp")
+	public ApiCompany getApiCompany() {
+		return new ApiCompanyImplementation(client);
 	}
 
 	@Bean

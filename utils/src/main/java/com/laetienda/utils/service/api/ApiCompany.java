@@ -1,9 +1,11 @@
 package com.laetienda.utils.service.api;
 
+import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ApiCompany extends ApiRestClient{
@@ -32,4 +34,10 @@ public interface ApiCompany extends ApiRestClient{
     Member updateMember(Member member, String token) throws HttpStatusCodeException;
 
     void deleteMember(Long companyId, String userId, String token) throws HttpStatusCodeException;
+
+    List<InputOptions> getAllCompanyMemberPolicies() throws HttpStatusCodeException;
+
+    List<InputOptions> getAllCompanyMemberPoliciesWithToken(String token) throws HttpStatusCodeException;
+
+    List<InputOptions> getAllCompanyMemberPoliciesWithClientRegistrationId(String clientRegistrationId) throws HttpStatusCodeException;
 }

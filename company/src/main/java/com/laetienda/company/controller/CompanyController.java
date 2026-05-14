@@ -2,6 +2,8 @@ package com.laetienda.company.controller;
 
 import com.laetienda.company.service.CompanyService;
 import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.lib.options.CompanyMemberPolicy;
+import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -43,6 +46,12 @@ public class CompanyController {
     public ResponseEntity<Company> findByName(@PathVariable String name) throws NotValidCustomException {
         log.info("COMPANY_CONTROLLER::findByName. $name: {}", name);
         return ResponseEntity.ok(service.findByName(name));
+    }
+
+    @GetMapping("${api.company.policy.all.file}") //api/v0/company/policy/all
+    public ResponseEntity<List<CompanyMemberPolicy>> getAllCompanyMemberPolicies() throws HttpStatusCodeException {
+        log.info("CONTROLLER_COMPANY::getAllPolicies | ");
+        return ResponseEntity.ok(service.getAllCompanyMemberPolicies());
     }
 
     @PutMapping("${api.company.update.file.name}") //api/v0/company/update/{companyId}/name/{value}

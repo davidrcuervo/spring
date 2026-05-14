@@ -47,6 +47,7 @@ public class TestCompany {
             memb1 = testCompanyApi.updateMember(memb1, users[2].getToken());
             testCompanyApi.deleteMember(comp.getId(), users[1].getUserId(), users[1].getToken());
             testCompanyApi.delete(comp.getId(), users[2].getToken());
+            testCompanyApi.getAllCompanyMemberPolicies(users[0].getToken());
 
             log.info("TEST_API_COMPANY::run | Test completed successfully");
         }catch(HttpStatusCodeException ex){

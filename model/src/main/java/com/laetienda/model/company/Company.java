@@ -23,6 +23,15 @@ public class Company extends DbItem {
     @Column(unique = true, nullable = false, length = 64)
     private String name;
 
+    @NotNull @Unique
+    @Size(min = 3, max = 64)
+    @Pattern(
+            regexp = "^[a-zA-Z0-9_-]+$",
+            message = "Vanity URL can only contain letters, numbers, hyphens, and underscores"
+    )
+    @Column(unique = true, nullable = false, length = 64)
+    private String vanityUrl;
+
     @Size(min = 3, max = 400)
     private String description;
 
@@ -57,6 +66,14 @@ public class Company extends DbItem {
     public Company setName(String name) {
         this.name = name;
         return this;
+    }
+
+    public String getVanityUrl() {
+        return vanityUrl;
+    }
+
+    public void setVanityUrl(String vanityUrl) {
+        this.vanityUrl = vanityUrl;
     }
 
     public String getDescription() {

@@ -39,11 +39,11 @@
                 </ul>
             </th:block>
 
-            <th:block sec:authorize="isAuthenticated()">
+            <th:block sec:authorize="isAuthenticated()" th:with="user = ${@usr.currentUser}">
                 <div class="navbar-item dropdown order-md-last mx-2">
                     <a class="dropdown-toggle btn btn-primary" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-fill"></i>
-                        <span th:text="${#authentication.name}">Username</span>
+                        <span th:text="${user.firstName}">Username</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
@@ -123,8 +123,18 @@
 <!--            <div>csrf.token: <span th:text="${_csrf.token}">Token</span></div>-->
 <!--        </div>-->
         <div>
-            User: <span th:text="${#authentication.name}">Username</span>
+            Username: <span th:text="${#authentication.name}">Username</span>
         </div>
+
+        <div sec:authorize="isAuthenticated()" th:with="user = ${@usr.currentUser}">
+            <div>Id: <span th:text="${user.id}">id</span></div>
+            <div>username: <span th:text="${user.username}">username</span></div>
+            <div>email: <span th:text="${user.email}">email</span></div>
+            <div>firstname: <span th:text="${user.firstName}">id</span></div>
+            <div>lastname: <span th:text="${user.lastName}">lastname</span></div>
+            <div>fullname: <span th:text="${user.fullName}">fullname</span></div>
+        </div>
+
     </footer>
 
 </body>

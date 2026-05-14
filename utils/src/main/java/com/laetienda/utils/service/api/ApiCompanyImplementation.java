@@ -1,20 +1,32 @@
 package com.laetienda.utils.service.api;
 
+import com.laetienda.lib.options.CompanyMemberPolicy;
+import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
-import java.net.URI;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
 @Component
 public class ApiCompanyImplementation extends ApiRestClientImplementation implements ApiCompany{
     private final static Logger log = LoggerFactory.getLogger(ApiCompanyImplementation.class);
+
+    private final RestClient client;
 
     @Value("${api.company.create.uri}")
     private String createCompanyFidUri;
@@ -58,10 +70,14 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     @Value("${api.company.member.delete.uri}")
     private String deleteCompanyMemberUri;
 
+    @Value("${api.company.policy.all.uri}")
+    private String findAllCompanyMemberPoliciesUri;
+
     public ApiCompanyImplementation(
             RestClient restClient
     ) {
         super(restClient);
+        this.client = restClient;
     }
 
     @Override
@@ -186,5 +202,35 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
                 a -> a.put("jwtToken", token),
                 deleteCompanyMemberUri, companyId, userId
         );
+    }
+
+    @Override
+    public List<InputOptions> getAllCompanyMemberPolicies() throws HttpStatusCodeException {
+        return getAllCompanyMemberPolicies(null);
+    }
+
+    @Override
+    public List<InputOptions> getAllCompanyMemberPoliciesWithToken(String token) throws HttpStatusCodeException {
+        return getAllCompanyMemberPolicies(a -> a.put("jwtToken", token));
+    }
+
+    @Override
+    public List<InputOptions> getAllCompanyMemberPoliciesWithClientRegistrationId(String clientRegistrationId) throws HttpStatusCodeException {
+        return getAllCompanyMemberPolicies(clientRegistrationId(clientRegistrationId));
+    }
+
+    private List<InputOptions> getAllCompanyMemberPolicies(Consumer<Map<String, Object>> attributes) throws HttpStatusCodeException {
+        List<CompanyMemberPolicy> resp = client.get().uri(findAllCompanyMemberPoliciesUri)
+                .accept(MediaType.APPLICATION_JSON)
+                .attributes(attributes != null ? attributes : a -> {})
+                .retrieve()
+                .toEntity(new ParameterizedTypeReference<List<CompanyMemberPolicy>>() {})
+                .getBody();
+
+        if(resp == null || resp.isEmpty()) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "");
+        }
+
+        return resp.stream().map(InputOptions.class::cast).collect(Collectors.toList());
     }
 }

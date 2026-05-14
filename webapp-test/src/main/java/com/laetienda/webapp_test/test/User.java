@@ -38,8 +38,7 @@ public class User {
 
         //SUCCESSFUL: Create new user
         KcUser user = testUserApi.create(usuario, clientRegistrationId);
-        Boolean flag = testUserApi.userIdExists(user.getId(), clientRegistrationId);
-        assertTrue(flag);
+        testUserApi.userIdExists(user.getId(), clientRegistrationId);
 
         //FORBIDDEN: Create same user twice
         HttpStatusCodeException e = assertThrows(
@@ -48,17 +47,11 @@ public class User {
         );
         assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
 
-        //GET_TOKEN::BAD_REQUEST.
-        e =  assertThrows(
-                HttpStatusCodeException.class,
-                () -> testUserApi.getToken(user.getUsername(), password)
-        );
-        assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-
         //ENABLE::SUCCESSFUL
-        testUserApi.enable(user.getId(), clientRegistrationId);
+        testUserApi.enable(user.getId(), user.getUsername(), password, clientRegistrationId);
         String jwtToken = testUserApi.getToken(user.getUsername(), password);
         testUserApi.getEmailAddress(user.getId(), clientRegistrationId);
+        user = testUserApi.getUserWithToken(jwtToken);
 
         //SUCCESSFUL: Delete user
         testUserApi.delete(user.getId(), jwtToken, clientRegistrationId);

@@ -269,6 +269,10 @@ api:
     delete: # METHOD: delete | CODE: 204 | RESP: void
       file: delete/{id}
       uri: ${api.company.uri}/${api.company.delete.file}
+    policy:
+      all:
+        file: /policy/all
+        uri: ${api.company.uri}${api.company.policy.all.file}
     manager:
       file:
         add: /{companyId}/manager/add/{userId}

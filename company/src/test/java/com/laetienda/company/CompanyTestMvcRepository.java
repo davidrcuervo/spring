@@ -1,7 +1,9 @@
 package com.laetienda.company;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.options.CompanyMemberPolicy;
+import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;
@@ -13,7 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,6 +57,9 @@ public class CompanyTestMvcRepository {
 
     @Value("${api.company.member.delete.uri}")
     protected String apiCompanyMemberDeleteUri;
+
+    @Value("${api.company.policy.all.uri}")
+    protected String apiCompanyPolicyAllUri;
 
     Company create (String companyName, CompanyMemberPolicy companyMemberPolicy, TestUserDto user) throws Exception{
         Company company = new Company(
@@ -134,5 +141,22 @@ public class CompanyTestMvcRepository {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isNoContent());
 
+    }
+
+    public List<InputOptions> getAllCompanyMemberPolicies(String token) throws Exception{
+        MvcResult resp = mvc.perform(get(apiCompanyPolicyAllUri)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        List<CompanyMemberPolicy> temp = json.readValue(
+                resp.getResponse().getContentAsString(),
+                new TypeReference<List<CompanyMemberPolicy>>() {}
+        );
+
+        return temp.stream()
+                .map(InputOptions.class::cast)
+                .collect(Collectors.toList()
+                );
     }
 }

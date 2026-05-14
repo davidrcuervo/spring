@@ -87,14 +87,13 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
     }
 
     @Override
-    public Boolean userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException {
+    public void userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException {
         log.debug("API_USER::userIdExists. $userId: {} | $address: {}", userId, userIdExistsUri);
         String response = super.get(
                 clientRegistrationId(clientRegistrationId),
                 userIdExistsUri, userId
         );
-
-        return Boolean.parseBoolean(response);
+//        return Boolean.parseBoolean(response);
     }
 
     @Override
@@ -111,7 +110,7 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
     }
 
     @Override
-    public KcUser getCurrentUser(String jwtToken) throws HttpStatusCodeException {
+    public KcUser getCurrentUserWithToken(String jwtToken) throws HttpStatusCodeException {
         log.debug("API_USER::getCurrentUser | $token: {}", jwtToken);
 
         try {

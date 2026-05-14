@@ -3,6 +3,7 @@ package com.laetienda.webapp_test.testApi;
 import com.laetienda.lib.options.DbServiceAccessPolicy;
 import com.laetienda.lib.options.DbUserAccessPolicy;
 import com.laetienda.model.schema.DbGroup;
+import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.model.user.TestUserDto;
 import com.laetienda.utils.service.api.ApiSchema;
@@ -41,74 +42,108 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
     }
 
     @Override
-    public void dbGroups(TestUserDto[] users) throws HttpStatusCodeException {
-        log.info("SCHEMA_TEST::groups | Test stating...");
+    public ItemTypeA createItem(String itemName, int age, String address, String groupName, DbUserAccessPolicy userAccessPolicy, DbServiceAccessPolicy serviceAccessPolicy, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::createItem");
 
-        ItemTypeA item = new ItemTypeA(
-                "testItem_TestSchemaApiImplementation",
-                45,
-                "Street 70B No. 87B - 24");
+        ItemTypeA item = new ItemTypeA(itemName, age, address);
 
-        final DbGroup groupFinal = new DbGroup("testGroup_TestSchemaApiImplementation");
-        groupFinal.setUserAccessPolicy(DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY);
-        groupFinal.setServiceAccessPolicy(DbServiceAccessPolicy.NO_SERVICE);
+        DbGroup groupFinal = new DbGroup(groupName);
+        groupFinal.setUserAccessPolicy(userAccessPolicy);
+        groupFinal.setServiceAccessPolicy(serviceAccessPolicy);
 
         item.addReaderGroup(groupFinal);
 
         //CREATE
-        item = apiSchema.create(ItemTypeA.class, item, users[1].getToken());
-        assertNotNull(item);
-        assertTrue(item.getReaderGroups().stream()
+        ItemTypeA result = apiSchema.create(ItemTypeA.class, item, token);
+        assertNotNull(result);
+        assertTrue(result.getReaderGroups().stream()
                 .anyMatch(g -> g.getName().equals(groupFinal.getName())));
 
-        //FIND BY NAME
-        DbGroup group = apiGroup.findByName(groupFinal.getName(), users[1].getToken());
-        assertNotNull(group);
+        return result;
+    }
 
-        //UPDATE
-        group = apiGroup.update(group.getId(),
-                Map.of("userAccessPolicy", DbUserAccessPolicy.MANAGE_BY_ALL.toString()),
-                users[1].getToken()
-        );
-        assertNotNull(group);
-        assertEquals(DbUserAccessPolicy.MANAGE_BY_ALL, group.getUserAccessPolicy());
+    @Override
+    public DbGroup findByName(String groupName, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::findByName | $groupName: {}", groupName);
 
-        //TODO: ADD MEMBER
-        group = apiGroup.addMember(group.getId(), users[2].getUserId(), users[1].getToken());
-        assertNotNull(group);
-        assertTrue(group.getMembers().contains(users[2].getUserId()));
+        DbGroup result = apiGroup.findByName(groupName, token);
+        assertNotNull(result);
+        return result;
+    }
 
-        //TODO: REMOVE MEMBER
-//        apiGroup.setJwtToken(users[2].getToken());
-        group=apiGroup.removeMember(group.getId(), users[2].getUserId(), users[2].getToken());
-        assertNotNull(group);
-        assertFalse(group.getMembers().contains(users[2].getUserId()));
+    @Override
+    public DbGroup update(long groupId, Map<String, String> params, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::update | $groupId: {}", groupId);
+
+        DbGroup result = apiGroup.update(groupId, params, token);
+
+        assertNotNull(result);
+        assertEquals(DbUserAccessPolicy.MANAGE_BY_ALL, result.getUserAccessPolicy());
+        return result;
+    }
+
+    @Override
+    public DbGroup addMember(long groupId, String userId, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::addMember | $groupId: {}, $userId: {}", groupId, userId);
+
+        DbGroup result = apiGroup.addMember(groupId, userId, token);
+        assertNotNull(result);
+        assertTrue(result.getMembers().contains(userId));
+        return result;
+    }
+
+    @Override
+    public DbGroup removeMember(long groupId, String groupName, String userId, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::removeMember | $groupId: {} | $userId: {}",  groupId, userId);
+
+        DbGroup result=apiGroup.removeMember(groupId, userId, token);
+        assertNotNull(result);
+        assertFalse(result.getMembers().contains(userId));
 
         HttpStatusCodeException exception = assertThrows(HttpStatusCodeException.class,
-                () -> apiGroup.findByName(groupFinal.getName()), users[2].getToken());
+                () -> apiGroup.findByName(groupName, token));
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+        return result;
+    }
 
-        //TODO: FIND ALL
-//        apiGroup.setJwtToken(users[1].getToken());
-        List<DbGroup> results = apiGroup.findAll(users[1].getToken());
-        assertNotNull(results);
-        assertEquals(1, results.size());
+    @Override
+    public List<DbGroup> findAll(String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::findAll");
 
-        //DELETE ITEM
-        apiSchema.deleteById(ItemTypeA.class, item.getId(), users[1].getToken());
+        List<DbGroup> result = apiGroup.findAll(token);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        return result;
+    }
 
-        //TODO: FIND ORPHANS
-        results = apiGroup.getOrphans(users[1].getToken());
-        assertNotNull(results);
-        assertEquals(1, results.size());
+    @Override
+    public <T extends DbItem> void deleteItem(Class<T> clazz, long itemId, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::deleteItem | $itemId: {}", itemId);
+        apiSchema.deleteById(clazz, itemId, token);
+    }
 
-        //DELETE GROUP
-        apiGroup.delete(group.getId(),  users[1].getToken());
+    @Override
+    public List<DbGroup> getOrphans(String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::getOrphans");
 
-        exception = assertThrows(HttpStatusCodeException.class,
-                () -> apiGroup.findByName(groupFinal.getName(),  users[1].getToken()));
+        List<DbGroup> result = apiGroup.getOrphans(token);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+        return result;
+    }
+
+    @Override
+    public void deleteGroup(long groupId, String groupName, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::deleteGroup | $groupId: {}", groupId);
+
+        apiGroup.delete(groupId, token);
+
+        HttpStatusCodeException exception = assertThrows(
+                HttpStatusCodeException.class,
+                () -> apiGroup.findByName(groupName, token)
+        );
+
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-
-        log.info("SCHEMA_TEST::groups | Test finished successfully.");
     }
 }

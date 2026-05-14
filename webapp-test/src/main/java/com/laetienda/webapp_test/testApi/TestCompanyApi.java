@@ -34,4 +34,6 @@ public interface TestCompanyApi {
     Member updateMember(Member memb1, String token) throws HttpStatusCodeException, AssertionError;
 
     void deleteMember(Long id, String userId, String token) throws HttpStatusCodeException, AssertionError;
+
+    void getAllCompanyMemberPolicies(String token) throws HttpStatusCodeException, AssertionError;
 }

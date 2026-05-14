@@ -3,10 +3,7 @@ package com.laetienda.company.service;
 import com.laetienda.company.repository.CompanyRepository;
 import com.laetienda.company.repository.FriendRepository;
 import com.laetienda.lib.exception.NotValidCustomException;
-import com.laetienda.lib.options.CompanyMemberPolicy;
-import com.laetienda.lib.options.CompanyMemberStatus;
-import com.laetienda.lib.options.DbServiceAccessPolicy;
-import com.laetienda.lib.options.DbUserAccessPolicy;
+import com.laetienda.lib.options.*;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
@@ -274,6 +271,12 @@ public class CompanyServiceImplementation implements CompanyService{
             updateMemberStatus(temp, member);
 
         return repo.updateMember(member);
+    }
+
+    @Override
+    public List<CompanyMemberPolicy> getAllCompanyMemberPolicies() throws HttpStatusCodeException {
+        log.debug("SERVICE_COMPANY::getAllCompanyMemberPolicies");
+        return List.of(CompanyMemberPolicy.values());
     }
 
     @Override

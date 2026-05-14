@@ -5,6 +5,7 @@ import com.laetienda.company.repository.CompanyRepository;
 import com.laetienda.lib.options.CompanyFriendStatus;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
+import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
@@ -28,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -685,6 +687,19 @@ class CompanyTests {
         comp = updateCompanyContent(comp.getId(), body, USERS[1].getToken());
 
         deleteCompany(comp.getId(), USERS[2].getToken());
+    }
+
+    @Test
+    public void getAllCompanyMemberPolicies() throws Exception {
+        InputOptions pub = CompanyMemberPolicy.PUBLIC;
+        InputOptions reg = CompanyMemberPolicy.REGISTRATION_REQUIRED;
+        InputOptions auth = CompanyMemberPolicy.AUTHORIZATION_REQUIRED;
+
+        List<InputOptions> result = repo.getAllCompanyMemberPolicies(USERS[0].getToken());
+        assertNotNull(result);
+        assertTrue(result.stream().anyMatch(policy -> pub.getLabel().equals(policy.getLabel())));
+        assertTrue(result.stream().anyMatch(policy -> reg.getLabel().equals(policy.getLabel())));
+        assertTrue(result.stream().anyMatch(policy -> auth.getLabel().equals(policy.getLabel())));
     }
 
     private Company getNewCompany(String name, CompanyMemberPolicy policy, TestUserDto user) throws Exception{

@@ -51,7 +51,7 @@ public class UserController {
         return ResponseEntity.ok(service.isUserIdValid(userId));
     }
 
-    @GetMapping("${api.kcUser.file.userIdExists}") //api/v0/user/exist/{userId}
+    @GetMapping("${api.kcUser.file.userIdExists}") //api/v0/user/userIdExists/{userId}
     public ResponseEntity<Void> userExists(@PathVariable String userId) throws HttpStatusCodeException {
         log.info("USER_CONTROLLER::userExists. $userId: {}", userId);
         service.userIdExists(userId);

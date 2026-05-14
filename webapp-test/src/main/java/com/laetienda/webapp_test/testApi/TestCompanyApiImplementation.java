@@ -1,6 +1,7 @@
 package com.laetienda.webapp_test.testApi;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
+import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -153,5 +155,20 @@ public class TestCompanyApiImplementation implements TestCompanyApi {
                 "TEST_COMPANY::deleteMember | Failed to delete member"
         );
         assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode(), "TEST_COMPANY::deleteMember | Different status code to NOT FOUND");
+    }
+
+    @Override
+    public void getAllCompanyMemberPolicies(String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_COMPANY::getAllCompanyMemberPolicies");
+
+        InputOptions pub = CompanyMemberPolicy.PUBLIC;
+        InputOptions reg = CompanyMemberPolicy.REGISTRATION_REQUIRED;
+        InputOptions auth = CompanyMemberPolicy.AUTHORIZATION_REQUIRED;
+
+        List<InputOptions> result = apiCompany.getAllCompanyMemberPoliciesWithToken(token);
+        assertNotNull(result);
+        assertTrue(result.stream().anyMatch(policy -> pub.getLabel().equals(policy.getLabel())));
+        assertTrue(result.stream().anyMatch(policy -> reg.getLabel().equals(policy.getLabel())));
+        assertTrue(result.stream().anyMatch(policy -> auth.getLabel().equals(policy.getLabel())));
     }
 }

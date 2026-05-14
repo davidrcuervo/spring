@@ -2,6 +2,7 @@
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{layout/simple.html}"
 >
 <head>
@@ -10,7 +11,10 @@
 <body>
     <main layout:fragment="content" class="container mb-5">
         <h1 class="text-center">Create new company</h1>
-        <form action="@{${@tt.href('seo.manage.company.create')}}"
+        <form sec:authorize="isAuthenticated()"
+              th:with="user = ${@usr.currentUser}"
+              th:object="${company}"
+              th:action="@{${@tt.href('seo.manage.company.create')}}"
               method="post"
         >
             <!-- Company name -->
@@ -19,6 +23,7 @@
                 type = 'text',
                 label = 'Company name',
                 placeholder = 'Insert the name of the company.',
+                name = 'name',
                 value = null,
                 options = null,
                 onInputBefore = null,
@@ -27,12 +32,13 @@
                 error = null
             )}"></th:block>
 
-            <!-- Company name -->
+            <!-- Vanity URL -->
             <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
                 id = 'createCompanyVanityUrl',
                 type = 'text',
                 label = 'Vanity URL',
                 placeholder = 'How do you want your company to look like on internet.',
+                name = 'vanityUrl',
                 value = null,
                 options = null,
                 onInputBefore = |${@tt.href('seo.url')}/|,
@@ -47,13 +53,15 @@
                 type = 'text',
                 label = 'Owner',
                 placeholder = 'Type the username of the owner of the company.',
-                value = 'Lyda Cortes',
+                name = 'ownerName',
+                value = ${user.fullName},
                 options = null,
                 onInputBefore = null,
                 attributes = ${ {'readonly' , 'disabled'} },
                 success = null,
                 error = null
             )}"></th:block>
+            <input type="hidden" name="owner" value="${user.id}">
 
             <!-- Company policy -->
             <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
@@ -61,7 +69,8 @@
                 type = 'select',
                 label = 'Policy',
                 placeholder = 'Select the policy for new members of the company',
-                value = 'Lyda Cortes',
+                value = null,
+                name = 'memberPolicy',
                 options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
                 onInputBefore = null,
                 attributes = null,
@@ -69,12 +78,13 @@
                 error = null
             )}"></th:block>
 
-            <!-- Company policy -->
+            <!-- Company description -->
             <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
                 id = 'createCompanyDescription',
                 type = 'textarea',
                 label = 'Description',
                 placeholder = 'Type the description of the company.',
+                name = 'description',
                 value = null,
                 options = null,
                 onInputBefore = null,
