@@ -93,7 +93,11 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
     }
 
     @Override
-    public DbGroup removeMember(long groupId, String groupName, String userId, String token) throws HttpStatusCodeException, AssertionError {
+    public DbGroup removeMember(
+            long groupId, String groupName,
+            String userId, String userToken,
+            String token
+    ) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_SCHEMA::removeMember | $groupId: {} | $userId: {}",  groupId, userId);
 
         DbGroup result=apiGroup.removeMember(groupId, userId, token);
@@ -101,7 +105,7 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
         assertFalse(result.getMembers().contains(userId));
 
         HttpStatusCodeException exception = assertThrows(HttpStatusCodeException.class,
-                () -> apiGroup.findByName(groupName, token));
+                () -> apiGroup.findByName(groupName, userToken));
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
         return result;
     }

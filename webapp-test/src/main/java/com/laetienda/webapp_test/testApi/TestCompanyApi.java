@@ -11,7 +11,7 @@ import java.util.Map;
 public interface TestCompanyApi {
 //    public void cycle(TestUserDto[] users) throws HttpStatusCodeException, AssertionError;
 
-    Company create(String name, CompanyMemberPolicy companyMemberPolicy, TestUserDto user) throws HttpStatusCodeException, AssertionError;
+    Company create(String name, String vanityUrl, CompanyMemberPolicy companyMemberPolicy, TestUserDto user) throws HttpStatusCodeException, AssertionError;
 
     String isValid(Long id, String token) throws HttpStatusCodeException, AssertionError;
 

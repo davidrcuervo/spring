@@ -60,7 +60,12 @@ public class Schema {
             group = testSchemaApi.addMember(group.getId(), users[2].getUserId(), users[1].getToken());
 
             //REMOVE MEMBER
-            group = testSchemaApi.removeMember(group.getId(), users[2].getUserId(), groupName, users[1].getToken());
+            group = testSchemaApi.removeMember(
+                    group.getId(),
+                    groupName,
+                    users[2].getUserId(), users[2].getToken(),
+                    users[1].getToken()
+            );
 
             //FIND ALL
             List<DbGroup> groups = testSchemaApi.findAll(users[1].getToken());

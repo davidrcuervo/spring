@@ -39,8 +39,9 @@ public class CustomRestClientImpl implements CustomRestClient{
                     log.trace("RESTCLIENT_CONFIGURATION::intercept. $token: {}", token);
                     request.getHeaders().setBearerAuth(token);
                 }
-            }else if(authentication instanceof JwtAuthenticationToken jwtAuthenticationToken){
-                log.trace("RESTCLIENT_CONFIGURATION::intercept. token instance of JwtAuthenticationToken");
+            }else
+            if(authentication instanceof JwtAuthenticationToken jwtAuthenticationToken){
+//                log.trace("RESTCLIENT_CONFIGURATION::intercept. token instance of JwtAuthenticationToken");
 
                 Jwt jwt = jwtAuthenticationToken.getToken();
                 request.getHeaders().setBearerAuth(jwt.getTokenValue());

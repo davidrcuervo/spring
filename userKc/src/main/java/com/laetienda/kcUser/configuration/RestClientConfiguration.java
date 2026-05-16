@@ -11,15 +11,24 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfiguration {
 
-    @Bean
-    public RestClient getRestClient(
+    private final RestClient.Builder builder;
+    private final OAuth2AuthorizedClientManager oauth2AuthorizedClientManager;
+
+    public RestClientConfiguration(
             RestClient.Builder builder,
-            OAuth2AuthorizedClientManager authorizedClientManager
+            OAuth2AuthorizedClientManager oauth2AuthorizedClientManager
     ){
+        this.builder = builder;
+        this.oauth2AuthorizedClientManager = oauth2AuthorizedClientManager;
+    }
+
+    @Bean
+    public RestClient getRestClient(CustomRestClient customRestClient){
         OAuth2ClientHttpRequestInterceptor requestInterceptor =
-                new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
+                new OAuth2ClientHttpRequestInterceptor(oauth2AuthorizedClientManager);
+
         return builder
-                .requestInterceptor(getCustomRestClient().oauth2Interceptor(authorizedClientManager))
+                .requestInterceptor(customRestClient.oauth2Interceptor(oauth2AuthorizedClientManager))
                 .requestInterceptor(requestInterceptor)
                 .build();
     }

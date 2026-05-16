@@ -34,7 +34,11 @@ public class TestCompany {
         log.info("TEST_API_COMPANY::run | Starting test");
 
         try{
-            Company comp = testCompanyApi.create("name", CompanyMemberPolicy.PUBLIC, users[1]);
+            Company comp = testCompanyApi.create(
+                    "Test Company - Name",
+                    "tc-name",
+                    CompanyMemberPolicy.PUBLIC, users[1]
+            );
             String flag = testCompanyApi.isValid(comp.getId(), users[1].getToken());
             comp = testCompanyApi.find(comp.getId(), users[1].getToken());
             comp = testCompanyApi.findByName(comp.getName(), users[1].getToken());

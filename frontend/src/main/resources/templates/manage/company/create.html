@@ -24,7 +24,7 @@
                 label = 'Company name',
                 placeholder = 'Insert the name of the company.',
                 name = 'name',
-                value = null,
+                value = *{name},
                 options = null,
                 onInputBefore = null,
                 attributes = ${ {'required'} },
@@ -39,7 +39,7 @@
                 label = 'Vanity URL',
                 placeholder = 'How do you want your company to look like on internet.',
                 name = 'vanityUrl',
-                value = null,
+                value = *{vanityUrl},
                 options = null,
                 onInputBefore = |${@tt.href('seo.url')}/|,
                 attributes = null,
@@ -61,7 +61,7 @@
                 success = null,
                 error = null
             )}"></th:block>
-            <input type="hidden" name="owner" value="${user.id}">
+            <input type="hidden" name="owner" th:value="${user.id}">
 
             <!-- Company policy -->
             <th:block th:replace="~{layout/bootstrap.html ::inputWithFeedbackAndResponsive(
@@ -69,9 +69,9 @@
                 type = 'select',
                 label = 'Policy',
                 placeholder = 'Select the policy for new members of the company',
-                value = null,
+                value = *{memberPolicy},
                 name = 'memberPolicy',
-                options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
+                options = ${@comp.allCompanyMemberPolicies},
                 onInputBefore = null,
                 attributes = null,
                 success = null,
@@ -85,7 +85,7 @@
                 label = 'Description',
                 placeholder = 'Type the description of the company.',
                 name = 'description',
-                value = null,
+                value = *{description},
                 options = null,
                 onInputBefore = null,
                 attributes = null,
@@ -96,6 +96,9 @@
                 <i class="bi bi-building-add"></i>
                 Create
             </button>
+            <div th:if="${#fields.hasErrors('vanityUrl')}">
+                <span th:each="error : ${#fields.errors('vanityUrl')}" th:text="${error}">Error</span>, &nbsp;
+            </div>
         </form>
     </main>
 </body>

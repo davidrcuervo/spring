@@ -83,7 +83,7 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
     @Override
     public String isUserIdValid(String userId) throws HttpStatusCodeException {
         log.debug("API_USER::isUserIdValid | $address: {}", isUserIdValidUri);
-        return super.get(null, isUserIdValidUri, userId);
+        return super.get(clientRegistrationId(webappClientId), isUserIdValidUri, userId);
     }
 
     @Override

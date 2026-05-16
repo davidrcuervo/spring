@@ -64,7 +64,8 @@ public class MemberTests {
     @Test
     public void cycle() throws Exception {
         Company company = repo.create(
-                "Test Company companyMemberCycle",
+                "Test Company - Company Member Cycle",
+                "tc-cmc",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -93,7 +94,8 @@ public class MemberTests {
     @Test
     public void findCompanyByNewMember() throws Exception {
         Company comp = getNewCompany(
-                "Test Company findCompanyByNewMember",
+                "Test Company - Find Company By New Member",
+                "tc-fcbnm",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -107,7 +109,8 @@ public class MemberTests {
     @Test
     public void blockMember() throws Exception {
         Company comp = repo.create(
-                "Test Company blockMember",
+                "Test Company Block Member",
+                "tc-cmc",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -135,7 +138,8 @@ public class MemberTests {
     @Test
     public void updateMemberUserId() throws Exception {
         Company company = repo.create(
-                "Test Company updateMemberUserId",
+                "Test Company - Update Member User Id",
+                "tc-umui",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -156,7 +160,8 @@ public class MemberTests {
     @Test
     public void addMemberByNoManger() throws Exception {
         Company comp = getNewCompany(
-                "Test Company addMemberByNoManger",
+                "Test Company - Add Member By No Manger",
+                "tc-ambnm",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -174,7 +179,9 @@ public class MemberTests {
     @Test
     public void addManagerOfNotAcceptedMember() throws Exception {
 
-        Company comp = getNewCompany("Test Company addManagerOfNotAcceptedMember",
+        Company comp = getNewCompany(
+                "Test Company - Add Manager Of Not Accepted Member",
+                "tc-amonam",
                 CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
                 USERS[1]);
 
@@ -191,7 +198,8 @@ public class MemberTests {
     @Test
     public void removeMemberWhoIsOwnerOfCompany() throws Exception {
         Company comp = getNewCompany(
-                "Test Company removeMemberWhoIsOwnerOfCompany",
+                "Test Company - Remove Member Who Is Owner Of Company",
+                "tc-rmwiooc",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]);
 
@@ -205,7 +213,11 @@ public class MemberTests {
 
     @Test
     public void testDeleteMember()throws Exception{
-        Company comp = getNewCompany("Test Company deleteMember", CompanyMemberPolicy.PUBLIC, USERS[1]);
+        Company comp = getNewCompany(
+                "Test Company - Delete Member",
+                "tc-dm",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]);
         Member member2 = addMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
         deleteMember(member2, USERS[2].getToken());
         deleteCompany(comp, USERS[1].getToken());
@@ -214,7 +226,8 @@ public class MemberTests {
     @Test
     public void updateMemberWithDifferentUserId() throws Exception {
         Company comp = getNewCompany(
-                "Test Company updateMemberWithDifferentUserId",
+                "Test Company - Update Member With Different User Id",
+                "tc-umwdui",
                 CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
                 USERS[1]
         );
@@ -236,8 +249,13 @@ public class MemberTests {
         deleteCompany(comp, USERS[1].getToken());
     }
 
-    private Company getNewCompany(String name, CompanyMemberPolicy policy, TestUserDto user) throws Exception{
-        Company company = new Company(name, policy);
+    private Company getNewCompany(
+            String name,
+            String vanityUrl,
+            CompanyMemberPolicy policy,
+            TestUserDto user
+    ) throws Exception{
+        Company company = new Company(name, vanityUrl, policy);
         company.setOwner(user.getUserId());
 
         MvcResult resp = mvc.perform(post(createCompanyAddress)

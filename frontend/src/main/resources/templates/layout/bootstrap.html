@@ -200,8 +200,8 @@
                                             success != null ? 'is-valid' : null}"
     >
         <option th:each="option : ${options}"
-                th:value="${option}"
-                th:text="${option}"
+                th:value="${option.name}"
+                th:text="${option.label}"
                 th:selected="${option == value}"
         >
         </option>

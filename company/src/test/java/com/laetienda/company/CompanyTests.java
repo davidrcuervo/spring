@@ -99,7 +99,11 @@ class CompanyTests {
 
 	@Test
 	void cycle() throws Exception{
-        Company company = new Company("testCycleCompany", CompanyMemberPolicy.AUTHORIZATION_REQUIRED);
+        Company company = new Company(
+                "Test Cycle Company",
+                "testCycleCompany",
+                CompanyMemberPolicy.AUTHORIZATION_REQUIRED
+        );
 		company.setOwner(USERS[1].getUserId());
 
 		Company comp = create(company);
@@ -174,7 +178,11 @@ class CompanyTests {
         assertEquals(description, result.getDescription());
 
         //CREATE COMPANY FOR TESTING UPDATES
-        Company temp = new Company("updateCompany", CompanyMemberPolicy.PUBLIC);
+        Company temp = new Company(
+                "Update Company",
+                "updateCompany",
+                CompanyMemberPolicy.PUBLIC
+        );
         temp.setOwner(USERS[2].getUserId());
 
         response = mvc.perform(post(createAddress)
@@ -535,7 +543,8 @@ class CompanyTests {
     @Test
     public void createCompanyWithWrongOwner() throws Exception {
         Company company = new Company(
-                "Test Company createCompanyWithWrongOwner",
+                "Test Company Create Company With Wrong Owner",
+                "tcccwwo",
                 CompanyMemberPolicy.PUBLIC
         );
         company.setOwner(USERS[2].getUserId());
@@ -551,13 +560,15 @@ class CompanyTests {
 	@Test
 	public void createCompanyWithRepeatedName() throws Exception {
 		Company comp = getNewCompany(
-                "Test Company createCompanyWithRepeatedName",
+                "Test Company Create Company With Repeated Name",
+                "tc-ccwrn",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
 
         Company company = new Company(
-                "Test Company createCompanyWithRepeatedName",
+                "Test Company Create Company With Repeated Name",
+                "tcccwrn",
                 CompanyMemberPolicy.PUBLIC);
         company.setOwner(USERS[1].getUserId());
 
@@ -587,7 +598,8 @@ class CompanyTests {
     @Test void updateCompanyName() throws Exception {
 
         Company company = repo.create(
-                "Test Company updateCompanyName",
+                "Test Company Update Company Name",
+                "tcucn",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -599,7 +611,8 @@ class CompanyTests {
     @Test
     public void updateCompanyOwner() throws Exception {
         Company comp = getNewCompany(
-                "Test Company updateCompanyOwner",
+                "Test Company Update Company Owner",
+                "tc-uco",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -615,7 +628,8 @@ class CompanyTests {
     @Test
     public void updateCompanyByBlockedMember() throws Exception{
         Company comp = getNewCompany(
-                "Test Company updateCompanyByBlockedMember",
+                "Test Company Update Company By Blocked Member",
+                "tc-ucbbm",
                 CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
                 USERS[1]
         );
@@ -635,7 +649,8 @@ class CompanyTests {
     @Test
     public void updateCompanyContentBadKey() throws Exception{
         Company comp = getNewCompany(
-                "Test Company updateCompanyContentBadKey",
+                "Test Company Update Company Content Bad Key",
+                "tc-uccbk",
                 CompanyMemberPolicy.PUBLIC,
                 USERS[1]
         );
@@ -654,7 +669,8 @@ class CompanyTests {
     @Test
     public void updateCompanyOwnerByBlockedMember() throws Exception{
         Company comp = getNewCompany(
-                "Test Company updateCompanyOwnerByBlockedMember",
+                "Test Company Update Company Owner By Blocked Member",
+                "tc-ucobbm",
                 CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
                 USERS[1]
         );
@@ -702,8 +718,13 @@ class CompanyTests {
         assertTrue(result.stream().anyMatch(policy -> auth.getLabel().equals(policy.getLabel())));
     }
 
-    private Company getNewCompany(String name, CompanyMemberPolicy policy, TestUserDto user) throws Exception{
-        Company company = new Company(name, policy);
+    private Company getNewCompany(
+            String name,
+            String vanityUrl,
+            CompanyMemberPolicy policy,
+            TestUserDto user
+    ) throws Exception{
+        Company company = new Company(name, vanityUrl, policy);
         company.setOwner(user.getUserId());
 
         MvcResult resp = mvc.perform(post(createAddress)

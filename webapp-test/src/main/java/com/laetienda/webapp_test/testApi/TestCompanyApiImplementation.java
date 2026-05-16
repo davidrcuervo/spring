@@ -27,11 +27,17 @@ public class TestCompanyApiImplementation implements TestCompanyApi {
     }
 
     @Override
-    public Company create(String name, CompanyMemberPolicy companyMemberPolicy, TestUserDto user) throws HttpStatusCodeException, AssertionError {
+    public Company create(
+            String name,
+            String vanityUrl,
+            CompanyMemberPolicy companyMemberPolicy,
+            TestUserDto user
+    ) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_COMPANY::create | Testing create");
 
         Company company = new Company(
-                "Test Company apiCompany",
+                "Test Company - Api Company",
+                "tc-ac",
                 CompanyMemberPolicy.PUBLIC
         );
         company.setOwner(user.getUserId());

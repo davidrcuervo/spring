@@ -54,8 +54,13 @@ public class Company extends DbItem {
 
     public Company(){}
 
-    public Company(String name, CompanyMemberPolicy memberPolicy){
+    public Company(
+            String name,
+            String vanityUrl,
+            CompanyMemberPolicy memberPolicy
+    ){
         this.name = name;
+        this.vanityUrl = vanityUrl;
         this.setMemberPolicy(memberPolicy);
     }
 

@@ -1,5 +1,7 @@
 package com.laetienda.schema.configuration;
 
+import com.laetienda.lib.service.CustomRestClient;
+import com.laetienda.lib.service.CustomRestClientImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
@@ -12,13 +14,20 @@ public class RestClientConfiguration {
     @Bean
     public RestClient getRestClient(
             RestClient.Builder builder,
-            OAuth2AuthorizedClientManager authorizedClientManager
+            OAuth2AuthorizedClientManager authorizedClientManager,
+            CustomRestClient customRestClient
     ){
         OAuth2ClientHttpRequestInterceptor requestInterceptor =
                 new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 
         return builder
+                .requestInterceptor(customRestClient.oauth2Interceptor(authorizedClientManager))
                 .requestInterceptor(requestInterceptor)
                 .build();
+    }
+
+    @Bean
+    CustomRestClient getCustomRestClient(){
+        return new CustomRestClientImpl();
     }
 }

@@ -61,9 +61,15 @@ public class CompanyTestMvcRepository {
     @Value("${api.company.policy.all.uri}")
     protected String apiCompanyPolicyAllUri;
 
-    Company create (String companyName, CompanyMemberPolicy companyMemberPolicy, TestUserDto user) throws Exception{
+    Company create (
+            String companyName,
+            String vanityUrl,
+            CompanyMemberPolicy companyMemberPolicy,
+            TestUserDto user
+    ) throws Exception{
         Company company = new Company(
                 companyName,
+                vanityUrl,
                 companyMemberPolicy
         );
         company.setOwner(user.getUserId());

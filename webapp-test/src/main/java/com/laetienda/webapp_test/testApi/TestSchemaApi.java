@@ -43,7 +43,7 @@ public interface TestSchemaApi {
     DbGroup removeMember(
             long groupId,
             String groupName,
-            String userId,
+            String userId, String userToken,
             String token
     ) throws HttpStatusCodeException, AssertionError;
 
