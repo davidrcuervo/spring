@@ -19,7 +19,7 @@ import java.util.List;
 public class Company extends DbItem {
 
     @NotNull @Unique
-    @Size(min = 2, max = 64)
+    @Size(min = 3, max = 64)
     @Column(unique = true, nullable = false, length = 64)
     private String name;
 

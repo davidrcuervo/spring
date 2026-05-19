@@ -126,16 +126,16 @@
 </th:block>
 
 <!-- Form Input Validation -->
-<th:block th:fragment="validation(id, error, success)">
+<th:block th:fragment="validation(id, hasErrors, errors, success)">
     <!-- if error -->
-    <div th:if="${error != null}"
+    <div th:if="${hasErrors}"
          th:id="|${id}InputValidation|"
          class="is-invalid invalid-feedback"
     >
-        <span th:text="${error}">Not Accepted :(</span>
+        <span th:each="error : ${errors}" th:text="${error}">Not Accepted :(</span>
     </div>
     <!-- if success -->
-    <div th:if="${error == null && success != null}"
+    <div th:if="${!hasErrors && success != null}"
          th:id="|${id}InputValidation|"
          class="is-valid valid-feedback"
     >
@@ -153,7 +153,8 @@
     options,
     onInputBefore,
     success,
-    error,
+    hasErrors,
+    errors,
     attributes
 )">
     <span th:if="${onInputBefore != null}"
@@ -167,12 +168,12 @@
            th:type="${type == 'datalist' ? null : type}"
            th:list="${type == 'datalist' ? id + 'Options' : null}"
            th:id="${id}"
-           th:classappend="${error != null ? 'is-invalid' :
+           th:classappend="${hasErrors ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
            th:placeholder="${placeholder}"
            th:name="${name}"
            th:value="${value}"
-           th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'Validation'}"
+           th:aria-describedby="${hasErrors ? 'inputGroupPrepend3 ' + id + 'Validation' : null}"
            th:required="${attributes != null and #lists.contains(attributes, 'required')}"
            th:disabled="${attributes != null and #lists.contains(attributes, 'disabled')}"
            th:readonly="${attributes != null and #lists.contains(attributes, 'readonly')}"
@@ -181,12 +182,12 @@
     <textarea th:if="${type == 'textarea'}"
               class = "form-control" rows="3"
               th:id="${id}"
-              th:classappend="${error != null ? 'is-invalid' :
+              th:classappend="${hasErrors ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
               th:name="${name}"
               th:text="${value}"
               th:placeholder = "${placeholder}"
-              th:aria-describedby="${error == null ? null : 'inputGroupPrepend3 ' + id + 'Validation'}"
+              th:aria-describedby="${hasErrors ? 'inputGroupPrepend3 ' + id + 'Validation' : null}"
               th:required="${attributes != null and #lists.contains(attributes, 'required')}"
               th:readonly="${attributes != null and #lists.contains(attributes, 'readonly')}"
     >
@@ -196,7 +197,7 @@
             th:id="${id}"
             th:name="${name}"
             th:aria-label="${placeholder}"
-            th:classappend="${error != null ? 'is-invalid' :
+            th:classappend="${hasErrors ? 'is-invalid' :
                                             success != null ? 'is-valid' : null}"
     >
         <option th:each="option : ${options}"
@@ -224,7 +225,8 @@
     value,
     options,
     success,
-    error,
+    hasErrors,
+    errors,
     attributes
 )">
     <th:block th:replace="~{::label(
@@ -241,12 +243,14 @@
         options = ${options},
         onInputBefore = ${onInputBefore},
         success = ${success},
-        error = ${error},
+        hasErrors = ${hasErrors},
+        errors = ${errors},
         attributes = ${attributes}
     )}"></th:block>
     <th:block th:replace="~{::validation(
         id = ${id},
-        error = ${error},
+        hasErrors = ${hasErrors},
+        errors = ${errors},
         success = ${success}
     )}"></th:block>
 </th:block>
@@ -263,7 +267,8 @@
     onInputBefore,
     attributes,
     success,
-    error
+    hasErrors,
+    errors
 )">
     <div class="row mb-3">
         <th:block th:replace="~{::label(
@@ -284,13 +289,15 @@
                             options=${options},
                             onInputBefore=${onInputBefore},
                             success=${success},
-                            error=${error},
+                            hasErrors=${hasErrors},
+                            errors=${errors},
                             attributes=${attributes}
                         )}">
                 </th:block>
                 <th:block th:replace="~{::validation(
                         id=${id},
-                        error=${error},
+                        hasErrors = ${hasErrors},
+                        errors=${errors},
                         success=${success}
                     )}">
                 </th:block>
@@ -311,7 +318,8 @@
     onInputBefore,
     attributes,
     success,
-    error
+    hasErrors,
+    errors
 )">
     <div class="row mb-3">
         <th:block th:replace="~{::label(
@@ -332,7 +340,8 @@
                         options=${options},
                         onInputBefore=${onInputBefore},
                         success=${success},
-                        error=${error},
+                        hasErrors=${hasErrors},
+                        errors=${errors},
                         attributes=${attributes}
                     )}"></th:block>
                 <button type="submit" class="btn btn-outline-success">
@@ -341,7 +350,8 @@
                 </button>
                 <th:block th:replace="~{::validation(
                     id=${id},
-                    error=${error},
+                    hasErrors = ${hasErrors},
+                    errors=${errors},
                     success=${success}
                 )}"></th:block>
             </div>
@@ -362,7 +372,8 @@
     modalBody,
     onInputBefore,
     success,
-    error
+    hasErrors,
+    errors
 )">
     <div class="row mb-3" th:with="modalId=${id} + 'InputModal'">
         <th:block th:replace="~{::label(
@@ -383,7 +394,8 @@
                     options=${options},
                     onInputBefore=${onInputBefore},
                     success=${success},
-                    error=${error},
+                    hasErrors=${hasErrors},
+                    errors=${errors},
                     attributes=${ {'required', 'readonly'} }
                 )}"></th:block>
 
@@ -399,7 +411,8 @@
                 <!-- validation -->
                 <th:block th:replace="~{::validation(
                     id=${id},
-                    error=${error},
+                    hasErrors=${hasErrors},
+                    errors=${errors},
                     success=${success}
                 )}"></th:block>
             </div>

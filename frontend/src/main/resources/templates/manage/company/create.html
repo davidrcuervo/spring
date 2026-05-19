@@ -29,7 +29,8 @@
                 onInputBefore = null,
                 attributes = ${ {'required'} },
                 success =null,
-                error = null
+                hasErrors = ${#fields.hasErrors('name')},
+                errors = ${#fields.errors('name')}
             )}"></th:block>
 
             <!-- Vanity URL -->
@@ -44,7 +45,8 @@
                 onInputBefore = |${@tt.href('seo.url')}/|,
                 attributes = null,
                 success = null,
-                error = null
+                hasErrors = ${#fields.hasErrors('vanityUrl')},
+                errors = ${#fields.errors('vanityUrl')}
             )}"></th:block>
 
             <!-- Company Owner -->
@@ -59,7 +61,8 @@
                 onInputBefore = null,
                 attributes = ${ {'readonly' , 'disabled'} },
                 success = null,
-                error = null
+                hasErrors = false,
+                errors = null
             )}"></th:block>
             <input type="hidden" name="owner" th:value="${user.id}">
 
@@ -75,7 +78,8 @@
                 onInputBefore = null,
                 attributes = null,
                 success = null,
-                error = null
+                hasErrors = false,
+                errors = null
             )}"></th:block>
 
             <!-- Company description -->
@@ -90,14 +94,25 @@
                 onInputBefore = null,
                 attributes = null,
                 success = null,
-                error = null
+                hasErrors = ${#fields.hasErrors('description')},
+                errors = ${#fields.errors('description')}
             )}"></th:block>
             <button type="submit" class="btn btn-primary col-12 offset-md-4 col-md-4">
                 <i class="bi bi-building-add"></i>
                 Create
             </button>
-            <div th:if="${#fields.hasErrors('vanityUrl')}">
-                <span th:each="error : ${#fields.errors('vanityUrl')}" th:text="${error}">Error</span>, &nbsp;
+            <div id="createCompanyGeneralValidation"
+                 class="alert alert-danger col-12 offset-md-2 col-md-10 mt-1"
+                 role="alert"
+                 th:if="${#fields.hasGlobalErrors()}"
+            >
+                <div>
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span>Failed to create company.</span>
+                </div>
+                <span th:each="error : ${#fields.globalErrors()}"
+                      th:text="${error}"
+                ></span> &nbsp;
             </div>
         </form>
     </main>

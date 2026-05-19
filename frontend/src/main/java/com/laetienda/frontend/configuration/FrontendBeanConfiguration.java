@@ -68,12 +68,12 @@ public class FrontendBeanConfiguration {
 		return new RestClientServiceImpl();
 	}
 
-	@Bean("usr")
+	@Bean
 	public ApiUser getApiUser() {
 		return new ApiUserImplementation(client, env, json);
 	}
 
-	@Bean("comp")
+	@Bean
 	public ApiCompany getApiCompany() {
 		return new ApiCompanyImplementation(client);
 	}

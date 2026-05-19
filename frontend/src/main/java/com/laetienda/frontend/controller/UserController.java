@@ -1,8 +1,6 @@
 package com.laetienda.frontend.controller;
 
-import com.laetienda.frontend.service.UserService;
-import com.laetienda.lib.exception.CustomRestClientExceptionDeprecated;
-import com.laetienda.frontend.model.ThankyouPage;
+import com.laetienda.frontend.service.FrontendUserService;
 import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.service.ThankyouPageService;
 import com.laetienda.model.kc.KcUser;
@@ -11,17 +9,12 @@ import com.laetienda.model.user.Usuario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.client.RestClient;
-
-import java.security.Principal;
 
 @Controller
 @RequestMapping("${seo.user.folder}") //user
@@ -33,7 +26,7 @@ public class UserController {
     @Autowired private ThankyouPageService thankYouService;
     @Autowired private RestClientService restClientService;
     @Autowired private Environment env;
-    @Autowired private UserService service;
+    @Autowired private FrontendUserService service;
 
 //    @Value ("${api.usuario.port}") private String usuarioPort;
 //    @Value("${api.user.create}") private String apiAddUrl;
@@ -78,7 +71,7 @@ public class UserController {
     @GetMapping("${seo.user.file}") //user/user.html
     private String account(Model model){
         log.debug("USER_CONTROLLER::account.");
-        KcUser user = service.getUserAccount();
+        KcUser user = service.getCurrentUser();
         model.addAttribute("user", user);
         return "user/account";
     }

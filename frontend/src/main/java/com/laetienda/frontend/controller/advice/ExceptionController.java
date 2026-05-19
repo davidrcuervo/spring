@@ -1,4 +1,4 @@
-package com.laetienda.frontend.controller;
+package com.laetienda.frontend.controller.advice;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.thymeleaf.exceptions.TemplateInputException;
 
 @ControllerAdvice
 public class ExceptionController {
