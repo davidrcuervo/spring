@@ -1,9 +1,5 @@
 package com.laetienda.company.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CompanyMemberStatus;
 import com.laetienda.lib.options.DbServiceAccessPolicy;
 import com.laetienda.lib.options.DbUserAccessPolicy;
@@ -15,14 +11,10 @@ import com.laetienda.utils.service.api.ApiSchemaGroup;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
 
@@ -36,22 +28,24 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 public class CompanyRepositoryImplementation implements CompanyRepository{
     private final static Logger log = LoggerFactory.getLogger(CompanyRepositoryImplementation.class);
 
+    @Value("${kc.client-registration-id.webapp}")
+    private String webappClientId;
+
     private final RestClient client;
     private final ApiSchemaGroup apiSchemaGroup;
-
-    @Autowired private ApiSchema schema;
-    @Autowired private Environment env;
-    @Autowired private ObjectMapper json;
-
-    @Value("${kc.client-registration-id.webapp}")
-    String webappClientId;
+    private final ApiSchema apiSchema;
+    private final Environment env;
 
     public CompanyRepositoryImplementation(
             RestClient restClient,
-            ApiSchemaGroup apiSchemaGroup
+            ApiSchemaGroup apiSchemaGroup,
+            ApiSchema apiSchema,
+            Environment environment
     ){
         this.client= restClient;
         this.apiSchemaGroup = apiSchemaGroup;
+        this.apiSchema = apiSchema;
+        this.env = environment;
     }
 
     @Override
@@ -70,66 +64,29 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         readersGroup.setServiceAccessPolicy(DbServiceAccessPolicy.SERVICE_WRITE);
         company.addReaderGroup(readersGroup);
 
-        return schema.create(Company.class, company);
+        return apiSchema.create(Company.class, company);
     }
 
     @Override
     public Long isCompanyValid(Long id) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::isCompanyValid. $companyId: {}", id);
-
-        try{
-            String companyId = schema.isItemValid(Company.class, id).getBody();
-            return Long.parseLong(companyId);
-        } catch (NumberFormatException e) {
-            String message = String.format("COMPANY_REPOSITORY::isCompanyValid. Invalid long id format. $error: %s", e.getMessage());
-            log.error("COMPANY_REPOSITORY::isCompanyValid. {}", message);
-            log.trace(message, e);
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, message);
-        } catch(NotValidCustomException ce){
-            throw ce.getHttpStatusCodeException();
-        }
+        return apiSchema.isItemValid(Company.class, id);
     }
 
     @Override
     public Company findByName(String name) throws HttpStatusCodeException {
-        Map<String, String> body = new HashMap<String, String>();
-        body.put("name", name);
-
-        try {
-            return schema.find(Company.class, body).getBody();
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        return apiSchema.find(Company.class, Map.of("name", name));
     }
 
     @Override
     public Company findByNameNoJwt(String name) throws HttpStatusCodeException {
-        log.debug("COMPANY_REPOSITORY::findByNameNoJwt. $name: {}", name);
-        String address = env.getProperty("api.schema.find.uri", "/api/v0/schema/find?clase={clazzName}");
-
-        Map<String, String> body = new HashMap<String, String>();
-        body.put("name", name);
-        String clazzName = schema.getClazzName(Company.class);
-
-        try {
-            return client.post().uri(address, clazzName)
-                    .attributes(clientRegistrationId(webappClientId))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body(json.writeValueAsBytes(body))
-                    .retrieve().toEntity(Company.class).getBody();
-        }catch(HttpStatusCodeException e){
-            throw e;
-
-        }catch(Exception e){
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+        return apiSchema.findByServiceId(Company.class, Map.of("name", name));
     }
 
     @Override
     public Company find(Long id) throws HttpStatusCodeException {
 
-        return schema.findById(Company.class, id).getBody();
+        return apiSchema.findById(Company.class, id);
     }
 
     @Override
@@ -137,11 +94,36 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         log.debug("COMPANY_REPO::findNoJwt. $id: {}", id);
 
         String address = env.getProperty("api.schema.findById.uri", "findById");
-        String clazzName = schema.getClazzName(Company.class);
+        String clazzName = apiSchema.getClazzName(Company.class);
         return client.get().uri(address, id.toString(), clazzName)
                 .accept(MediaType.APPLICATION_JSON)
                 .attributes(clientRegistrationId(webappClientId))
                 .retrieve().toEntity(Company.class).getBody();
+    }
+
+    @Override
+    public Company findByVanityUrl(String vanityUrl) throws HttpStatusCodeException {
+        log.debug("REPO_COMPANY::findByVanityUrl | $vanityUrl: {}", vanityUrl);
+        return apiSchema.find(Company.class, Map.of("vanityUrl", vanityUrl));
+    }
+
+    @Override
+    public List<Company> findAll(Map<String, String> params) throws HttpStatusCodeException {
+        log.debug("REPO_COMPANY::findAll");
+
+        Map<String, String> converted =  new HashMap<>();
+
+        if(params != null && !params.isEmpty()){
+            params.forEach((key, value) -> {
+                if(key.equals("manager")){
+                    converted.put("editor", value);
+                }else if(key.equals("member")){
+                    converted.put("reader", value);
+                }
+            });
+        }
+
+        return apiSchema.findAll(Company.class, converted);
     }
 
     @Override
@@ -179,7 +161,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         apiSchemaGroup.delete(managers.getId());
         apiSchemaGroup.delete(readers.getId());
 
-        schema.deleteById(Company.class, company.getId());
+        apiSchema.deleteById(Company.class, company.getId());
     }
 
     @Override
@@ -199,7 +181,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     @Override
     public Member findMemberById(Long memberId) throws HttpStatusCodeException {
         log.debug("COMPANY_REPO::findMemberById. $id: {}", memberId);
-        return schema.findById(Member.class, memberId).getBody();
+        return apiSchema.findById(Member.class, memberId);
     }
 
     private String getQueryFindMemberByUserId(Long cid, String userId) throws HttpStatusCodeException {
@@ -214,42 +196,11 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     private List<Member> findMembersByQuery(String query) throws HttpStatusCodeException {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("query", query);
-
-        ResponseEntity<String> response = null;
-
-        try {
-            response = schema.findByQuery(Member.class, params);
-            return findMembersByQuery(response);
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        return apiSchema.findByQuery(Member.class, Map.of("query", query));
     }
 
     private List<Member> findMembersByQueryNoJwt(String query) throws HttpStatusCodeException{
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("query", query);
-
-        try {
-            ResponseEntity<String> response = schema.findByQueryNoJwt(Member.class, params);
-            return findMembersByQuery(response);
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
-    }
-
-    private List<Member> findMembersByQuery(ResponseEntity<String> response) throws NotValidCustomException {
-        log.trace("COMPANY_REPO::findMemberByUserId. $response: {}", response.getBody());
-
-        try {
-            return json.readValue(response.getBody(), new TypeReference<List<Member>>() {});
-        } catch (JsonProcessingException e) {
-            String message = String.format("COMPANY_REPO::findMemberByUserId. $error: %s", e.getMessage());
-            log.error(message);
-            log.trace(message, e);
-            throw new NotValidCustomException(message, HttpStatus.INTERNAL_SERVER_ERROR, "company");
-        }
+        return apiSchema.findByQueryByClientRegistrationId(Member.class, Map.of("query", query));
     }
 
     @Override
@@ -265,28 +216,20 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
             apiSchemaGroup.removeMember(managers.getId(),  member.getUserId());
         }
 
-        schema.deleteById(Member.class, member.getId());
+        apiSchema.deleteById(Member.class, member.getId());
     }
 
     @Override
     public Member updateMember(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::updateMember. $memberId: {}", member.getId());
-        try {
-            return schema.update(Member.class, member).getBody();
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
+        return apiSchema.update(Member.class, member);
     }
 
     @Override
     public Company updateCompany(Company company) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::updateCompany. $company: {}", company.getName());
+        return apiSchema.update(Company.class, company);
 
-        try {
-            return schema.update(Company.class, company).getBody();
-        } catch (NotValidCustomException e) {
-            throw e.getHttpStatusCodeException();
-        }
     }
 
     @Override
@@ -306,7 +249,7 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
         log.debug("COMPANY_REPOSITORY::addMember. $company: {}, $user: {}", member.getCompany().getName(), member.getUserId());
         member.addEditorGroup(getManagersGroup(member.getCompany()));
         member.addEditor(member.getUserId());
-        return schema.create(Member.class, member);
+        return apiSchema.create(Member.class, member);
     }
 
     @Override

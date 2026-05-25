@@ -3,6 +3,10 @@ package com.laetienda.schema;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.schema.ItemTypeA;
+import com.laetienda.model.user.TestUserDto;
+import com.laetienda.utils.lib.UtilsBox;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -11,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -36,6 +41,8 @@ import static org.hamcrest.Matchers.hasSize;
 class SchemaTests {
 	private final static Logger log = LoggerFactory.getLogger(SchemaTests.class);
 	private final String clazzName = Base64.getUrlEncoder().encodeToString(ItemTypeA.class.getName().getBytes(StandardCharsets.UTF_8));
+
+	private static TestUserDto[] USERS;
 
 	@Autowired private Environment env;
 	@Autowired private MockMvc mvc;
@@ -598,4 +605,14 @@ class SchemaTests {
                 .with(jwt().jwt(jwt -> jwt.claim("sub", adminUserId))))
                 .andExpect(status().isNoContent());
     }
+
+	@BeforeAll
+	static public void setup(@Autowired UtilsBox utils){
+		USERS = utils.getTestUsers(3, "schema.SchemaTest");
+	}
+
+	@AfterAll
+	static public void tearDown(@Autowired UtilsBox utils){
+		utils.deleteTestUsers(USERS);
+	}
 }

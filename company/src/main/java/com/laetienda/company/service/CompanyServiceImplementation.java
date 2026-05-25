@@ -7,9 +7,8 @@ import com.laetienda.lib.options.*;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
-import com.laetienda.model.schema.DbGroup;
+import com.laetienda.utils.lib.Attention;
 import com.laetienda.utils.service.api.ApiSchema;
-import com.laetienda.utils.service.api.ApiSchemaGroup;
 import com.laetienda.utils.service.api.ApiUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -120,9 +119,31 @@ public class CompanyServiceImplementation implements CompanyService{
     }
 
     @Override
-    public Company findByName(String name) throws NotValidCustomException {
+    public Company findByName(String name) {
         log.debug("COMPANY_SERVICE::findByName. $name: {}", name);
         return repo.findByName(name);
+    }
+
+    @Override
+    public Company findByVanityUrl(String vanityUrl) throws HttpStatusCodeException {
+        log.debug("SERVICE_COMPANY::findByVanityUrl | $vanityUrl: {}", vanityUrl);
+        return repo.findByVanityUrl(vanityUrl);
+    }
+
+    @Override
+    public List<Company> findAll(Map<String, String> params) throws HttpStatusCodeException {
+        log.debug("SERVICE_COMPANY::findAll");
+
+        if(params != null && !params.isEmpty()) {
+            params.forEach((key, v) -> {
+                if (!List.of("manager", "owner", "member").contains(key)) {
+                    log.warn("SERVICE_COMPANY::findAll | {}", Attention.INVALID_PARAM.getError(key));
+                    throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, Attention.INVALID_PARAM.getMessage(key));
+                }
+            });
+        }
+
+        return repo.findAll(params);
     }
 
     @Override
@@ -237,7 +258,7 @@ public class CompanyServiceImplementation implements CompanyService{
     }
 
     @Override
-    public List<Member> findAllMembers(Long cid) throws NotValidCustomException {
+    public List<Member> findAllMembers(Long cid) {
         log.debug("COMPANY_SERVICE::findAllMembers. $cid: {}", cid);
         return repo.findAllMembers(cid);
     }
@@ -246,7 +267,7 @@ public class CompanyServiceImplementation implements CompanyService{
     public Member updateMember(Member member) throws NotValidCustomException {
         log.debug("COMPANY_SERVICE::updateMember. $memberId: {}", member.getId());
 
-        Member temp = apiSchema.findById(Member.class, member.getId()).getBody();
+        Member temp = apiSchema.findById(Member.class, member.getId());
         String currentUserId = apiUser.getCurrentUserId();
 
         if(temp == null){
@@ -398,36 +419,9 @@ public class CompanyServiceImplementation implements CompanyService{
         Member member = findMemberIfInvalidThrowException(temp, userId);
 
         return repo.addManager(member);
-
-//        String currentUserId = apiUser.getCurrentUserId();
-
-//        DbGroup managers = getManagersGroup(temp);
-//        apiSchemaGroup.addMember(managers.getId(), userId);
-
-//        if(!isCompanyManager(currentUserId, temp)){
-//            String message = String.format("User, %s, is not manager or owner of the company.", currentUserId);
-//            log.warn("COMPANY_SERVICE::addManager. {}", message);
-//            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, message);
-//        }
-
-//        if(!isValidMember(temp, userId)){
-//            String m = "User is not valid member of the company." +
-//                    " | $company: %s" +
-//                    " | $userId: %s";
-//            String mess = String.format(m, temp.getName(), userId);
-//            log.warn("COMPANY_SERVICE::addManager. {}", mess);
-//            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, mess);
-//        }
-
-//        if(managers.getMembers().contains(userId)){
-//            String message = String.format("User, %s, is already manager of the company.", userId);
-//            log.info("COMPANY_SERVICE::addManager. {}", message);
-//            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, message);
-//        }
-//        return repo.find(temp.getId());
     }
 
-    private Boolean isCompanyNameValid(String value) throws NotValidCustomException{
+    private Boolean isCompanyNameValid(String value){
         log.debug("COMPANY_SERVICE::isCompanyNameValid. $companyName: {}", value);
 
         try{
@@ -442,7 +436,7 @@ public class CompanyServiceImplementation implements CompanyService{
         }
     }
 
-    private void modifyCompanyOwner(Company temp, Company company) throws NotValidCustomException {
+    private void modifyCompanyOwner(Company temp, Company company) {
 
         String newOwnerUserId = company.getOwner();
         List<Member> members = findAllMembers(temp.getId());
@@ -511,7 +505,7 @@ public class CompanyServiceImplementation implements CompanyService{
         }
     }
 
-    private boolean isCompanyManager(String currentUserId, Company company){
+    private boolean isCompanyManager(String currentUserId, Company company) throws HttpStatusCodeException{
         if(!isValidMember(company, currentUserId))
             return false;
 
@@ -549,17 +543,17 @@ public class CompanyServiceImplementation implements CompanyService{
         return result;
     }
 
-    private boolean isValidMember(Company comp, String userId){
+    private boolean isValidMember(Company comp, String userId)throws HttpStatusCodeException{
 
-        try {
+//        try {
             List<Member> members = repo.findMemberByUserId(comp.getId(), userId);
 
             if (members == null || members.size() != 1)
                 return false;
 
             return members.getFirst().getStatus().equals(CompanyMemberStatus.ACCEPTED);
-        }catch(HttpStatusCodeException e){
-            return false;
-        }
+//        }catch(HttpStatusCodeException e){
+//            return false;
+//        }
     }
 }

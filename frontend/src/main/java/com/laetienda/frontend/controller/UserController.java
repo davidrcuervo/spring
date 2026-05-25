@@ -2,7 +2,7 @@ package com.laetienda.frontend.controller;
 
 import com.laetienda.frontend.service.FrontendUserService;
 import com.laetienda.frontend.repository.FormRepository;
-import com.laetienda.frontend.service.ThankyouPageService;
+import com.laetienda.frontend.service.ThankYouPageService;
 import com.laetienda.model.kc.KcUser;
 import com.laetienda.utils.service.RestClientService;
 import com.laetienda.model.user.Usuario;
@@ -23,7 +23,7 @@ public class UserController {
     private final RestClient client;
 
     @Autowired private FormRepository formRepository;
-    @Autowired private ThankyouPageService thankYouService;
+    @Autowired private ThankYouPageService thankYouService;
     @Autowired private RestClientService restClientService;
     @Autowired private Environment env;
     @Autowired private FrontendUserService service;

@@ -17,7 +17,8 @@ public class RestClientConfiguration {
             OAuth2AuthorizedClientManager authorizedClientManager,
             CustomRestClient customRestClient
     ){
-        OAuth2ClientHttpRequestInterceptor interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
+        OAuth2ClientHttpRequestInterceptor interceptor =
+                new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
 
         return builder
                 .requestInterceptor(customRestClient.oauth2Interceptor(authorizedClientManager))

@@ -95,6 +95,26 @@ public abstract class ApiRestClientImplementation implements ApiRestClient {
     }
 
     @Override
+    public <T extends DbItem> T post(
+        Class<T> responseType,
+        Map<String, String> params,
+        Consumer<Map<String, Object>> attrs,
+        String address,
+        Object... uriVariables
+    ) throws HttpStatusCodeException{
+
+        return client.post()
+                .uri(address, uriVariables)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .attributes(attrs != null ? attrs : a -> {})
+                .body(params)
+                .retrieve()
+                .toEntity(responseType)
+                .getBody();
+    }
+
+    @Override
     public String post(
             String jsonBody,
             Consumer<Map<String, Object>> attrs,

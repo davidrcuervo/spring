@@ -1,6 +1,7 @@
 package com.laetienda.webapp_test.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.lib.UtilsBoxImplementation;
 import com.laetienda.utils.service.api.*;
@@ -17,17 +18,20 @@ public class WebappTestConfiguration {
     private final ObjectMapper json;
     private final Environment env;
     private final OAuth2AuthorizedClientManager authorizedClientManager;
+    private final ToolBoxService tb;
 
     public WebappTestConfiguration(
             RestClient restClient,
             Environment env,
             ObjectMapper json,
-            OAuth2AuthorizedClientManager authorizedClientManager
+            OAuth2AuthorizedClientManager authorizedClientManager,
+            ToolBoxService toolBoxService
     ){
         this.httpClient = restClient;
         this.json = json;
         this.env = env;
         this.authorizedClientManager = authorizedClientManager;
+        this.tb = toolBoxService;
     }
 
     @Bean
@@ -42,7 +46,7 @@ public class WebappTestConfiguration {
 
     @Bean
     public ApiSchema getApiSchema(){
-        return new ApiSchemaImplementation(httpClient);
+        return new ApiSchemaImplementation(httpClient, json, tb);
     }
 
     @Bean

@@ -104,13 +104,13 @@
             <div id="createCompanyGeneralValidation"
                  class="alert alert-danger col-12 offset-md-2 col-md-10 mt-1"
                  role="alert"
-                 th:if="${#fields.hasGlobalErrors()}"
+                 th:if="${#fields.hasErrors('global')}"
             >
                 <div>
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <span>Failed to create company.</span>
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>Failed to create company.</span>
                 </div>
-                <span th:each="error : ${#fields.globalErrors()}"
+                <span th:each="error : ${#fields.errors('global')}"
                       th:text="${error}"
                 ></span> &nbsp;
             </div>

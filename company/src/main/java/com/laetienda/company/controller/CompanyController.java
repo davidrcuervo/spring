@@ -48,6 +48,18 @@ public class CompanyController {
         return ResponseEntity.ok(service.findByName(name));
     }
 
+    @GetMapping("${api.company.find.vanityUrl.file}") //api/v0/company/find/vanityUrl/{vanityUrl}
+    public ResponseEntity<Company> findByVanityUrl(@PathVariable String vanityUrl) throws NotValidCustomException {
+        log.info("CONTROLLER_COMPANY::findByVanityUrl | $vanityUrl: {}", vanityUrl);
+        return ResponseEntity.ok(service.findByVanityUrl(vanityUrl));
+    }
+
+    @GetMapping("${api.company.find.all.file}")
+    public ResponseEntity<List<Company>> findAll(@RequestParam Map<String, String> params) throws HttpStatusCodeException {
+        log.info("CONTROLLER_COMPANY::findAll");
+        return ResponseEntity.ok(service.findAll(params));
+    }
+
     @GetMapping("${api.company.policy.all.file}") //api/v0/company/policy/all
     public ResponseEntity<List<CompanyMemberPolicy>> getAllCompanyMemberPolicies() throws HttpStatusCodeException {
         log.info("CONTROLLER_COMPANY::getAllPolicies | ");

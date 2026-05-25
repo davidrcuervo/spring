@@ -1,6 +1,8 @@
 package com.laetienda.company.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.service.ToolBoxService;
+import com.laetienda.lib.service.ToolBoxServiceImpl;
 import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.lib.UtilsBoxImplementation;
 import com.laetienda.utils.service.api.*;
@@ -31,8 +33,13 @@ public class CompanyConfiguration {
     }
 
     @Bean
-    public ApiSchema getApiSchema(){
-        return new ApiSchemaImplementation(client);
+    public ToolBoxService getToolBoxService() {
+        return new ToolBoxServiceImpl();
+    }
+
+    @Bean
+    public ApiSchema getApiSchema(ToolBoxService tb) {
+        return new ApiSchemaImplementation(client, json, tb);
     }
 
     @Bean

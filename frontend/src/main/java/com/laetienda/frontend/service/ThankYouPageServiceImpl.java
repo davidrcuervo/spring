@@ -10,14 +10,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpSession;
 
-public class ThankyouPageServiceImpl implements ThankyouPageService{
-    final private static Logger log = LoggerFactory.getLogger(ThankyouPageServiceImpl.class);
+public class ThankYouPageServiceImpl implements ThankYouPageService {
+    final private static Logger log = LoggerFactory.getLogger(ThankYouPageServiceImpl.class);
 
     @Autowired
     private HttpSession session;
     private ThankyouPageRepository repository;
 
-    public ThankyouPageServiceImpl(ThankyouPageRepository repo){
+    public ThankYouPageServiceImpl(ThankyouPageRepository repo){
         repository = repo;
     }
 
@@ -31,7 +31,7 @@ public class ThankyouPageServiceImpl implements ThankyouPageService{
 
     @Override
     public ThankyouPage set(ThankyouPage entity) {
-        log.debug("Adding thankyou page key to session attribures. $key: {}", entity.getKey());
+        log.debug("Adding thank you page key to session attributes. $key: {}", entity.getKey());
         session.setAttribute(entity.getKey(), entity);
         return entity;
     }
@@ -41,9 +41,9 @@ public class ThankyouPageServiceImpl implements ThankyouPageService{
         ThankyouPage result = (ThankyouPage) session.getAttribute(key);
 
         if(result == null){
-//            log.debug("There is no thankyou page token in session attributes. $key: {}", key);
+//            log.debug("There is no thank you page token in session attributes. $key: {}", key);
         }else{
-//            log.debug("Getting thankyou page attribute. $key: {}", result.getKey());
+//            log.debug("Getting thank you page attribute. $key: {}", result.getKey());
             session.removeAttribute(key);
         }
 

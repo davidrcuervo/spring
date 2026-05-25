@@ -2,14 +2,10 @@ package com.laetienda.schema.controller;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
-import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.schema.service.ItemService;
-import com.laetienda.utils.service.api.UserApiDeprecated;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,16 +40,16 @@ public class SchemaController {
     @PostMapping("${api.schema.login.file}")
     public ResponseEntity<String> login(Principal principal){
         log.debug("SCHEMA_CONTROLLER::login: {}", principal.getName());
-        return ResponseEntity.ok("Succesfull log in by " + principal.getName());
+        return ResponseEntity.ok("Successfully log in by " + principal.getName());
     }
 
     @PostMapping("${api.schema.create.file}")
-    public <T> ResponseEntity<T> create(@RequestParam(required = true) String clase, @RequestBody String data) throws NotValidCustomException{
+    public ResponseEntity<? extends DbItem> create(@RequestParam String clase, @RequestBody String data) throws NotValidCustomException{
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::create $clazzName: {}", clazzName);
 
         try {
-            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             return ResponseEntity.ok(itemService.create(clazz, data));
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage());
@@ -66,11 +62,12 @@ public class SchemaController {
     }
 
     @PostMapping("${api.schema.find.file}")
-    public <T> ResponseEntity<T> find(@RequestParam String clase, @RequestBody Map<String, String> body) throws NotValidCustomException{
+    public ResponseEntity<? extends DbItem> find(@RequestParam String clase, @RequestBody Map<String, String> body) throws NotValidCustomException{
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::find $clazzName: {}", clazzName);
+
         try {
-            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             return ResponseEntity.ok(itemService.find(clazz, body));
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage());
@@ -80,12 +77,12 @@ public class SchemaController {
     }
 
     @GetMapping("${api.schema.findById.file}")
-    public <T> ResponseEntity<T> findById(@RequestParam String clase, @PathVariable Long id) throws NotValidCustomException {
+    public ResponseEntity<? extends DbItem> findById(@RequestParam String clase, @PathVariable Long id) throws NotValidCustomException {
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::findById $clazzName: {}, $id: {}", clazzName, id);
 
         try {
-            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             return ResponseEntity.ok(itemService.findById(clazz, id));
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage());
@@ -95,13 +92,16 @@ public class SchemaController {
     }
 
     @GetMapping("${api.schema.findAll.file}") //api/v0/schema/find/all?clazzNameEncoded={clazzName}
-    public ResponseEntity<List<? extends DbItem>> findAll(@RequestParam String clazzNameEncoded) throws HttpStatusCodeException {
+    public ResponseEntity<List<? extends DbItem>> findAll(
+            @RequestParam String clazzNameEncoded,
+            @RequestParam(required = false) Map<String, String> params
+    ) throws HttpStatusCodeException {
         String clazzName = new String(Base64.getUrlDecoder().decode(clazzNameEncoded.getBytes()), StandardCharsets.UTF_8);
         log.info("SCHEMA_CONTROLLER::findAll $clazzName: {}", clazzName);
 
         try {
             Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
-            return ResponseEntity.ok(itemService.findAll(clazz));
+            return ResponseEntity.ok(itemService.findAll(clazz, params));
         } catch (ClassNotFoundException | LinkageError | ClassCastException e) {
             log.warn("SCHEMA_CONTROLLER::findAll $error: {}", e.getMessage());
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -116,12 +116,12 @@ public class SchemaController {
     }
 
     @PutMapping("${api.schema.update.file}")
-    public <T> ResponseEntity<T> update(@RequestParam String clase, @RequestBody String data) throws NotValidCustomException {
+    public ResponseEntity<? extends DbItem> update(@RequestParam String clase, @RequestBody String data) throws NotValidCustomException {
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::update $clazzName: {}", clazzName);
 
         try{
-            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             return ResponseEntity.ok(itemService.update(clazz, data));
         }catch (ClassNotFoundException e){
             log.error(e.getMessage());
@@ -136,7 +136,7 @@ public class SchemaController {
         log.debug("SCHEMA_CONTROLLER::delete $clazzName: {}", clazzName);
 
         try {
-            Class<?> clazz = Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             itemService.delete(clazz, body);
             return ResponseEntity.noContent().build();
         } catch (ClassNotFoundException e) {
@@ -152,7 +152,7 @@ public class SchemaController {
         log.debug("SCHEMA_CONTROLLER::deleteById $clazzName: {}, $id: {}", clazzName, id);
 
         try {
-            Class clazz = Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             itemService.deleteById(clazz, id);
             return ResponseEntity.noContent().build();
         } catch (ClassNotFoundException e) {
@@ -163,12 +163,12 @@ public class SchemaController {
     }
 
     @PostMapping("${api.schema.findByQuery.file}") //api/v0/schema/findByQuery?clase={clazzEncoded}
-    public <T> ResponseEntity<List<T>> findByQuery(@RequestParam(required = true) String clase, @RequestBody Map<String, String> body) throws NotValidCustomException{
+    public ResponseEntity<List<? extends DbItem>> findByQuery(@RequestParam() String clase, @RequestBody Map<String, String> body) throws NotValidCustomException{
         String clazzName = new String(Base64.getUrlDecoder().decode(clase.getBytes()), StandardCharsets.UTF_8);
         log.debug("SCHEMA_CONTROLLER::findByQuery $clazzName: {}", clazzName);
 
         try{
-            Class clazz = Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             return ResponseEntity.ok(itemService.findByQuery(clazz, body));
         }catch(ClassNotFoundException e){
             log.error(e.getMessage());

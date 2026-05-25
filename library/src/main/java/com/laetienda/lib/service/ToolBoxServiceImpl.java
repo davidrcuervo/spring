@@ -1,9 +1,7 @@
 package com.laetienda.lib.service;
 
-import org.jasypt.encryption.StringEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +9,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -25,6 +26,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class ToolBoxServiceImpl implements ToolBoxService {
@@ -146,6 +149,22 @@ public class ToolBoxServiceImpl implements ToolBoxService {
                     .map(GrantedAuthority::getAuthority)
                     .anyMatch(aut -> aut.equals(authority));
         }
+    }
+
+    @Override
+    public String setAddressParams(Map<String, String> params, String address, Object... uriComponents) {
+
+        if(params == null) {
+            params = new HashMap<>();
+        }
+
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.setAll(params);
+
+        return UriComponentsBuilder.fromUriString(address)
+                .queryParams(queryParams)
+                .buildAndExpand(uriComponents)
+                .toUriString();
     }
 
     public static void main(String args[]){

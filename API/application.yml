@@ -29,6 +29,15 @@ seo:
     test:
       file: /test.html
       path: ${seo.manage.folder}${seo.manage.test.file}
+  thankYou:
+    folder: /thankYou
+    company:
+      folder: ${seo.thankYou.folder}/company
+      create: ##/thankYou/company/create.html?element={element}
+        path: ${seo.thankYou.company.folder}/create.html
+        uri: ${seo.thankYou.company.create.path}?element={element}
+  company:
+    file: /{vanityUrl}.html
 
 api:
   kc:
@@ -142,20 +151,7 @@ api:
       file: isItemValid/{id}
       uri: ${api.schema.uri}/${api.schema.isItemValid.file}?clase={clazzName}
 
-    findAll:
-    # ACTION: Find all items where that user can read
-    # METHOD: GET
-    # QUERY PARAMETERS:
-    # - clazzName: Name of class encoded with Base64
-    # ON SUCCESS:
-    # - Code: 200
-    # - Body: List<T>
-    # ERRORS:
-    # - 400:
-    # - 401:
-    # - 403:
-    # - 404:
-    # - 500:
+    findAll: #METHOD: get | BODY: null | CODE: 200 | RESPO: List<T> | Params: owner, editor, reader
       file: find/all
       path: ${api.schema.findAll.file}?clazzNameEncoded={clazzName}
       uri: ${api.schema.uri}/${api.schema.findAll.path}
@@ -254,6 +250,12 @@ api:
     find: # METHOD: get | BODY: null | CODE: 200 | RESP: Company.class
       file: find/{id}
       uri: ${api.company.uri}/${api.company.find.file}
+      vanityUrl:
+        file: /find/vanityUrl/{vanityUrl}
+        uri: ${api.company.uri}${api.company.find.vanityUrl.file}
+      all: #METHOD: get | BODY: null | CODE: 200 | RESPO: List<Company.class> | Params: manger, owner, member
+        file: /find/all # /api/v0/company/find/all?manager={userId}&owner={userId}}
+        uri: ${api.company.uri}${api.company.find.all.file}
     findByName: # METHOD: get | BODY: null | CODE: 200 | RESP: Company.class
       file: findByName/{name}
       uri: ${api.company.uri}/${api.company.findByName.file}

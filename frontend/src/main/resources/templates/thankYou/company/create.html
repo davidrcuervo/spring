@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}"
+>
+<head>
+    <title>Create company</title>
+</head>
+<body>
+    <main layout:fragment="content" class="container mb-5">
+        <h1 class="text-center">Thank You!!!</h1>
+        <h3 class="text-center">Company has been created successfully!!</h3>
+        <p class="text-center">
+            The company <span th:text="${company.name}">Name</span> has been just created.
+        </p>
+
+        <div class="d-grid gap-2 col-6 mx-auto">
+            <a th:href="@{${@comp.href(company.vanityUrl)}}" class="btn btn-primary" role="button">
+                <span th:text="${company.name}">
+                    Company Name
+                </span>
+            </a>
+        </div>
+    </main>
+</body>

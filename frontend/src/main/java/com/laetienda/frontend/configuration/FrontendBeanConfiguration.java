@@ -5,8 +5,10 @@ import com.laetienda.frontend.repository.FormRepository;
 import com.laetienda.frontend.repository.FormRepositoryImpl;
 import com.laetienda.frontend.repository.ThankyouPageRepoImpl;
 import com.laetienda.frontend.repository.ThankyouPageRepository;
-import com.laetienda.frontend.service.ThankyouPageService;
-import com.laetienda.frontend.service.ThankyouPageServiceImpl;
+import com.laetienda.frontend.service.ThankYouPageService;
+import com.laetienda.frontend.service.ThankYouPageServiceImpl;
+import com.laetienda.lib.service.ToolBoxService;
+import com.laetienda.lib.service.ToolBoxServiceImpl;
 import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.lib.UtilsBoxImplementation;
 import com.laetienda.utils.service.RestClientService;
@@ -59,8 +61,8 @@ public class FrontendBeanConfiguration {
 	}
 
 	@Bean
-	public ThankyouPageService getThankyouPageService(){
-		return new ThankyouPageServiceImpl(getThankyouPageRepository());
+	public ThankYouPageService getThankyouPageService(){
+		return new ThankYouPageServiceImpl(getThankyouPageRepository());
 	}
 
 	@Bean
@@ -77,6 +79,11 @@ public class FrontendBeanConfiguration {
 	public ApiCompany getApiCompany() {
 		return new ApiCompanyImplementation(client);
 	}
+
+    @Bean
+    public ToolBoxService getToolBoxService(){
+        return new ToolBoxServiceImpl();
+    }
 
 	@Bean
 	public UtilsBox getUtilsBox(ApiUser apiUser) {

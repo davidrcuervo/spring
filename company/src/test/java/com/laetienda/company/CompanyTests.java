@@ -1,7 +1,6 @@
 package com.laetienda.company;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.laetienda.company.repository.CompanyRepository;
 import com.laetienda.lib.options.CompanyFriendStatus;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
@@ -716,6 +715,35 @@ class CompanyTests {
         assertTrue(result.stream().anyMatch(policy -> pub.getLabel().equals(policy.getLabel())));
         assertTrue(result.stream().anyMatch(policy -> reg.getLabel().equals(policy.getLabel())));
         assertTrue(result.stream().anyMatch(policy -> auth.getLabel().equals(policy.getLabel())));
+    }
+
+    @Test
+    public void findAll() throws Exception {
+        Company comp1 = repo.create("Test Company - Find All - 1", "tc-fa1", CompanyMemberPolicy.PUBLIC, USERS[1]);
+        Company comp2 = repo.create("Test Company - Find All - 2", "tc-fa2", CompanyMemberPolicy.PUBLIC, USERS[2]);
+        Company comp3 = repo.create("Test Company - Find All - 3", "tc-fa3", CompanyMemberPolicy.PUBLIC, USERS[3]);
+
+        Member memb21 = repo.addMember(comp2.getId(), USERS[1].getUserId(), USERS[1].getToken());
+        Member memb31 = repo.addMember(comp3.getId(), USERS[1].getUserId(), USERS[1].getToken());
+
+        memb21.setStatus(CompanyMemberStatus.ACCEPTED);
+        memb31.setStatus(CompanyMemberStatus.ACCEPTED);
+
+        memb21 = repo.updateMember(memb21, USERS[2].getToken());
+        memb31 = repo.updateMember(memb31, USERS[3].getToken());
+
+        repo.addManager(comp2.getId(), memb21.getUserId(), USERS[2].getToken());
+
+        List<Company> all = repo.findAll(Map.of("manager", ""), USERS[1].getToken());
+        assertNotNull(all);
+        assertEquals(2, all.size());
+        assertTrue(all.stream().anyMatch(company -> comp1.getId().equals(company.getId())));
+        assertTrue(all.stream().anyMatch(company -> comp2.getId().equals(company.getId())));
+        assertTrue(all.stream().noneMatch(company -> comp3.getId().equals(company.getId())));
+
+        repo.deleteCompany(comp1.getId(), USERS[1].getToken());
+        repo.deleteCompany(comp2.getId(), USERS[2].getToken());
+        repo.deleteCompany(comp3.getId(), USERS[3].getToken());
     }
 
     private Company getNewCompany(

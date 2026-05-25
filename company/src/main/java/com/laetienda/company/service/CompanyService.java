@@ -2,7 +2,6 @@ package com.laetienda.company.service;
 
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CompanyMemberPolicy;
-import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import jakarta.validation.Valid;
@@ -16,6 +15,8 @@ public interface CompanyService {
     Long isCompanyValid(String companyId) throws HttpStatusCodeException;
     Company find(String id) throws NotValidCustomException;
     Company findByName(String name) throws NotValidCustomException;
+    Company findByVanityUrl(String vanityUrl) throws HttpStatusCodeException;
+    List<Company> findAll(Map<String, String> params) throws HttpStatusCodeException;
     Company updateName(String companyId, String value) throws NotValidCustomException;
     Company updateDescription(String companyId, String value)  throws NotValidCustomException;
     Company updateCompanyContent(String companyId, Map<String, String> body) throws HttpStatusCodeException;
@@ -28,4 +29,5 @@ public interface CompanyService {
     List<Member> findAllMembers(Long cid) throws NotValidCustomException;
     Member updateMember(@Valid Member member) throws NotValidCustomException;
     List<CompanyMemberPolicy> getAllCompanyMemberPolicies() throws HttpStatusCodeException;
+
 }

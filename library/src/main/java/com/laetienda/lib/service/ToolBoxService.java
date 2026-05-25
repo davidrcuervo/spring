@@ -3,6 +3,8 @@ package com.laetienda.lib.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.Map;
+
 @Service
 public interface ToolBoxService {
     public String newToken(int length);
@@ -13,4 +15,5 @@ public interface ToolBoxService {
     public RestClient getHttpClient(String username, String password);
     public String getCurrentUsername();
     boolean hasAuthority(String authority);
+    String setAddressParams(Map<String, String> params, String address, Object... uriComponents);
 }

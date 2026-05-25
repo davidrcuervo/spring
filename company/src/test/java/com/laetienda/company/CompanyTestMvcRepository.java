@@ -4,10 +4,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,14 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Component
 public class CompanyTestMvcRepository {
-
-    @Autowired MockMvc mvc;
-    @Autowired ObjectMapper json;
 
     @Value("${api.company.create.uri}")
     protected String createCompanyUri;
@@ -36,6 +34,9 @@ public class CompanyTestMvcRepository {
 
     @Value("${api.company.find.uri}")
     protected String apiCompanyFindUri;
+
+    @Value("${api.company.find.all.uri}")
+    private String findAllUri;
 
     @Value("${api.company.update.uri.name}")
     protected String updateCompanyNameUri;
@@ -58,8 +59,28 @@ public class CompanyTestMvcRepository {
     @Value("${api.company.member.delete.uri}")
     protected String apiCompanyMemberDeleteUri;
 
+    @Value("${api.company.manager.uri.add}")
+    protected String addManagerUri;
+
+    @Value("${api.company.manager.uri.remove}")
+    private String removeManagerUri;
+
     @Value("${api.company.policy.all.uri}")
     protected String apiCompanyPolicyAllUri;
+
+    private final MockMvc mvc;
+    private final ObjectMapper json;
+    private final ToolBoxService tb;
+
+    CompanyTestMvcRepository(
+            MockMvc mockMvc,
+            ObjectMapper objectMapper,
+            ToolBoxService toolBoxService
+    ){
+        this.mvc = mockMvc;
+        this.json = objectMapper;
+        this.tb = toolBoxService;
+    }
 
     Company create (
             String companyName,
@@ -89,6 +110,16 @@ public class CompanyTestMvcRepository {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk()).andReturn();
         return json.readValue(resp.getResponse().getContentAsString(), Company.class);
+    }
+
+    public List<Company> findAll(Map<String, String> params, String token) throws Exception{
+        String address = tb.setAddressParams(params, findAllUri);
+        MvcResult resp = mvc.perform(get(address)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        ).andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), new TypeReference<>(){});
     }
 
     public void deleteCompany(Long id, String token) throws Exception {
@@ -147,6 +178,35 @@ public class CompanyTestMvcRepository {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isNoContent());
 
+    }
+
+    public Company addManager(long companyId, String userId, String token) throws Exception {
+        MvcResult resp = mvc.perform(put(addManagerUri, companyId, userId)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Company result = json.readValue(resp.getResponse().getContentAsString(), Company.class);
+        assertNotNull(result);
+        assertTrue(result.getEditorGroups().stream().anyMatch(g -> g.getMembers().contains(userId)));
+
+        return result;
+    }
+
+    public Company removeManager(long companyId, String userId, String token) throws Exception {
+        MvcResult resp = mvc.perform(delete(removeManagerUri, companyId, userId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Company result = json.readValue(resp.getResponse().getContentAsString(), Company.class);
+        assertNotNull(result);
+        assertTrue(result.getEditorGroups().stream().noneMatch(g -> g.getMembers().contains(userId)));
+
+        return result;
     }
 
     public List<InputOptions> getAllCompanyMemberPolicies(String token) throws Exception{

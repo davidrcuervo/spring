@@ -7,6 +7,7 @@ import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.schema.repository.SchemaRepository;
+import com.laetienda.utils.lib.Attention;
 import com.laetienda.utils.service.api.ApiUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -25,13 +26,6 @@ import java.util.Map;
 @Service
 public class ItemServiceImplementation implements ItemService{
     private final static Logger log = LoggerFactory.getLogger(ItemServiceImplementation.class);
-
-//    @Autowired private ItemRepository itemRepo;
-//    @Autowired private HttpServletRequest request;
-//    @Autowired private ApiUser apiUser;
-//    @Autowired private ObjectMapper jsonMapper;
-//    @Autowired private SchemaRepository schemaRepo;
-//    @Autowired private ToolBoxService tb;
 
     private final ItemRepository itemRepo;
     private final SchemaRepository schemaRepo;
@@ -145,11 +139,21 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     @Override
-    public List<? extends DbItem> findAll(Class<? extends DbItem> clazz) throws HttpStatusCodeException {
+    public List<? extends DbItem> findAll(
+            Class<? extends DbItem> clazz,
+            Map<String, String> params
+    ) throws HttpStatusCodeException {
         String userId = request.getUserPrincipal().getName();
         log.debug("ITEM_SERVICE::findAll $clazzName: {} | $userId: {}", clazz.getName(), userId);
 
-        return schemaRepo.findAll(clazz).stream()
+        params.forEach((key, value) -> {
+            if(!List.of("editor", "reader", "owner", "clazzNameEncoded").contains(key)){
+                log.warn("SERVICE_ITEM::findAll | {}", Attention.INVALID_PARAM.getError(key));
+                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, Attention.INVALID_PARAM.getMessage(key));
+            }
+        });
+
+        return schemaRepo.findAll(clazz, params, userId).stream()
                 .filter(item -> canRead(item, userId))
                 .toList();
     }
@@ -258,7 +262,7 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     @Override
-    public Boolean deleteUserById(String userId) throws NotValidCustomException {
+    public void deleteUserById(String userId) throws NotValidCustomException {
         log.debug("ITEM_SERVICE::deleteUserById. $userId: {}", userId);
         String loggedUserId = request.getUserPrincipal().getName();
 
@@ -274,7 +278,7 @@ public class ItemServiceImplementation implements ItemService{
             if(itemsByOwner.isEmpty()){
 
                 //It is allowed to remove user from editors and readers
-                return schemaRepo.deleteUserById(userId);
+                schemaRepo.deleteUserById(userId);
 
             }else{
                 String message = String.format("User, %s, is owner of database items and can't be removed", userId);
@@ -290,20 +294,20 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     @Override
-    public <T> Long isItemValid(String itemId, String clazzName) throws NotValidCustomException {
+    public Long isItemValid(String itemId, String clazzName) throws NotValidCustomException {
         log.debug("SCHEMA_SERVICE::isItemValid. $id: {} | clazzName: {}", itemId, clazzName);
 
         try{
-            Class<T> clazz = (Class<T>) Class.forName(clazzName);
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
             Long id = Long.parseLong(itemId);
-            T item = schemaRepo.findById(id, clazz);
+            DbItem item = schemaRepo.findById(id, clazz);
 
             if(item == null){
-                String message = String.format("SCHEMA_SERVICE::isItemValid. Item not found. $id: {} | $clazz: {}", id, clazz.getName());
+                String message = String.format("SCHEMA_SERVICE::isItemValid. Item not found. $id: %d | $clazz: %s", id, clazz.getName());
                 log.warn(message);
                 throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
             }else{
-                return ((DbItem)item).getId();
+                return item.getId();
             }
 
         }catch(ClassNotFoundException c) {
@@ -321,7 +325,7 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     @Override
-    public <T> List<T> findByQuery(Class clazz, Map<String, String> body) throws NotValidCustomException {
+    public <T> List<T> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("SCHEMA_SERVICE::findByQuery. $clazz: {}", clazz.getName());
         body.forEach((String key, String value) -> {
             log.trace("SCHEMA_SERVICE::findByQuery. ${} -> {}", key, value);

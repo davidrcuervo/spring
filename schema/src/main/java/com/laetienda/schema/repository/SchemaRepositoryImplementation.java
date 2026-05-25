@@ -92,15 +92,61 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
     }
 
     @Override
-    public List<? extends DbItem> findAll(Class<? extends DbItem> clazz) throws HttpServerErrorException {
+    public List<? extends DbItem> findAll(
+            Class<? extends DbItem> clazz,
+            Map<String, String> params,
+            String currentUserId
+    ) throws HttpServerErrorException {
         log.debug("SCHEMA_REPO::findAll $clazzName: {}", clazz.getName());
 
-        String query = String.format("SELECT t FROM %s t", clazz.getName());
-        log.trace("SCHEMA_REPO::findAll $query: {}", query);
+        String query = getQuery(clazz, params, currentUserId);
 
         TypedQuery<? extends DbItem> jpaQuery = em.createQuery(query, clazz);
-
         return jpaQuery.getResultList();
+    }
+
+    private String getQuery(
+            Class<? extends DbItem> clazz,
+            Map<String, String> params,
+            String currentUserId
+    ){
+        StringBuilder query = new StringBuilder(
+                String.format("SELECT DISTINCT t FROM %s t ", clazz.getName())
+        );
+        query.append("LEFT JOIN t.readers r ");
+        query.append("LEFT JOIN t.readerGroups rg ");
+        query.append("LEFT JOIN rg.members rgm ");
+        query.append("LEFT JOIN t.editors e ");
+        query.append("LEFT JOIN t.editorGroups eg ");
+        query.append("LEFT JOIN eg.members egm ");
+        query.append(
+                "WHERE (rgm = '%s' OR r = '%s' OR egm = '%s' OR e = '%s' OR t.owner = '%s') "
+                        .replace("%s", currentUserId)
+        );
+
+        if(params.containsKey("owner")){
+            String value = params.get("owner");
+            query.append("AND (t.owner = '{userId}') "
+                    .replace("{userId}", value.isEmpty() ? currentUserId : value));
+        }
+
+        if(params.containsKey("editor")){
+            String value = params.get("editor");
+            query.append(
+                    "AND (t.owner = '{uid}' OR e = '{uid}' OR egm = '{uid}') "
+                    .replace("{uid}", value.isEmpty() ? currentUserId : value)
+            );
+        }
+
+        if(params.containsKey("reader")){
+            String value = params.get("reader");
+            query.append(
+                    "AND (t.owner = '{uid}' OR e = '{uid}' OR egm = '{uid}' OR r = '{uid}' OR rgm = '{uid}') "
+                    .replace("{uid}", value.isEmpty() ? currentUserId : value)
+            );
+        }
+
+        return query.toString();
     }
 
     @Override

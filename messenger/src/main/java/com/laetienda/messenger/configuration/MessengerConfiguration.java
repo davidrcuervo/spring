@@ -1,19 +1,19 @@
 package com.laetienda.messenger.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.service.ToolBoxService;
+import com.laetienda.lib.service.ToolBoxServiceImpl;
 import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.ApiSchemaImplementation;
 import com.laetienda.utils.service.api.ApiUser;
 import com.laetienda.utils.service.api.ApiUserImplementation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-//import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClient;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.nio.charset.StandardCharsets;
 
@@ -35,8 +35,13 @@ public class MessengerConfiguration {
     }
 
     @Bean
-    public ApiSchema getApiSchema(){
-        return new ApiSchemaImplementation(client);
+    public ToolBoxService getToolBoxService(){
+        return new ToolBoxServiceImpl();
+    }
+
+    @Bean
+    public ApiSchema getApiSchema(ToolBoxService tb){
+        return new ApiSchemaImplementation(client, json, tb);
     }
 
     @Bean
