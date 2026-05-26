@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -75,9 +74,6 @@ class SchemaTests {
     @Value("${api.schema.find.uri}")
     private String findAddress;
 
-//	@LocalServerPort
-//	private int port;
-
 	@Test
 	void health() throws Exception {
 		String address = env.getProperty("api.actuator.health.path");
@@ -88,7 +84,6 @@ class SchemaTests {
 
 	@Test
 	void login() throws Exception {
-//		schemaTest.login();
 		String address = env.getProperty("api.schema.login.uri");
 		assertNotNull(address);
 		mvc.perform(post(address).with(jwt()))
@@ -97,8 +92,6 @@ class SchemaTests {
 
 	@Test
 	void cycle() throws Exception {
-//		schemaTest.cycle();
-//		String clazzName = Base64.getUrlEncoder().encodeToString(ItemTypeA.class.getName().getBytes(StandardCharsets.UTF_8));
 		ItemTypeA item = new ItemTypeA();
         item.setAddress("1453 Villeray");
         item.setAge(44);

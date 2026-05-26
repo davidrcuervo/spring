@@ -13,4 +13,6 @@ public interface FrontendCompanyService {
     String href(String vanityUrl);
     Company create(@Valid Company company, BindingResult bindingResult);
     List<Company> getAll();
+    List<Company> getAllManaged();
+    Company getCompanyByVanityUrl(String vanityUrl);
 }

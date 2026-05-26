@@ -66,7 +66,18 @@ public class FrontendCompanyServiceImplementation implements FrontendCompanyServ
     @Override
     public List<Company> getAll() {
         log.debug("SERVICE_COMPANY::getAll");
-        api.getAll();
-        return List.of();
+        return api.findAll(Map.of("member", ""));
+    }
+
+    @Override
+    public List<Company> getAllManaged(){
+        log.debug("SERVICE_COMPANY::getAllManaged");
+        return api.findAll(Map.of("manager", ""));
+    }
+
+    @Override
+    public Company getCompanyByVanityUrl(String vanityUrl) {
+        log.debug("SERVICE_COMPANY::getCompanyVanityUrl | $vanityUrl: {}", vanityUrl);
+        return api.findByVanityUrl(vanityUrl);
     }
 }

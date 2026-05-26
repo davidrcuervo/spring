@@ -10,8 +10,8 @@ import java.util.Map;
 public interface ItemService {
 
     <T> T create(Class<T> clazz, String data) throws NotValidCustomException;
-    <T> T find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
-    <T> T findById(Class<T> clazz, Long id) throws NotValidCustomException;
+    <T> T find(Class<T> clazz, Map<String, String> body) throws HttpStatusCodeException;
+    <T> T findById(Class<T> clazz, Long id) throws HttpStatusCodeException;
 
     List<? extends DbItem> findAll(
             Class<? extends DbItem> clazz,
@@ -25,4 +25,13 @@ public interface ItemService {
     Long isItemValid(String id, String clazzName) throws NotValidCustomException;
     <T> List<T> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException;
 
+    List<String> getReaders(
+            Class<? extends DbItem> clazz,
+            long itemId
+    ) throws HttpStatusCodeException;
+
+    List<String> getEditors(
+            Class<?  extends DbItem> clazz,
+            long itemId
+    ) throws HttpStatusCodeException;
 }

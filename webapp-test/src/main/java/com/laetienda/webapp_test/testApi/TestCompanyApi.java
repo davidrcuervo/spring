@@ -6,6 +6,7 @@ import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.List;
 import java.util.Map;
 
 public interface TestCompanyApi {
@@ -17,7 +18,11 @@ public interface TestCompanyApi {
 
     Company find(Long id, String token) throws HttpStatusCodeException, AssertionError;
 
+    List<Company> findAll(Map<String, String> params, String token) throws HttpStatusCodeException, AssertionError;
+
     Company findByName(String name, String token) throws HttpStatusCodeException, AssertionError;
+
+    Company findByVanityUrl(String vanityUrl, String token) throws HttpStatusCodeException;
 
     Company updateName(Long id, String newName, String token) throws HttpStatusCodeException, AssertionError;
 
@@ -34,6 +39,8 @@ public interface TestCompanyApi {
     Member updateMember(Member memb1, String token) throws HttpStatusCodeException, AssertionError;
 
     void deleteMember(Long id, String userId, String token) throws HttpStatusCodeException, AssertionError;
+
+    Company addManager(long companyId, String userId, String token) throws HttpStatusCodeException, AssertionError;
 
     void getAllCompanyMemberPolicies(String token) throws HttpStatusCodeException, AssertionError;
 }

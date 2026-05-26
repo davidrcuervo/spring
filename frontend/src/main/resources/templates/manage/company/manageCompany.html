@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/simple.html}"
+>
+    <head>
+        <title>Manage companies</title>
+    </head>
+    <body>
+        <main layout:fragment="content" class="container mb-5">
+            <h1 class="text-center my-2">Cortes de la Villa</h1>
+            <!-- Update Company name -->
+            <form th:action="@{${@tt.href('seo.manage.company.update.name', company.vanityUrl)}}"
+                  method="post"
+                  id="companyNameForm"
+            >
+                <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
+                    id='companyNameForm',
+                    type='text',
+                    label='Company Name',
+                    placeholder='Insert the name of the company.',
+                    value=${company.name},
+                    options=null,
+                    modalTitle='Update Company Name',
+                    modalBody='Are you sure you want to modify the name of the company?',
+                    onInputBefore=null,
+                    success=null,
+                    error=null
+                )}"></th:block>
+            </form>
+            <!-- Update company vanityUrl -->
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', 'vanityUrl', company.vanityUrl)}}"
+                  method="post"
+                  id="companyVanityUrlForm"
+            >
+                <div th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
+                    id='companyVanityUrl',
+                    type='text',
+                    label='Vanity URL',
+                    placeholder='How do you want your company to look like on internet.',
+                    value=${company.vanityUrl},
+                    options=null,
+                    modalTitle='Update Company Vanity URL',
+                    modalBody='Are you sure you want to modify your company vanity URL? Users will have to modify their bookmarks, and links on social networks should be updated.',
+                    onInputBefore=|${@tt.href('seo.url')}/|,
+                    success='This message should not be displayed',
+                    error='White spaces and symbols are forbidden, only alphanumeric characters are accepted'
+                )}"></div>
+            </form>
+            <!-- Update owner -->
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', 'owner', company.vanityUrl)}}"
+                  method="post"
+                  id="companyOwnerForm"
+            >
+                <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
+                    id='companyOwner',
+                    type='select',
+                    label='Owner',
+                    placeholder='Select the owner of the company.',
+                    value='Lyda Cortes',
+                    options=${ {'Lyda Cortes', 'Eliana Cortes', 'David Cuervo'} },
+                    modalTitle='Update Company Owner',
+                    modalBody='Are you sure you want other person the owns the company? You can not undo this modification, only owner can modify the owner.',
+                    onInputBefore=null,
+                    success='The owner of the company has been updated successfully!!',
+                    error=null
+                )}"></th:block>
+            </form>
+            <!-- Update Member policy -->
+            <form action="/manage/company/{companyId}/update/policy"
+                  method="post"
+                  id="companyPolicyForm"
+            >
+                <th:block th:replace="~{layout/bootstrap.html ::inputWithSaveButtonAndFeedbackAndResponsive(
+                    id = 'companyPolicy',
+                    type = 'select',
+                    label = 'Company policy',
+                    placeholder = 'Select the policy for new members of the company',
+                    value = 'PUBLIC',
+                    options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
+                    onInputBefore = null,
+                    attributes = null,
+                    success = null,
+                    error = 'Policy of company can not be modified.'
+                )}"></th:block>
+            </form>
+            <!-- Update description -->
+            <form action="/manage/company/{companyId}/update/description?redirect=/manage/company/{companyId}"
+                  method="post"
+            >
+                <th:block th:replace="~{layout/bootstrap.html ::inputWithSaveButtonAndFeedbackAndResponsive(
+                    id='updateCompanyDescription',
+                    type='textarea',
+                    label='Description',
+                    placeholder='Insert the description of the company.',
+                    value='Hostel to stay in Villa de Leyva. Next to the main park of the town.',
+                    options = null,
+                    onInputBefore=null,
+                    attributes = null,
+                    success=null,
+                    error='Description is to short'
+                )}"></th:block>
+            </form>
+            <!-- Members -->
+            <table class="table table-borderless table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Member name</th>
+                    <th scope="col" class="text-center">Manager</th>
+                    <th scope="col" class="text-center">Enabled</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr th:with="userId='user1'">
+                    <td th:text="${'Lyda Cortes'}">Member Name</td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/addManager/"
+                              method="post"
+                              class="checkBoxWithModal"
+                        >
+                            <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
+                                id = |${userId}ManagerCheckBoxInput|,
+                                type = checkbox,
+                                label = null,
+                                placeholder = null,
+                                value = ${userId},
+                                options = null,
+                                attributes = ${ {'checked'} },
+                                success = 'Manager added successfully',
+                                error = null
+                            )}"></th:block>
+                            <th:block th:replace="~{layout/bootstrap.html :: modal(
+                                id=|${userId}ManagerCheckBoxModal|,
+                                title='Modify company manager',
+                                body='You are about to modify manager of the company. Do you want to continue?'
+                            )}"></th:block>
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/blockUser/"
+                              method="post"
+                              class="checkBoxWithModal"
+                        >
+                            <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
+                                id = |${userId}AcceptMemberCheckBox|,
+                                type = checkbox,
+                                label = null,
+                                placeholder = null,
+                                value = ${userId},
+                                options = null,
+                                attributes = ${ {'checked'} },
+                                success = null,
+                                error = 'Member does have valid email address.'
+                            )}"></th:block>
+                            <th:block th:replace="~{layout/bootstrap.html :: modal(
+                                id=|${userId}AcceptMemberCheckBoxModal|,
+                                title='Modify member access (accept | block)',
+                                body='You are about to accept/block user. Do you want to continue?'
+                            )}"></th:block>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:with="userId='user2'">
+                    <td th:text="${'David Ricardo Cuervo Ochoa Avila Rodrigez'}">Member Name</td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/addManager/"
+                              method="post"
+                        >
+                            <input type="checkbox"
+                                   th:id="|${userId}EnabledCheckBoxInput|"
+                                   th:value="${userId}"
+                            >
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <form action="/manage/company/{companyId}/blockUser/">
+                            <input type="checkbox" value="userId2" checked>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </main>
+    </body>
+</html>

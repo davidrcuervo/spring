@@ -35,6 +35,12 @@ public class CompanyTestMvcRepository {
     @Value("${api.company.find.uri}")
     protected String apiCompanyFindUri;
 
+    @Value("${api.company.findByName.uri}")
+    private String findByNameUri;
+
+    @Value("${api.company.find.vanityUrl.uri}")
+    private String findByVanityUrlUri;
+
     @Value("${api.company.find.all.uri}")
     private String findAllUri;
 
@@ -104,11 +110,30 @@ public class CompanyTestMvcRepository {
         return json.readValue(resp.getResponse().getContentAsString(), Company.class);
     }
 
-    public Company findCompany(Long compId, String token) throws  Exception {
+    public Company findById(Long compId, String token) throws  Exception {
         MvcResult resp = mvc.perform(get(apiCompanyFindUri, compId)
                         .accept(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk()).andReturn();
+        return json.readValue(resp.getResponse().getContentAsString(), Company.class);
+    }
+
+    public Company findByName(String name, String token) throws Exception{
+        MvcResult resp = mvc.perform(get(findByNameUri, name)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), Company.class);
+    }
+
+    public Company findByVanityUrl(String vanityUrl, String token) throws Exception{
+        MvcResult resp = mvc.perform(get(findByVanityUrlUri, vanityUrl)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
         return json.readValue(resp.getResponse().getContentAsString(), Company.class);
     }
 

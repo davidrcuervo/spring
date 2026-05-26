@@ -136,4 +136,36 @@ public class SchemaMoreTests {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
         ).andExpect(status().isBadRequest());
     }
+
+    @Test
+    void findReadersAndEditors() throws Exception {
+        ItemTypeA item = repo.create(
+                "findReadersTestSchema",
+                45,
+                "203-1453 Jean Talon West",
+                Set.of(USERS[1].getUserId(), USERS[2].getUserId()), //readers
+                DbUserAccessPolicy.MANAGE_BY_ALL,
+                DbServiceAccessPolicy.SERVICE_WRITE,
+                Set.of(USERS[1].getUserId()), //editors
+                DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY,
+                DbServiceAccessPolicy.SERVICE_READ,
+                USERS[3].getToken()
+        );
+
+        List<String> readers = repo.getReaders(item.getId(), USERS[1].getToken());
+        assertNotNull(readers);
+        assertEquals(3, readers.size());
+        assertTrue(readers.contains(USERS[1].getUserId()));
+        assertTrue(readers.contains(USERS[2].getUserId()));
+        assertTrue(readers.contains(USERS[3].getUserId()));
+
+        List<String> editors = repo.getEditors(item.getId(), USERS[1].getToken());
+        assertNotNull(editors);
+        assertEquals(2, editors.size());
+        assertTrue(editors.contains(USERS[1].getUserId()));
+        assertTrue(editors.contains(USERS[3].getUserId()));
+        assertFalse(editors.contains(USERS[2].getUserId()));
+
+        repo.remove(item.getId(), USERS[3].getToken());
+    }
 }

@@ -26,6 +26,10 @@ seo:
       all: ${seo.manage.folder}/company.html
       create: ${seo.manage.company.folder}/create.html
       find: ${seo.manage.company.folder}/{vanityUrl}.html
+      update: # METHOD: POST | PARAMS: { redirect }
+        folder: ${seo.manage.company.folder}/update
+        pattern: ${seo.manage.company.update.folder}/{field}?redirect=${seo.manage.company.find}
+        name: ${seo.manage.company.update.folder}/name?redirect=${seo.manage.company.find}
     test:
       file: /test.html
       path: ${seo.manage.folder}${seo.manage.test.file}
@@ -160,6 +164,12 @@ api:
       file: find
       path: ${api.schema.find.file}?clase={clazzName}
       uri: ${api.schema.uri}/${api.schema.find.path}
+      readers: #METHOD: get | PARAMS: clazzNameEncoded | RESP: List<UserId>
+        file: /find/{itemId}/readers
+        uri: ${api.schema.uri}${api.schema.find.readers.file}
+      editors: #METHOD: get | PARAMS: clazzNameEncoded | RESP: List<UserId>
+        file: /find/{itemId}/editors
+        uri: ${api.schema.uri}${api.schema.find.editors.file}
     findById:
       file: find/{id}
       uri: ${api.schema.uri}/${api.schema.findById.file}?clase={clazzName}

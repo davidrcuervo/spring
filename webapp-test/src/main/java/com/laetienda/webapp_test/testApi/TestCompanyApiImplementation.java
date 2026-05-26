@@ -35,11 +35,7 @@ public class TestCompanyApiImplementation implements TestCompanyApi {
     ) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_COMPANY::create | Testing create");
 
-        Company company = new Company(
-                "Test Company - Api Company",
-                "tc-ac",
-                CompanyMemberPolicy.PUBLIC
-        );
+        Company company = new Company(name,  vanityUrl, companyMemberPolicy);
         company.setOwner(user.getUserId());
 
         company = apiCompany.createCompany(company, user.getToken());
@@ -68,10 +64,27 @@ public class TestCompanyApiImplementation implements TestCompanyApi {
     }
 
     @Override
+    public List<Company> findAll(Map<String, String> params, String token) throws HttpStatusCodeException, AssertionError{
+        log.debug("TEST_COMPANY::findAll | ");
+        List<Company> result = apiCompany.findAllWithToken(params, token);
+        assertNotNull(result);
+
+        return result;
+    }
+
+    @Override
     public Company findByName(String name, String token) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_COMPANY::findByName | Testing company api find by name");
 
         Company result = apiCompany.findByName(name, token);
+        assertNotNull(result, "TEST_COMPANY::findByName | Company could not be found");
+        return result;
+    }
+
+    @Override
+    public Company findByVanityUrl(String vanityUrl, String token) throws HttpStatusCodeException {
+        log.debug("TEST_COMPANY::findByName | $vanityUrl: {}", vanityUrl);
+        Company result = apiCompany.findByVanityUrlWithToken(vanityUrl, token);
         assertNotNull(result, "TEST_COMPANY::findByName | Company could not be found");
         return result;
     }
@@ -161,6 +174,20 @@ public class TestCompanyApiImplementation implements TestCompanyApi {
                 "TEST_COMPANY::deleteMember | Failed to delete member"
         );
         assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode(), "TEST_COMPANY::deleteMember | Different status code to NOT FOUND");
+    }
+
+    @Override
+    public Company addManager(long companyId, String userId, String token) throws HttpStatusCodeException, AssertionError{
+        log.debug("TEST_COMPANY::addManager | Testing add manager");
+
+        Company result = apiCompany.addManagerWithToken(companyId, userId, token);
+        assertNotNull(result, "TEST_COMPANY::addManager | Failed to add manager");
+        assertTrue(
+                result.getEditorGroups().stream().anyMatch(eg -> eg.getMembers().contains(userId)),
+                "TEST_COMPANY::addManager | User, {userId}, is not in readers group.".replace("{userId}", userId)
+        );
+
+        return result;
     }
 
     @Override

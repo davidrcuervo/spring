@@ -12,6 +12,14 @@
         <h1 class="text-center my-2">Companies</h1>
 
         <div class="row">
+            <th:block th:each="company : ${@comp.allManaged}">
+                <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
+                    title=${company.name},
+                    icon='image',
+                    link=@{${@tt.href('seo.manage.company.find', company.vanityUrl)}},
+                    alt=${company.name}
+                )}"></th:block>
+            </th:block>
             <th:block th:replace="~{layout/bootstrap.html ::cardWithLinkHover(
                 title='Cortes de la Villa',
                 icon='image',

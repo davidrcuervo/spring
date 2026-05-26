@@ -1,5 +1,6 @@
 package com.laetienda.frontend.service;
 
+import com.laetienda.lib.service.ToolBoxService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,19 +17,24 @@ public class TemplateToolBoxImplementation implements TemplateToolBox {
 
     final private Environment env;
     final private HttpServletRequest request;
+    final private ToolBoxService tb;
 
     public TemplateToolBoxImplementation(
             Environment environment,
-            HttpServletRequest httpServletRequest
+            HttpServletRequest httpServletRequest,
+            ToolBoxService toolBoxService
     ) {
         this.env = environment;
         this.request = httpServletRequest;
+        this.tb = toolBoxService;
     }
 
     @Override
-    public String href(String index) {
+    public String href(String index, Object... uriVariables) {
         log.debug("SERVICE_TEMPLATE_TOOL::href | $index: {}", index);
-        return env.getProperty(index, "#");
+        String urlTemplate = env.getProperty(index, "#");
+
+        return tb.setAddressParams(null, urlTemplate, uriVariables);
     }
 
     @Override

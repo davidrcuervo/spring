@@ -20,8 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ItemServiceImplementation implements ItemService{
@@ -92,7 +91,8 @@ public class ItemServiceImplementation implements ItemService{
             log.trace("SCHEMA_SERVICE::create $item.id: {}", item.getId());
 
             //convert to json string
-            return ((T) item);
+            return clazz.cast(item);
+//            return ((T) item);
 
         }catch (JsonProcessingException ex1){
             log.error("SCHEMA_SERVICE::create $error: {}", ex1.getMessage());
@@ -119,7 +119,7 @@ public class ItemServiceImplementation implements ItemService{
     }
 
     @Override
-    public <T> T find(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
+    public <T> T find(Class<T> clazz, Map<String, String> body) throws HttpStatusCodeException{
         log.debug("ITEM_SERVICE::find $clazzName: {}", clazz.getName());
 
         if(body.size() == 1) {
@@ -127,12 +127,12 @@ public class ItemServiceImplementation implements ItemService{
             return find(clazz, item);
         }else{
             String message = "Request body has more parameters than expected";
-            throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, message);
         }
     }
 
     @Override
-    public <T> T findById(Class<T> clazz, Long id) throws NotValidCustomException {
+    public <T> T findById(Class<T> clazz, Long id) throws HttpStatusCodeException {
         log.debug("ITEM_SERVICE::findById $clazzName: {}, $id: {}", clazz.getName(), id);
         T item = schemaRepo.findById(id, clazz);
         return find(clazz, item);
@@ -158,17 +158,17 @@ public class ItemServiceImplementation implements ItemService{
                 .toList();
     }
 
-    private <T> T find(Class<T> clazz, T item) throws NotValidCustomException{
+    private <T> T find(Class<T> clazz, T item) throws HttpStatusCodeException{
         String userId = request.getUserPrincipal().getName();
         if (item == null) {
             String message = "Item does not exist.";
-            throw new NotValidCustomException(message, HttpStatus.NOT_FOUND, "item");
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, message);
         } else if (canRead((DbItem) item)) {
             return item;
         } else {
             String message = String.format("User, %s, doesn't have privileges to read the item.", userId);
             log.info(message);
-            throw  new NotValidCustomException(message, HttpStatus.UNAUTHORIZED, "item");
+            throw  new HttpClientErrorException(HttpStatus.UNAUTHORIZED, message);
         }
     }
 
@@ -311,13 +311,13 @@ public class ItemServiceImplementation implements ItemService{
             }
 
         }catch(ClassNotFoundException c) {
-            String message = String.format("SCHEMA_SERVICE::isItemValid. $error: {}", c.getMessage());
+            String message = String.format("SCHEMA_SERVICE::isItemValid. $error: %s", c.getMessage());
             log.error(message);
             log.trace(message, c);
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
 
         }catch(NumberFormatException n){
-            String message = String.format("SCHEMA_SERVICE::isItemValid. Failed to parse id. $itemId: {} | $error: {}", itemId, n.getMessage());
+            String message = String.format("SCHEMA_SERVICE::isItemValid. Failed to parse id. $itemId: %s | $error: %s", itemId, n.getMessage());
             log.warn(message);
             log.trace(message, n);
             throw new NotValidCustomException(message, HttpStatus.BAD_REQUEST, "item");
@@ -327,9 +327,9 @@ public class ItemServiceImplementation implements ItemService{
     @Override
     public <T> List<T> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("SCHEMA_SERVICE::findByQuery. $clazz: {}", clazz.getName());
-        body.forEach((String key, String value) -> {
-            log.trace("SCHEMA_SERVICE::findByQuery. ${} -> {}", key, value);
-        });
+        body.forEach((String key, String value) ->
+            log.trace("SCHEMA_SERVICE::findByQuery. ${} -> {}", key, value)
+        );
 
         if(!body.containsKey("query")){
             String message = "Parameters does not contain query";
@@ -345,6 +345,35 @@ public class ItemServiceImplementation implements ItemService{
                 return false;
             }
         }).toList();
+    }
+
+    @Override
+    public List<String> getReaders(
+            Class<? extends DbItem> clazz,
+            long itemId
+    ) throws HttpStatusCodeException {
+        log.debug("SERVICE_SCHEMA::getReaders | $itemId {}", itemId);
+
+        DbItem item = findById(clazz, itemId);
+
+        Set<String> editors = itemRepo.getEditors(item.getId());
+        Set<String> onlyReaders = itemRepo.getReaders(itemId);
+
+        Set<String> result = new LinkedHashSet<>();
+        result.addAll(onlyReaders);
+        result.addAll(editors);
+
+        return result.stream().toList();
+    }
+
+    @Override
+    public List<String> getEditors(
+            Class<? extends DbItem> clazz,
+            long itemId
+    ) throws HttpStatusCodeException {
+        log.debug("SERVICE_SCHEMA::getEditors | $itemId {}", itemId);
+        DbItem item = findById(clazz, itemId);
+        return itemRepo.getEditors(item.getId()).stream().toList();
     }
 
     private void readersAndEditorsExists(DbItem item) throws NotValidCustomException {

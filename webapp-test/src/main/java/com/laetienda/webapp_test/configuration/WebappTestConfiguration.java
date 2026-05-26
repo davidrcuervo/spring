@@ -2,6 +2,7 @@ package com.laetienda.webapp_test.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.service.ToolBoxService;
+import com.laetienda.lib.service.ToolBoxServiceImpl;
 import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.utils.lib.UtilsBoxImplementation;
 import com.laetienda.utils.service.api.*;
@@ -18,20 +19,17 @@ public class WebappTestConfiguration {
     private final ObjectMapper json;
     private final Environment env;
     private final OAuth2AuthorizedClientManager authorizedClientManager;
-    private final ToolBoxService tb;
 
     public WebappTestConfiguration(
             RestClient restClient,
             Environment env,
             ObjectMapper json,
-            OAuth2AuthorizedClientManager authorizedClientManager,
-            ToolBoxService toolBoxService
+            OAuth2AuthorizedClientManager authorizedClientManager
     ){
         this.httpClient = restClient;
         this.json = json;
         this.env = env;
         this.authorizedClientManager = authorizedClientManager;
-        this.tb = toolBoxService;
     }
 
     @Bean
@@ -40,12 +38,17 @@ public class WebappTestConfiguration {
     }
 
     @Bean
+    public ToolBoxService getToolBoxService(){
+        return new ToolBoxServiceImpl();
+    }
+
+    @Bean
     public UtilsBox getUtilsBox(ApiUser apiUser){
         return new UtilsBoxImplementation(apiUser, authorizedClientManager);
     }
 
     @Bean
-    public ApiSchema getApiSchema(){
+    public ApiSchema getApiSchema(ToolBoxService tb){
         return new ApiSchemaImplementation(httpClient, json, tb);
     }
 
@@ -55,7 +58,7 @@ public class WebappTestConfiguration {
     }
 
     @Bean
-    public ApiCompany getApiCompany(){
-        return new ApiCompanyImplementation(httpClient);
+    public ApiCompany getApiCompany(ToolBoxService tb){
+        return new ApiCompanyImplementation(httpClient, tb);
     }
 }

@@ -164,13 +164,15 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
                     clientRegistrationId(webappClientId),
                     findByQueryUri, getClazzName(clazz)
             );
-            return json.readValue(result, new TypeReference<>() {});
+
+            return json.readValue(result,
+                    json.getTypeFactory().constructCollectionType(List.class, clazz)
+            );
         } catch (JsonProcessingException e) {
             log.warn("API_SCHEMA::findByQueryByClientRegistrationId. $error: {} ", e.getMessage());
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 
         }
-
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.laetienda.utils.service.api;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import org.slf4j.Logger;
@@ -26,8 +27,6 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 public class ApiCompanyImplementation extends ApiRestClientImplementation implements ApiCompany{
     private final static Logger log = LoggerFactory.getLogger(ApiCompanyImplementation.class);
 
-    private final RestClient client;
-
     @Value("${api.company.create.uri}")
     private String createCompanyFidUri;
 
@@ -43,11 +42,14 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     @Value("${api.company.isValid.uri}")
     private String isValidCompanyUri;
 
-    @Value("${api.company.find.uri}")
-    private String fidCompanyUri;
+    @Value("${api.company.find.all.uri}")
+    private String findAllUri;
 
     @Value("${api.company.findByName.uri}")
     private String findCompanyByNameUri;
+
+    @Value("${api.company.find.vanityUrl.uri}")
+    private String findCompanyByVanityUrl;
 
     @Value("${api.company.update.uri.name}")
     private String updateCompanyNameUri;
@@ -67,17 +69,25 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     @Value("${api.company.member.update.uri}")
     private String updateCompanyMemberUri;
 
+    @Value("${api.company.manager.uri.add}")
+    private String addManagerUri;
+
     @Value("${api.company.member.delete.uri}")
     private String deleteCompanyMemberUri;
 
     @Value("${api.company.policy.all.uri}")
     private String findAllCompanyMemberPoliciesUri;
 
+    private final RestClient client;
+    private final ToolBoxService tb;
+
     public ApiCompanyImplementation(
-            RestClient restClient
+            RestClient restClient,
+            ToolBoxService toolBoxService
     ) {
         super(restClient);
         this.client = restClient;
+        this.tb = toolBoxService;
     }
 
     @Override
@@ -90,6 +100,22 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
         return super.get(Company.class,
                 a -> a.put("jwtToken", token),
                 findCompanyUri, id);
+    }
+
+    @Override
+    public List<Company> findAll(Map<String, String> params) throws HttpStatusCodeException{
+        String address = tb.setAddressParams(params, findAllUri);
+        return super.getList(Company.class,
+                null,
+                address);
+    }
+
+    @Override
+    public List<Company> findAllWithToken(Map<String, String> params, String token) throws HttpStatusCodeException{
+        String address = tb.setAddressParams(params, findAllUri);
+        return super.getList(Company.class,
+                a-> a.put("jwtToken", token),
+                address);
     }
 
     @Override
@@ -136,6 +162,24 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
                 Company.class,
                 a -> a.put("jwtToken", token),
                 findCompanyByNameUri, name
+        );
+    }
+
+    @Override
+    public Company findByVanityUrl(String vanityUrl) throws HttpStatusCodeException {
+        return super.get(
+                Company.class,
+                null,
+                findCompanyByVanityUrl, vanityUrl
+        );
+    }
+
+    @Override
+    public Company findByVanityUrlWithToken(String vanityUrl, String token) throws HttpStatusCodeException{
+        return super.get(
+                Company.class,
+                a -> a.put("jwtToken", token),
+                findCompanyByVanityUrl, vanityUrl
         );
     }
 
@@ -201,6 +245,21 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
         super.delete(
                 a -> a.put("jwtToken", token),
                 deleteCompanyMemberUri, companyId, userId
+        );
+    }
+
+    @Override
+    public Company addManager(long companyId, String userId) throws HttpStatusCodeException {
+        return super.put(Company.class,
+                null,
+                addManagerUri, companyId, userId);
+    }
+
+    @Override
+    public Company addManagerWithToken(long companyId, String userId, String token) throws HttpStatusCodeException{
+        return super.put(Company.class,
+                a -> a.put("jwtToken", token),
+                addManagerUri, companyId, userId
         );
     }
 

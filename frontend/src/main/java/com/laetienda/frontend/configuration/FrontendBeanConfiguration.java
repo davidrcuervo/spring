@@ -76,8 +76,8 @@ public class FrontendBeanConfiguration {
 	}
 
 	@Bean
-	public ApiCompany getApiCompany() {
-		return new ApiCompanyImplementation(client);
+	public ApiCompany getApiCompany(ToolBoxService tb) {
+		return new ApiCompanyImplementation(client, tb);
 	}
 
     @Bean

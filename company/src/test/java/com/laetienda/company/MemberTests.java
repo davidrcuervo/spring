@@ -117,7 +117,7 @@ public class MemberTests {
 
         Member member2 = repo.addMember(comp.getId(), USERS[2].getUserId(), USERS[2].getToken());
 //        Member member1 = repo.findMember(comp.getId(), USERS[1].getUserId(), USERS[2].getToken());
-        comp = repo.findCompany(comp.getId(), USERS[2].getToken());
+        comp = repo.findById(comp.getId(), USERS[2].getToken());
 
         member2.setStatus(CompanyMemberStatus.BLOCKED);
         member2 = repo.updateMember(member2, USERS[2].getToken());

@@ -1,4 +1,4 @@
-package com.laetienda.frontend.controller.manage;
+package com.laetienda.frontend.controller;
 
 import com.laetienda.frontend.service.FrontendCompanyService;
 import com.laetienda.lib.service.ToolBoxService;
@@ -13,14 +13,15 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
 @Controller
-public class FrontendManageCompanyController {
-    private final static Logger log = LoggerFactory.getLogger(FrontendManageCompanyController.class);
+public class FrontendCompanyController {
+    private final static Logger log = LoggerFactory.getLogger(FrontendCompanyController.class);
 
     @Value("${seo.manage.company.create}")
     private String companyCreateUri;
@@ -31,7 +32,7 @@ public class FrontendManageCompanyController {
     private final FrontendCompanyService service;
     private final ToolBoxService tb;
 
-    public FrontendManageCompanyController(
+    public FrontendCompanyController(
             FrontendCompanyService frontendCompanyService,
             ToolBoxService toolBoxService
     ){
@@ -40,7 +41,7 @@ public class FrontendManageCompanyController {
     }
 
     @GetMapping("${seo.manage.company.create}")
-    public String create(Model model){
+    public String getCreateCompany(Model model){
         log.debug("CONTROLLER_MANAGE_COMPANY::create");
         Company company = new Company();
         model.addAttribute("company", company);
@@ -48,7 +49,7 @@ public class FrontendManageCompanyController {
     }
 
     @PostMapping("${seo.manage.company.create}")
-    public String postCreate(
+    public String postCreateCompany(
             @ModelAttribute("company") @Valid Company company,
             BindingResult bindingResult,
             HttpSession session
@@ -67,5 +68,15 @@ public class FrontendManageCompanyController {
         return "redirect:" + UriComponentsBuilder.fromUriString(thankYouCompanyCreateUri)
                 .buildAndExpand(Map.of("element", element))
                 .toUriString();
+    }
+
+    @GetMapping("${seo.manage.company.find}")
+    public String getManageCompany(@PathVariable String vanityUrl, Model model){
+        log.debug("CONTROLLER_MANAGE_COMPANY::getManageCompany");
+
+        Company company = service.getCompanyByVanityUrl(vanityUrl);
+        model.addAttribute("company", company);
+
+        return "manage/company/manageCompany.html";
     }
 }

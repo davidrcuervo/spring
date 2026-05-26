@@ -98,28 +98,29 @@ class CompanyTests {
 
 	@Test
 	void cycle() throws Exception{
-        Company company = new Company(
+
+        Company company = repo.create(
                 "Test Cycle Company",
                 "testCycleCompany",
-                CompanyMemberPolicy.AUTHORIZATION_REQUIRED
+                CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
+                USERS[1]
         );
-		company.setOwner(USERS[1].getUserId());
 
-		Company comp = create(company);
-		comp = findByName(comp.getName());
-		comp = findById(comp.getId());
-        Member member = addMember(comp);
-        comp = updateCompany(comp);
+		company = repo.findByName(company.getName(), USERS[1].getToken());
+        company = repo.findByVanityUrl(company.getVanityUrl(), USERS[1].getToken());
+		company = repo.findById(company.getId(), USERS[1].getToken());
+        Member member = addMember(company);
+        company = updateCompany(company);
         member = updateMember(member);
         Friend friend = sendFriendRequest(member);
         friend = acceptFriend(friend);
         friend = blockFriend(friend);
         friend = unblockFriend(friend);
-        comp = companyAddManager(comp);
-        comp = modifyCompanyOwner(comp);
-        comp = deleteOldOwnerMember(comp);
+        company = companyAddManager(company);
+        company = modifyCompanyOwner(company);
+        company = deleteOldOwnerMember(company);
 //        deleteMember(member);
-        deleteCompany(comp);
+        deleteCompany(company);
 	}
 
     private Company create(Company company) throws Exception {
@@ -266,20 +267,11 @@ class CompanyTests {
                 .andExpect(status().isForbidden());
 
         //add member request to company
-        MvcResult resp = mvc.perform(put(addMemberAddress, company.getId(), USERS[2].getUserId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[2].getToken())
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-        Member result = json.readValue(resp.getResponse().getContentAsString(), Member.class);
+        Member result = repo.addMember(company.getId(), USERS[2].getUserId(), USERS[2].getToken());
         assertEquals(CompanyMemberStatus.REQUESTED, result.getStatus());
 
         //check again if member exists
-        resp = mvc.perform(get(findMemberAddress, company.getId(), USERS[2].getUserId())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + USERS[1].getToken())
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andReturn();
-        Member memb1 = json.readValue(resp.getResponse().getContentAsString(), Member.class);
+        Member memb1 = repo.findMember(company.getId(), USERS[2].getUserId(), USERS[1].getToken());
         assertNotNull(memb1.getId());
 
         return result;
@@ -725,12 +717,6 @@ class CompanyTests {
 
         Member memb21 = repo.addMember(comp2.getId(), USERS[1].getUserId(), USERS[1].getToken());
         Member memb31 = repo.addMember(comp3.getId(), USERS[1].getUserId(), USERS[1].getToken());
-
-        memb21.setStatus(CompanyMemberStatus.ACCEPTED);
-        memb31.setStatus(CompanyMemberStatus.ACCEPTED);
-
-        memb21 = repo.updateMember(memb21, USERS[2].getToken());
-        memb31 = repo.updateMember(memb31, USERS[3].getToken());
 
         repo.addManager(comp2.getId(), memb21.getUserId(), USERS[2].getToken());
 

@@ -3,6 +3,7 @@ package com.laetienda.schema.controller;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.service.ItemService;
+import com.laetienda.utils.lib.Attention;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,5 +182,39 @@ public class SchemaController {
         log.debug("SCHEMA_CONTROLLER::deleteUserById: $userId: {}", userId);
         itemService.deleteUserById(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("${api.schema.find.readers.file}")
+    public ResponseEntity<List<String>> getItemReaders(
+            @PathVariable long itemId,
+            @RequestParam String clazzNameEncoded
+    ) throws HttpStatusCodeException{
+        String clazzName = new String(Base64.getUrlDecoder().decode(clazzNameEncoded.getBytes()), StandardCharsets.UTF_8);
+        log.debug("CONTROLLER_SCHEMA::getItemReaders | $clazzName: {}, $itemId: {}", clazzName, itemId);
+
+        try {
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
+            return ResponseEntity.ok(itemService.getReaders(clazz, itemId));
+        } catch (ClassNotFoundException e) {
+            log.warn("CONTROLLER_SCHEMA::getReaders. | {}", Attention.CLASS_CAST_EXCEPTION.getError(clazzName, e.getMessage()));
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, Attention.CLASS_CAST_EXCEPTION.getMessage(clazzName, e.getMessage()));
+        }
+    }
+
+    @GetMapping("${api.schema.find.editors.file}")
+    public ResponseEntity<List<String>> getItemEditors(
+            @PathVariable long itemId,
+            @RequestParam String clazzNameEncoded
+    ) throws HttpStatusCodeException{
+        String clazzName = new String(Base64.getUrlDecoder().decode(clazzNameEncoded.getBytes()), StandardCharsets.UTF_8);
+        log.debug("CONTROLLER_SCHEMA::getItemEditors | $clazzName: {} | $itemId: {}", clazzName, itemId);
+
+        try {
+            Class<? extends DbItem> clazz = Class.forName(clazzName).asSubclass(DbItem.class);
+            return ResponseEntity.ok(itemService.getEditors(clazz, itemId));
+        } catch (ClassNotFoundException e) {
+            log.warn("CONTROLLER_SCHEMA::getEditors. | {}", Attention.CLASS_CAST_EXCEPTION.getError(clazzName, e.getMessage()));
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, Attention.CLASS_CAST_EXCEPTION.getMessage(clazzName, e.getMessage()));
+        }
     }
 }

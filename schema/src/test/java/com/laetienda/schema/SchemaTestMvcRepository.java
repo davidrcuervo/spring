@@ -34,6 +34,12 @@ public class SchemaTestMvcRepository {
     @Value("${api.schema.findAll.uri}")
     protected String findAllUri;
 
+    @Value("${api.schema.find.readers.uri}")
+    private String findReadersUri;
+
+    @Value("${api.schema.find.editors.uri}")
+    private String findEditorsUri;
+
     @Value("${api.schema.deleteById.uri}")
     protected String deleteByIdUri;
 
@@ -139,5 +145,25 @@ public class SchemaTestMvcRepository {
 
         return json.readValue(resp.getResponse().getContentAsString(), new TypeReference<>() {
         });
+    }
+
+    public List<String> getReaders(long itemId, String token) throws Exception{
+        String address = tb.setAddressParams(Map.of("clazzNameEncoded", clazzName), findReadersUri, itemId);
+        MvcResult resp = mvc.perform(get(address)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), new  TypeReference<>() {});
+    }
+
+    public List<String> getEditors(long itemId, String token) throws Exception{
+        String address = tb.setAddressParams(Map.of("clazzNameEncoded", clazzName), findEditorsUri, itemId);
+        MvcResult resp = mvc.perform(get(address)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), new  TypeReference<>() {});
     }
 }

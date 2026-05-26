@@ -150,7 +150,7 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
     }
 
     @Override
-    public <T> List<T> findByQuery(Class clazz, Map<String, String> body) throws NotValidCustomException {
+    public <T> List<T> findByQuery(Class<T> clazz, Map<String, String> body) throws NotValidCustomException {
         log.debug("SCHEMA_REPO::findByQuery. $clazz: {} | $query: {}", clazz.getName(), body.get("query"));
 
         TypedQuery<T> jpaQuery = em.createQuery(body.get("query"), clazz);
@@ -165,7 +165,7 @@ public class SchemaRepositoryImplementation implements SchemaRepository{
     }
 
     @Override
-    public <T> T findById(Long id, Class<T> clazz) throws NotValidCustomException {
+    public <T> T findById(Long id, Class<T> clazz) throws HttpStatusCodeException {
         log.debug("SCHEMA_REPO::findById $clazz: {}", clazz.getName());
         String query = String.format("SELECT t FROM %s t WHERE t.id = :id", clazz.getName());
         log.debug("SCHEMA_REPO::findById. $id: {}, $query: {}", id, query);
