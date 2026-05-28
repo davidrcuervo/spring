@@ -1,15 +1,17 @@
 package com.laetienda.utils.service.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
+import com.laetienda.model.schema.ItemTypeA;
 import com.laetienda.utils.lib.Attention;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -18,8 +20,10 @@ import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.springframework.security.oauth2.client.web.client.RequestAttributeClientRegistrationIdResolver.clientRegistrationId;
 
@@ -54,8 +58,15 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     @Value("${api.schema.update.uri}")
     private String updateUri;
 
+    @Value("${api.schema.find.readers.uri}")
+    private String findReadersUri;
+
+    @Value("${api.schema.find.editors.uri}")
+    private String findEditorsUri;
+
     private final ObjectMapper json;
     private final ToolBoxService tb;
+    private final RestClient client;
 
     public ApiSchemaImplementation(
             RestClient restClient,
@@ -65,6 +76,7 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
         super(restClient);
         this.json = objectMapper;
         this.tb = toolBoxService;
+        this.client = restClient;
     }
 
     @Override
@@ -208,5 +220,48 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     @Override
     public <T extends DbItem> String getClazzName(Class<T> clazz){
         return Base64.getUrlEncoder().encodeToString(clazz.getName().getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public <T extends DbItem> List<String> getReaders(Class<T> clazz, Long id, String token) throws HttpStatusCodeException {
+        log.debug("API_SCHEMA::getReaders | $address: {}", findReadersUri);
+
+        return this.getStringList(
+                clazz,
+                a->a.put("jwtToken", token),
+                null,
+                findReadersUri, id
+        );
+    }
+
+    @Override
+    public <T extends DbItem> List<String> getEditors(Class<T> clazz, Long id, String token) throws HttpStatusCodeException {
+        log.debug("API_SCHEMA::getEditors | $address: {}", findEditorsUri);
+        return this.getStringList(
+                clazz,
+                a -> a.put("jwtToken", token),
+                null,
+                findEditorsUri, id
+        );
+    }
+
+    private <T extends DbItem> List<String> getStringList(
+            Class<T> clazz,
+            Consumer<Map<String, Object>> attributes,
+            Map<String, String> params,
+            String address, Object... uriVariables
+    )throws HttpStatusCodeException{
+        String clazzName = getClazzName(clazz);
+
+        if(params == null) params = new HashMap<>();
+        params.put("clazzNameEncoded", clazzName);
+
+        String uri = tb.setAddressParams(params, address, uriVariables);
+        return client.get().uri(uri)
+                .accept(MediaType.APPLICATION_JSON)
+                .attributes(attributes == null ? a -> {} : attributes)
+                .retrieve()
+                .toEntity(new ParameterizedTypeReference<List<String>>(){})
+                .getBody();
     }
 }

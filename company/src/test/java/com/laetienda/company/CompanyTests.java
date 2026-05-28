@@ -732,6 +732,36 @@ class CompanyTests {
         repo.deleteCompany(comp3.getId(), USERS[3].getToken());
     }
 
+    @Test
+    public void findManagers() throws Exception {
+        Company company = repo.create(
+                "Test Company - Find Manager",
+                "tc-fm",
+                CompanyMemberPolicy.PUBLIC,
+                USERS[1]
+        );
+
+        Member member2 = repo.addMember(company.getId(), USERS[2].getUserId(), USERS[2].getToken());
+        repo.addMember(company.getId(), USERS[3].getUserId(), USERS[3].getToken());
+
+        repo.addManager(company.getId(), member2.getUserId(), USERS[1].getToken());
+
+        List<Member> managers = repo.getManagers(company.getId(), USERS[2].getToken());
+        assertNotNull(managers);
+        assertEquals(2, managers.size());
+        assertTrue(managers.stream().anyMatch(
+                member -> member.getUserId().equals(USERS[2].getUserId()))
+        );
+        assertTrue(managers.stream().anyMatch(
+                member -> member.getUserId().equals(USERS[1].getUserId()))
+        );
+        assertTrue(managers.stream().noneMatch(
+                member -> member.getUserId().equals(USERS[3].getUserId()))
+        );
+
+        repo.deleteCompany(company.getId(), USERS[1].getToken());
+    }
+
     private Company getNewCompany(
             String name,
             String vanityUrl,

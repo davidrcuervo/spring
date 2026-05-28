@@ -1,17 +1,16 @@
-package com.laetienda.webapp_test.testApi;
+package com.laetienda.webapp_test.repository;
 
 import com.laetienda.lib.options.DbServiceAccessPolicy;
 import com.laetienda.lib.options.DbUserAccessPolicy;
 import com.laetienda.model.schema.DbGroup;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.model.schema.ItemTypeA;
-import com.laetienda.model.user.TestUserDto;
 import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.ApiSchemaGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -20,14 +19,14 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Service
-public class TestSchemaApiImplementation implements TestSchemaApi {
-    private final static Logger log = LoggerFactory.getLogger(TestSchemaApiImplementation.class);
+@Repository
+public class TestSchemaRepoImplementation implements TestSchemaRepo {
+    private final static Logger log = LoggerFactory.getLogger(TestSchemaRepoImplementation.class);
 
     private final ApiSchemaGroup apiGroup;
     private final ApiSchema apiSchema;
 
-    public TestSchemaApiImplementation(
+    public TestSchemaRepoImplementation(
             ApiSchema apiSchema,
             ApiSchemaGroup apiSchemaGroup
     ) {
@@ -60,6 +59,35 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
                 .anyMatch(g -> g.getName().equals(groupFinal.getName())));
 
         return result;
+    }
+
+    @Override
+    public ItemTypeA createItem(
+            String name, int age, String address,
+            List<String> readers, DbUserAccessPolicy readersUserAccessPolicy, DbServiceAccessPolicy readersServiceAccessPolicy,
+            List<String> editors, DbUserAccessPolicy editorsUserAccessPolicy, DbServiceAccessPolicy editorsServiceAccessPolicy, String token
+    ) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::createItem | $itemName: {}", name);
+
+        ItemTypeA item = new ItemTypeA(name, age, address);
+
+        if(readers != null && !readers.isEmpty()) {
+            DbGroup readersGroup = new DbGroup(String.format("%s - Readers Group", name));
+            readersGroup.setUserAccessPolicy(readersUserAccessPolicy);
+            readersGroup.setServiceAccessPolicy(readersServiceAccessPolicy);
+            readers.forEach(readersGroup::addMember);
+            item.addReaderGroup(readersGroup);
+        }
+
+        if(editors != null && !editors.isEmpty()) {
+            DbGroup editorsGroup = new DbGroup(String.format("%s - Editors Group", name));
+            editorsGroup.setUserAccessPolicy(editorsUserAccessPolicy);
+            editorsGroup.setServiceAccessPolicy(editorsServiceAccessPolicy);
+            editors.forEach(editorsGroup::addMember);
+            item.addEditorGroup(editorsGroup);
+        }
+
+        return apiSchema.create(ItemTypeA.class, item, token);
     }
 
     @Override
@@ -149,5 +177,17 @@ public class TestSchemaApiImplementation implements TestSchemaApi {
         );
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Override
+    public List<String> getReaders(Long id, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::getReaders | $id: {}", id);
+        return apiSchema.getReaders(ItemTypeA.class, id, token);
+    }
+
+    @Override
+    public List<String> getEditors(Long id, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::getEditors | $id: {}", id);
+        return apiSchema.getEditors(ItemTypeA.class, id, token);
     }
 }

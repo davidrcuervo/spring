@@ -1,10 +1,10 @@
-package com.laetienda.webapp_test.testApi;
+package com.laetienda.webapp_test.repository;
 
 import com.laetienda.model.kc.KcUser;
 import com.laetienda.model.user.Usuario;
 import org.springframework.web.client.HttpStatusCodeException;
 
-public interface TestUserApi {
+public interface TestUserRepo {
     KcUser create(Usuario usuario, String clientRegistrationId) throws HttpStatusCodeException, AssertionError;
     KcUser getUserWithToken(String token) throws HttpStatusCodeException;
     String getToken(String username, String password) throws HttpStatusCodeException, AssertionError;

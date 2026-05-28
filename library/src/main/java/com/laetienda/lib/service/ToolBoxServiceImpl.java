@@ -118,8 +118,12 @@ public class ToolBoxServiceImpl implements ToolBoxService {
     }
 
     @Override
+    public String getCurrentUserId(){
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @Override
     public String getCurrentUsername(){
-        log.debug("TOOLBOX::getCurrentUsername");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String result = null;
         if(auth instanceof OAuth2AuthenticationToken oauth2Token){
@@ -133,7 +137,7 @@ public class ToolBoxServiceImpl implements ToolBoxService {
         } else {
             return auth.getName();
         }
-        log.trace("TOOLBOX::getCurrentUsername. $result: {}", result);
+        log.debug("TOOLBOX::getCurrentUsername. $userId: {}", result);
         return result;
     }
 

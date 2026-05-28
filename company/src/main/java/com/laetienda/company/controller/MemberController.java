@@ -10,6 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.company.folder}") //api/v0/company
@@ -17,6 +21,15 @@ public class MemberController {
     private static final Logger log = LoggerFactory.getLogger(MemberController.class);
 
     @Autowired private CompanyService service;
+
+    @GetMapping("${api.company.member.all.file}")
+    public ResponseEntity<List<Member>> getAllMembers(
+            @PathVariable long companyId,
+            @RequestParam(required = false) Map<String, String> params
+    )throws HttpStatusCodeException {
+        log.info("CONTROLLER_COMPANY_MEMBER::getAllMembers | $companyId: {}", companyId);
+        return ResponseEntity.ok(service.getAllMembers(companyId, params));
+    }
 
     @GetMapping("${api.company.member.find.file}") //api/v0/company/member/find/{companyId}/{userId}
     public ResponseEntity<Member> find(@PathVariable String companyId, @PathVariable String userId) throws NotValidCustomException {

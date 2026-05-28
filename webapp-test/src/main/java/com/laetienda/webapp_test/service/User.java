@@ -1,8 +1,8 @@
-package com.laetienda.webapp_test.test;
+package com.laetienda.webapp_test.service;
 
 import com.laetienda.model.kc.KcUser;
 import com.laetienda.model.user.Usuario;
-import com.laetienda.webapp_test.testApi.TestUserApi;
+import com.laetienda.webapp_test.repository.TestUserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,13 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class User {
     private final static Logger log = LoggerFactory.getLogger(User.class);
 
-    private final TestUserApi testUserApi;
+    private final TestUserRepo testUserRepo;
 
     @Value("${kc.client-registration-id.webapp}")
     private String clientRegistrationId;
 
-    public User(TestUserApi testUserApi) {
-        this.testUserApi = testUserApi;
+    public User(TestUserRepo testUserRepo) {
+        this.testUserRepo = testUserRepo;
     }
 
     public void run() throws HttpStatusCodeException, AssertionError {
@@ -37,24 +37,24 @@ public class User {
         );
 
         //SUCCESSFUL: Create new user
-        KcUser user = testUserApi.create(usuario, clientRegistrationId);
-        testUserApi.userIdExists(user.getId(), clientRegistrationId);
+        KcUser user = testUserRepo.create(usuario, clientRegistrationId);
+        testUserRepo.userIdExists(user.getId(), clientRegistrationId);
 
         //FORBIDDEN: Create same user twice
         HttpStatusCodeException e = assertThrows(
                 HttpStatusCodeException.class,
-                () -> testUserApi.create(usuario, clientRegistrationId)
+                () -> testUserRepo.create(usuario, clientRegistrationId)
         );
         assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
 
         //ENABLE::SUCCESSFUL
-        testUserApi.enable(user.getId(), user.getUsername(), password, clientRegistrationId);
-        String jwtToken = testUserApi.getToken(user.getUsername(), password);
-        testUserApi.getEmailAddress(user.getId(), clientRegistrationId);
-        user = testUserApi.getUserWithToken(jwtToken);
+        testUserRepo.enable(user.getId(), user.getUsername(), password, clientRegistrationId);
+        String jwtToken = testUserRepo.getToken(user.getUsername(), password);
+        testUserRepo.getEmailAddress(user.getId(), clientRegistrationId);
+        user = testUserRepo.getUserWithToken(jwtToken);
 
         //SUCCESSFUL: Delete user
-        testUserApi.delete(user.getId(), jwtToken, clientRegistrationId);
+        testUserRepo.delete(user.getId(), jwtToken, clientRegistrationId);
 
         log.info("TEST_USER::run | Finished Successfully user test!!!");
     }

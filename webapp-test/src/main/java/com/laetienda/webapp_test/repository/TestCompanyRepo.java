@@ -1,4 +1,4 @@
-package com.laetienda.webapp_test.testApi;
+package com.laetienda.webapp_test.repository;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.model.company.Company;
@@ -9,7 +9,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import java.util.List;
 import java.util.Map;
 
-public interface TestCompanyApi {
+public interface TestCompanyRepo {
 //    public void cycle(TestUserDto[] users) throws HttpStatusCodeException, AssertionError;
 
     Company create(String name, String vanityUrl, CompanyMemberPolicy companyMemberPolicy, TestUserDto user) throws HttpStatusCodeException, AssertionError;

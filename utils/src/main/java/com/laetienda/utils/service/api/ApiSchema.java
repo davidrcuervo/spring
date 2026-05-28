@@ -1,6 +1,7 @@
 package com.laetienda.utils.service.api;
 
 import com.laetienda.model.schema.DbItem;
+import com.laetienda.model.schema.ItemTypeA;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -23,4 +24,6 @@ public interface ApiSchema extends ApiRestClient {
     <T extends DbItem> void deleteById(Class<T> clazz, Long id, String token) throws HttpStatusCodeException;
     <T extends DbItem> T update(Class<T> clazz, DbItem item) throws HttpStatusCodeException;
     <T extends DbItem> String getClazzName(Class<T> clazz);
+    <T extends DbItem> List<String> getReaders(Class<T> clazz, Long id, String token) throws HttpStatusCodeException;
+    <T extends DbItem> List<String> getEditors(Class<T> clazz, Long id, String token) throws HttpStatusCodeException;
 }

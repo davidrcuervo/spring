@@ -13,6 +13,9 @@ public interface ToolBoxService {
     public String getEncode64(String username, String password);
     public RestClient getHttpClient();
     public RestClient getHttpClient(String username, String password);
+
+    String getCurrentUserId();
+
     public String getCurrentUsername();
     boolean hasAuthority(String authority);
     String setAddressParams(Map<String, String> params, String address, Object... uriComponents);

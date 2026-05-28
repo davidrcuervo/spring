@@ -56,6 +56,9 @@ public class CompanyTestMvcRepository {
     @Value("${api.company.member.find.uri}")
     protected String apiCompanyMemberFindUri;
 
+    @Value("${api.company.member.all.uri}")
+    protected String getAllMembersUri;
+
     @Value("${api.company.member.add.uri}")
     protected String apiCompanyMemberAddUri;
 
@@ -68,8 +71,11 @@ public class CompanyTestMvcRepository {
     @Value("${api.company.manager.uri.add}")
     protected String addManagerUri;
 
+    @Value("${api.company.manager.uri.all}")
+    private String getManagersUri;
+
     @Value("${api.company.manager.uri.remove}")
-    private String removeManagerUri;
+    protected String removeManagerUri;
 
     @Value("${api.company.policy.all.uri}")
     protected String apiCompanyPolicyAllUri;
@@ -172,6 +178,16 @@ public class CompanyTestMvcRepository {
         return  json.readValue(resp.getResponse().getContentAsString(), Company.class);
     }
 
+    public List<Member> getAllMembers(long companyId, Map<String, String> params, String token) throws Exception {
+        String address = tb.setAddressParams(params, getAllMembersUri, companyId);
+        MvcResult resp = mvc.perform(get(address)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), new TypeReference<>(){});
+    }
+
     public Member findMember(Long companyId, String userId, String token) throws Exception {
         MvcResult resp = mvc.perform(get(apiCompanyMemberFindUri, companyId, userId)
                         .accept(MediaType.APPLICATION_JSON)
@@ -249,5 +265,14 @@ public class CompanyTestMvcRepository {
                 .map(InputOptions.class::cast)
                 .collect(Collectors.toList()
                 );
+    }
+
+    public List<Member> getManagers(Long id, String token) throws Exception {
+        MvcResult resp = mvc.perform(get(getManagersUri, id)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+
+        return json.readValue(resp.getResponse().getContentAsString(), new TypeReference<>(){});
     }
 }

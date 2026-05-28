@@ -5,6 +5,7 @@ import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.InputOptions;
 import com.laetienda.model.company.Company;
+import com.laetienda.model.company.Member;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +83,12 @@ public class CompanyController {
     public ResponseEntity<Company> updateCompanyContent(@PathVariable String companyId, @RequestBody Map<String, String> body) throws HttpStatusCodeException {
         log.info("COMPANY_CONTROLLER::updateCompanyContent. $companyId: {}", companyId);
         return ResponseEntity.ok(service.updateCompanyContent(companyId, body));
+    }
+
+    @GetMapping("${api.company.manager.file.all}") //{companyId}/managers
+    public ResponseEntity<List<Member>> getManagers(@PathVariable long companyId) throws HttpStatusCodeException {
+        log.info("COMPANY_CONTROLLER::getManagers | $companyId: {}", companyId);
+        return ResponseEntity.ok(service.getAllManagers(companyId));
     }
 
     @PutMapping("${api.company.manager.file.add}") //api/v0/company/{companyId}/manager/add/{userId}

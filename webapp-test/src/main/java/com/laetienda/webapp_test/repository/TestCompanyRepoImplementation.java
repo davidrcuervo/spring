@@ -1,4 +1,4 @@
-package com.laetienda.webapp_test.testApi;
+package com.laetienda.webapp_test.repository;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.InputOptions;
@@ -9,7 +9,7 @@ import com.laetienda.utils.service.api.ApiCompany;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.List;
@@ -17,12 +17,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Service
-public class TestCompanyApiImplementation implements TestCompanyApi {
-    private final static Logger log = LoggerFactory.getLogger(TestCompanyApiImplementation.class);
+@Repository
+public class TestCompanyRepoImplementation implements TestCompanyRepo {
+    private final static Logger log = LoggerFactory.getLogger(TestCompanyRepoImplementation.class);
     private final ApiCompany apiCompany;
 
-    public TestCompanyApiImplementation(ApiCompany apiCompany) {
+    public TestCompanyRepoImplementation(ApiCompany apiCompany) {
         this.apiCompany = apiCompany;
     }
 

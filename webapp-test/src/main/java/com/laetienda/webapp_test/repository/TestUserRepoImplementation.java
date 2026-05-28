@@ -1,4 +1,4 @@
-package com.laetienda.webapp_test.testApi;
+package com.laetienda.webapp_test.repository;
 
 import com.laetienda.model.kc.KcUser;
 import com.laetienda.model.user.Usuario;
@@ -12,12 +12,12 @@ import org.springframework.web.client.HttpStatusCodeException;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Service
-public class TestUserApiImplementation implements TestUserApi {
-    private final static Logger log = LoggerFactory.getLogger(TestUserApiImplementation.class);
+public class TestUserRepoImplementation implements TestUserRepo {
+    private final static Logger log = LoggerFactory.getLogger(TestUserRepoImplementation.class);
 
     final private ApiUser apiUser;
 
-    public TestUserApiImplementation(ApiUser apiUser) {
+    public TestUserRepoImplementation(ApiUser apiUser) {
         this.apiUser = apiUser;
     }
 

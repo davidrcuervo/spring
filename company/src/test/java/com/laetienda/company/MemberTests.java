@@ -20,9 +20,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Fail.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -174,6 +175,46 @@ public class MemberTests {
                         .andExpect(status().isUnauthorized());
 
         deleteCompany(comp, USERS[1].getToken());
+    }
+
+    @Test
+    public void getAllMembers() throws Exception {
+        Company company = repo.create(
+                "Test Company Member - Get All Members",
+                "tcm-gam",
+                CompanyMemberPolicy.AUTHORIZATION_REQUIRED,
+                USERS[1]
+        );
+
+        Member member2 = repo.addMember(company.getId(), USERS[2].getUserId(), USERS[2].getToken());
+        repo.addMember(company.getId(), USERS[3].getUserId(), USERS[3].getToken());
+
+        member2.setStatus(CompanyMemberStatus.ACCEPTED);
+        repo.updateMember(member2, USERS[1].getToken());
+
+        List<Member> members = repo.getAllMembers(company.getId(), null, USERS[1].getToken());
+        assertNotNull(members);
+        assertEquals(3, members.size());
+
+        members = repo.getAllMembers(company.getId(),
+                Map.of("status", CompanyMemberStatus.ACCEPTED.name()),
+                USERS[1].getToken()
+        );
+        assertNotNull(members);
+        assertEquals(2, members.size());
+        assertTrue(members.stream().noneMatch(m -> m.getUserId().equals(USERS[3].getUserId())));
+
+        repo.deleteCompany(company.getId(), USERS[1].getToken());
+    }
+
+    @Test
+    public void getAllMembersErrorWhenInvalidParam() throws Exception {
+        fail();
+    }
+
+    @Test
+    public void getAllMembersErrorWhenIsNoManager() throws Exception {
+        fail();
     }
 
     @Test

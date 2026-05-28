@@ -1,8 +1,8 @@
 package com.laetienda.webapp_test;
 
-import com.laetienda.webapp_test.test.TestCompany;
-import com.laetienda.webapp_test.test.Schema;
-import com.laetienda.webapp_test.test.User;
+import com.laetienda.webapp_test.service.TestCompany;
+import com.laetienda.webapp_test.service.Schema;
+import com.laetienda.webapp_test.service.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;

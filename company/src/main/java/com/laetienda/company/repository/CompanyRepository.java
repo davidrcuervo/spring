@@ -1,12 +1,12 @@
 package com.laetienda.company.repository;
 
-import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface CompanyRepository {
     Company create(Company company) throws HttpStatusCodeException;
@@ -17,10 +17,11 @@ public interface CompanyRepository {
     Company findNoJwt(Long id) throws HttpStatusCodeException;
     Company findByVanityUrl(String vanityUrl) throws HttpStatusCodeException;
     List<Company> findAll(Map<String, String> params) throws HttpStatusCodeException;
+    List<Member> getAllManagers(Company company) throws HttpStatusCodeException;
     Company addManager(Member member) throws HttpStatusCodeException;
     void updateCompanyOwner(Member member) throws HttpStatusCodeException;
     void delete(Company company) throws HttpStatusCodeException;
-    List<Member> findAllMembers(Long cid) throws HttpStatusCodeException;
+    List<Member> getAllMembers(Long cid, Map<String, String> params) throws HttpStatusCodeException;
     List<Member> findMemberByUserId(Long companyId, String userId) throws HttpStatusCodeException;
     List<Member> findMemberByUserIdNoJwt(Long cid, String userId) throws HttpStatusCodeException;
     Member findMemberById(Long memberId) throws HttpStatusCodeException;

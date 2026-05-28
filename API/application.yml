@@ -287,12 +287,17 @@ api:
         uri: ${api.company.uri}${api.company.policy.all.file}
     manager:
       file:
+        all: /{companyId}/managers # METHOD: get | RESP: List<Member>
         add: /{companyId}/manager/add/{userId}
         remove: /{companyId}/manager/remove/{userId}
       uri:
+        all: ${api.company.uri}${api.company.manager.file.all}
         add: ${api.company.uri}${api.company.manager.file.add}
         remove: ${api.company.uri}${api.company.manager.file.remove}
     member:
+      all: #METHOD: get | RESP: List<Member> | PARAMS: { status }
+        file: /{companyId}/members
+        uri: ${api.company.uri}${api.company.member.all.file}
       find:
         file: member/find/{companyId}/{userId}
         uri: ${api.company.uri}/${api.company.member.find.file}

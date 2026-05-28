@@ -4,6 +4,7 @@ import com.laetienda.company.repository.CompanyRepository;
 import com.laetienda.company.repository.FriendRepository;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.lib.options.*;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,18 +36,17 @@ public class CompanyServiceImplementation implements CompanyService{
     private final CompanyRepository repo;
     private final FriendRepository repoFriend;
     private final ApiUser apiUser;
-//    private final ApiSchemaGroup apiSchemaGroup;
     private final ApiSchema apiSchema;
-
+    private ToolBoxService tb;
 
     public CompanyServiceImplementation(
             Validator validator,
             HttpServletRequest httpServletRequest,
             CompanyRepository companyRepository,
             FriendRepository friendRepository,
-//            ApiSchemaGroup apiSchemaGroup,
             ApiUser apiUser,
-            ApiSchema apiSchema
+            ApiSchema apiSchema,
+            ToolBoxService toolBoxService
     ) {
         this.validator = validator;
         this.request = httpServletRequest;
@@ -53,7 +54,7 @@ public class CompanyServiceImplementation implements CompanyService{
         this.repoFriend = friendRepository;
         this.apiUser = apiUser;
         this.apiSchema = apiSchema;
-//        this.apiSchemaGroup = apiSchemaGroup;
+        this.tb = toolBoxService;
     }
 
     @Override
@@ -156,7 +157,7 @@ public class CompanyServiceImplementation implements CompanyService{
         Member ownerMember = findMemberByIds(companyId, comp.getOwner());
         repo.removeMember(ownerMember);
 
-        List<Member> members = findAllMembers(cid);
+        List<Member> members = getAllMembers(cid, null);
         for(Member member : members){
             deleteMember(cid, member.getUserId());
         }
@@ -258,12 +259,6 @@ public class CompanyServiceImplementation implements CompanyService{
     }
 
     @Override
-    public List<Member> findAllMembers(Long cid) {
-        log.debug("COMPANY_SERVICE::findAllMembers. $cid: {}", cid);
-        return repo.findAllMembers(cid);
-    }
-
-    @Override
     public Member updateMember(Member member) throws NotValidCustomException {
         log.debug("COMPANY_SERVICE::updateMember. $memberId: {}", member.getId());
 
@@ -298,6 +293,24 @@ public class CompanyServiceImplementation implements CompanyService{
     public List<CompanyMemberPolicy> getAllCompanyMemberPolicies() throws HttpStatusCodeException {
         log.debug("SERVICE_COMPANY::getAllCompanyMemberPolicies");
         return List.of(CompanyMemberPolicy.values());
+    }
+
+    @Override
+    public List<Member> getAllMembers(long companyId, Map<String, String> params) throws HttpStatusCodeException {
+        log.debug("COMPANY_SERVICE::getAllMembers | $companyId: {}", companyId);
+
+        if(params == null){
+            params = new HashMap<>();
+        }
+
+        params.forEach((k,v) -> {
+            if(!List.of("status").contains(k.toLowerCase())){
+                log.warn("SERVICE_COMPANY::getAllMembers | {}", Attention.INVALID_PARAM.getError(k));
+                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, Attention.INVALID_PARAM.getMessage(k));
+            }
+        });
+
+        return repo.getAllMembers(companyId, params);
     }
 
     @Override
@@ -366,6 +379,17 @@ public class CompanyServiceImplementation implements CompanyService{
 
         repo.updateCompany(temp);
         return repo.find(cid);
+    }
+
+    @Override
+    public List<Member> getAllManagers(long companyId) throws HttpStatusCodeException {
+        log.debug("SERVICE_COMPANY::getAllManagers | $companyId: {}", companyId);
+
+        Company company = repo.find(companyId);
+        String userId = tb.getCurrentUserId();
+
+        ifNotCompanyManagerThrowUnauthorizedException(company, userId);
+        return repo.getAllManagers(company);
     }
 
     private void updateCompanyOwner(Company temp, String value) throws HttpStatusCodeException{
@@ -439,7 +463,7 @@ public class CompanyServiceImplementation implements CompanyService{
     private void modifyCompanyOwner(Company temp, Company company) {
 
         String newOwnerUserId = company.getOwner();
-        List<Member> members = findAllMembers(temp.getId());
+        List<Member> members = getAllMembers(temp.getId(), null);
 
         for(Member member : members){
             if(!member.getEditors().contains(newOwnerUserId)) {

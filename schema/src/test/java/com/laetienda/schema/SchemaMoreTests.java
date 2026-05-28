@@ -143,16 +143,16 @@ public class SchemaMoreTests {
                 "findReadersTestSchema",
                 45,
                 "203-1453 Jean Talon West",
-                Set.of(USERS[1].getUserId(), USERS[2].getUserId()), //readers
+                Set.of(USERS[2].getUserId()), //readers
                 DbUserAccessPolicy.MANAGE_BY_ALL,
-                DbServiceAccessPolicy.SERVICE_WRITE,
-                Set.of(USERS[1].getUserId()), //editors
+                DbServiceAccessPolicy.SERVICE_READ,
+                Set.of(USERS[3].getUserId()), //editors
                 DbUserAccessPolicy.MANAGE_BY_OWNER_ONLY,
                 DbServiceAccessPolicy.SERVICE_READ,
-                USERS[3].getToken()
+                USERS[1].getToken()
         );
 
-        List<String> readers = repo.getReaders(item.getId(), USERS[1].getToken());
+        List<String> readers = repo.getReaders(item.getId(), USERS[2].getToken());
         assertNotNull(readers);
         assertEquals(3, readers.size());
         assertTrue(readers.contains(USERS[1].getUserId()));

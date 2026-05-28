@@ -127,6 +127,36 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
+    public List<Member> getAllManagers(Company company) throws HttpStatusCodeException {
+        log.debug("REPO_COMPANY::getAllManagers | $company: {}", company.getVanityUrl());
+
+        StringBuilder query = new StringBuilder(
+                "SELECT m FROM {clazz} m ".replace("{clazz}", Member.class.getName())
+        );
+        query.append("WHERE m.userId IN (");
+        query.append(
+                "SELECT g.members FROM {group} g "
+                        .replace("{group}", DbGroup.class.getName())
+        );
+        query.append("JOIN g.editorItems i ");
+        query.append("WHERE i.id = {companyId}"
+                .replace("{companyId}", company.getId().toString())
+        );
+        query.append(") ");
+        query.append("OR m.userId IN (");
+        query.append("SELECT c.owner FROM {company} c WHERE c.id = {companyId}"
+                .replace("{company}", Company.class.getName())
+                .replace("{companyId}", company.getId().toString())
+        );
+        query.append(")");
+
+        return apiSchema.findByQuery(
+                Member.class,
+                Map.of("query", query.toString())
+        );
+    }
+
+    @Override
     public Company addManager(Member member) throws HttpStatusCodeException {
         log.debug("COMPANY_REPOSITORY::addManager. $member: {}", member.getId());
 
@@ -189,10 +219,21 @@ public class CompanyRepositoryImplementation implements CompanyRepository{
     }
 
     @Override
-    public List<Member> findAllMembers(Long cid) throws HttpStatusCodeException {
+    public List<Member> getAllMembers(Long cid, Map<String, String> params) throws HttpStatusCodeException {
         log.debug("COMPANY_REPO::findAllMembers. $cid: {}", cid);
-        String query = String.format("SELECT m FROM %s m INNER JOIN m.company c WHERE c.id = %d", Member.class.getName(), cid);
-        return findMembersByQuery(query);
+
+        StringBuilder query = new StringBuilder(
+                "SELECT m FROM {clazz} m INNER JOIN m.company c WHERE c.id = {companyId} "
+                        .replace("{clazz}", Member.class.getName())
+                        .replace("{companyId}", cid.toString())
+        );
+
+        if(params.containsKey("status")){
+            query.append("AND m.status = {status} "
+                    .replace("{status}", params.get("status")));
+        }
+
+        return findMembersByQuery(query.toString());
     }
 
     private List<Member> findMembersByQuery(String query) throws HttpStatusCodeException {

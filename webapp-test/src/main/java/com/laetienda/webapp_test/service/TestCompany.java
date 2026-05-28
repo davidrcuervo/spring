@@ -1,4 +1,4 @@
-package com.laetienda.webapp_test.test;
+package com.laetienda.webapp_test.service;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
@@ -6,6 +6,7 @@ import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;
 import com.laetienda.utils.lib.UtilsBox;
+import com.laetienda.webapp_test.repository.TestCompanyRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,14 +22,14 @@ public class TestCompany {
     private final static Logger log = LoggerFactory.getLogger(TestCompany.class);
 
     private final UtilsBox utils;
-    private final com.laetienda.webapp_test.testApi.TestCompanyApi testCompanyApi;
+    private final TestCompanyRepo testCompanyRepo;
 
     public TestCompany(
             UtilsBox utilsBox,
-            com.laetienda.webapp_test.testApi.TestCompanyApi testCompanyApi
+            TestCompanyRepo testCompanyRepo
     ) {
         this.utils = utilsBox;
-        this.testCompanyApi = testCompanyApi;
+        this.testCompanyRepo = testCompanyRepo;
     }
 
     public void run(){
@@ -37,25 +38,25 @@ public class TestCompany {
         log.info("TEST_API_COMPANY::run | Starting test");
 
         try{
-            Company comp = testCompanyApi.create(
+            Company comp = testCompanyRepo.create(
                     "Test Company - Name",
                     "tc-name",
                     CompanyMemberPolicy.PUBLIC, users[1]
             );
-            String flag = testCompanyApi.isValid(comp.getId(), users[1].getToken());
-            comp = testCompanyApi.find(comp.getId(), users[1].getToken());
-            comp = testCompanyApi.findByVanityUrl(comp.getVanityUrl(), users[1].getToken());
-            comp = testCompanyApi.findByName(comp.getName(), users[1].getToken());
-            comp = testCompanyApi.updateName(comp.getId(), "newName", users[1].getToken());
-            comp = testCompanyApi.updateDescription(comp.getId(), "description", users[1].getToken());
-            Member memb2 = testCompanyApi.addMember(comp.getId(), users[2].getUserId(), users[1].getToken());
-            comp = testCompanyApi.updateContent(comp.getId(), Map.of("owner", memb2.getId().toString()), users[1].getToken());
-            Member memb1 = testCompanyApi.findMember(comp.getId(), users[1].getUserId(), users[2].getToken());
+            String flag = testCompanyRepo.isValid(comp.getId(), users[1].getToken());
+            comp = testCompanyRepo.find(comp.getId(), users[1].getToken());
+            comp = testCompanyRepo.findByVanityUrl(comp.getVanityUrl(), users[1].getToken());
+            comp = testCompanyRepo.findByName(comp.getName(), users[1].getToken());
+            comp = testCompanyRepo.updateName(comp.getId(), "newName", users[1].getToken());
+            comp = testCompanyRepo.updateDescription(comp.getId(), "description", users[1].getToken());
+            Member memb2 = testCompanyRepo.addMember(comp.getId(), users[2].getUserId(), users[1].getToken());
+            comp = testCompanyRepo.updateContent(comp.getId(), Map.of("owner", memb2.getId().toString()), users[1].getToken());
+            Member memb1 = testCompanyRepo.findMember(comp.getId(), users[1].getUserId(), users[2].getToken());
             memb1.setStatus(CompanyMemberStatus.BLOCKED);
-            memb1 = testCompanyApi.updateMember(memb1, users[2].getToken());
-            testCompanyApi.deleteMember(comp.getId(), users[1].getUserId(), users[1].getToken());
-            testCompanyApi.delete(comp.getId(), users[2].getToken());
-            testCompanyApi.getAllCompanyMemberPolicies(users[0].getToken());
+            memb1 = testCompanyRepo.updateMember(memb1, users[2].getToken());
+            testCompanyRepo.deleteMember(comp.getId(), users[1].getUserId(), users[1].getToken());
+            testCompanyRepo.delete(comp.getId(), users[2].getToken());
+            testCompanyRepo.getAllCompanyMemberPolicies(users[0].getToken());
             this.testFindAll(users);
 
             log.info("TEST_API_COMPANY::run | Test completed successfully");
@@ -75,19 +76,19 @@ public class TestCompany {
     private void testFindAll(TestUserDto[] users) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_API_COMPANY::testFindAll | Starting test");
 
-        Company comp1 = testCompanyApi.create(
+        Company comp1 = testCompanyRepo.create(
                 "Api Test Company 1 - Find All",
                 "apc-fa1",
                 CompanyMemberPolicy.PUBLIC,
                 users[1]
         );
-        Company comp2 = testCompanyApi.create(
+        Company comp2 = testCompanyRepo.create(
                 "Api Test Company 2 - Find All",
                 "apc-fa2",
                 CompanyMemberPolicy.PUBLIC,
                 users[2]
         );
-        Company comp3 = testCompanyApi.create(
+        Company comp3 = testCompanyRepo.create(
                 "Api Test Company 3 - Find All",
                 "apc-fa3",
                 CompanyMemberPolicy.PUBLIC,
@@ -95,23 +96,23 @@ public class TestCompany {
         );
 
         //add user1 as manager to company2
-        testCompanyApi.addMember(comp2.getId(), users[1].getUserId(), users[1].getToken());
-        testCompanyApi.addManager(comp2.getId(), users[1].getUserId(), users[2].getToken());
+        testCompanyRepo.addMember(comp2.getId(), users[1].getUserId(), users[1].getToken());
+        testCompanyRepo.addManager(comp2.getId(), users[1].getUserId(), users[2].getToken());
 
         //add user1 as member to company3
-        testCompanyApi.addMember(comp3.getId(), users[1].getUserId(), users[1].getToken());
+        testCompanyRepo.addMember(comp3.getId(), users[1].getUserId(), users[1].getToken());
 
         //test find all
-        List<Company> result = testCompanyApi.findAll(Map.of("manager", ""), users[1].getToken());
+        List<Company> result = testCompanyRepo.findAll(Map.of("manager", ""), users[1].getToken());
         assertNotNull(result);
         assertEquals(2, result.size());
         assertTrue(result.stream().anyMatch(c -> c.getId().equals(comp1.getId())));
         assertTrue(result.stream().anyMatch(c -> c.getId().equals(comp2.getId())));
         assertTrue(result.stream().noneMatch(c -> c.getId().equals(comp3.getId())));
 
-        testCompanyApi.delete(comp1.getId(), users[1].getToken());
-        testCompanyApi.delete(comp2.getId(), users[2].getToken());
-        testCompanyApi.delete(comp3.getId(), users[3].getToken());
+        testCompanyRepo.delete(comp1.getId(), users[1].getToken());
+        testCompanyRepo.delete(comp2.getId(), users[2].getToken());
+        testCompanyRepo.delete(comp3.getId(), users[3].getToken());
 
         log.debug("TEST_API_COMPANY::testFindAll | Test completed successfully");
     }
