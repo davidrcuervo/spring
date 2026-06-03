@@ -2,15 +2,13 @@ package com.laetienda.utils.service.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.laetienda.lib.exception.NotValidCustomException;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.kc.KcUser;
 import com.laetienda.model.user.Usuario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +27,6 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 public class ApiUserImplementation extends ApiRestClientImplementation implements ApiUser{
     private final static Logger log = LoggerFactory.getLogger(ApiUserImplementation.class);
 
-    Environment env;
-    ObjectMapper json;
-    RestClient client;
-
     @Value("${kc.client-registration-id.webapp}")
     private String webappClientId;
 
@@ -47,6 +41,9 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
 
     @Value("${api.kcUser.uri.userIdExists}")
     private String userIdExistsUri;
+
+    @Value("${api.kc.realm.admin.user.byUserId}")
+    private String userByIdUri;
 
     @Value("${api.kcUser.uri.create}")
     private String createUri;
@@ -63,12 +60,17 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
     @Value("${api.kcUser.uri.findEmailAddress}")
     private String findEmailAddressUri;
 
+    private final Environment env;
+    private final ObjectMapper json;
+    private final RestClient client;
+
     public ApiUserImplementation(
             RestClient restClient,
             Environment environment,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            ToolBoxService toolBoxService
     ){
-        super(restClient);
+        super(restClient, toolBoxService);
         this.client = restClient;
         this.json = objectMapper;
         this.env = environment;
@@ -120,6 +122,12 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
             log.error("API_USER::getCurrentUser | $error: {}", e.getMessage());
             throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    @Override
+    public KcUser getUserWithWebAppService(String userId) throws HttpStatusCodeException {
+        log.debug("API_USER::getUserWithService | $userId: {} | $address: {}", userId, userByIdUri);
+        return this.getUser(clientRegistrationId(webappClientId), userByIdUri, userId);
     }
 
     @Override
@@ -194,5 +202,17 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
     @Override
     public String getEmailAddress(String userId) throws HttpStatusCodeException {
         return super.get(null,  findEmailAddressUri, userId);
+    }
+
+    private KcUser getUser(
+            Consumer<Map<String, Object>> attributes,
+            String address, Object... uriVariables
+    ) throws HttpStatusCodeException {
+        return client.get().uri(address, uriVariables)
+                .accept(MediaType.APPLICATION_JSON)
+                .attributes(attributes == null ? a -> {} : attributes)
+                .retrieve()
+                .toEntity(KcUser.class)
+                .getBody();
     }
 }

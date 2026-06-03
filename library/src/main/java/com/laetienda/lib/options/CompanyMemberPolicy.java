@@ -13,7 +13,7 @@ public enum CompanyMemberPolicy implements InputOptions{
         this.description = description;
     }
 
-    public String getName(){
+    public String getValue(){
         return this.name();
     }
 

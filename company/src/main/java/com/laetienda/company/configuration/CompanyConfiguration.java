@@ -43,13 +43,13 @@ public class CompanyConfiguration {
     }
 
     @Bean
-    public ApiUser getApiUser(){
-        return new ApiUserImplementation(client, env, json);
+    public ApiUser getApiUser(ToolBoxService tb){
+        return new ApiUserImplementation(client, env, json, tb);
     }
 
     @Bean
-    public ApiSchemaGroup getApiSchemaGroup(){
-        return new ApiSchemaGroupImplementation(client);
+    public ApiSchemaGroup getApiSchemaGroup(ToolBoxService tb){
+        return new ApiSchemaGroupImplementation(client, tb);
     }
 
     @Bean

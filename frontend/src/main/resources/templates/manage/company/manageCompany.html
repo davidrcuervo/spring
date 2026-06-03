@@ -10,6 +10,11 @@
     <body>
         <main layout:fragment="content" class="container mb-5">
             <h1 class="text-center my-2">Cortes de la Villa</h1>
+
+            <!-- TESTING -->
+            <div th:each = "member : ${@comp.getManagers(company)}">
+                <div>member userId: <span th:text="${member.label}">userId</span></div>
+            </div>
             <!-- Update Company name -->
             <form th:action="@{${@tt.href('seo.manage.company.update.name', company.vanityUrl)}}"
                   method="post"
@@ -20,13 +25,15 @@
                     type='text',
                     label='Company Name',
                     placeholder='Insert the name of the company.',
+                    name='name',
                     value=${company.name},
                     options=null,
                     modalTitle='Update Company Name',
                     modalBody='Are you sure you want to modify the name of the company?',
                     onInputBefore=null,
                     success=null,
-                    error=null
+                    hasErrors=false,
+                    errors=null
                 )}"></th:block>
             </form>
             <!-- Update company vanityUrl -->
@@ -39,13 +46,15 @@
                     type='text',
                     label='Vanity URL',
                     placeholder='How do you want your company to look like on internet.',
+                    name='vanityUrl',
                     value=${company.vanityUrl},
                     options=null,
                     modalTitle='Update Company Vanity URL',
                     modalBody='Are you sure you want to modify your company vanity URL? Users will have to modify their bookmarks, and links on social networks should be updated.',
                     onInputBefore=|${@tt.href('seo.url')}/|,
                     success='This message should not be displayed',
-                    error='White spaces and symbols are forbidden, only alphanumeric characters are accepted'
+                    hasErrors=false,
+                    errors=null
                 )}"></div>
             </form>
             <!-- Update owner -->
@@ -58,13 +67,15 @@
                     type='select',
                     label='Owner',
                     placeholder='Select the owner of the company.',
-                    value='Lyda Cortes',
-                    options=${ {'Lyda Cortes', 'Eliana Cortes', 'David Cuervo'} },
+                    name='owner',
+                    value=${company.owner},
+                    options=null,
                     modalTitle='Update Company Owner',
                     modalBody='Are you sure you want other person the owns the company? You can not undo this modification, only owner can modify the owner.',
                     onInputBefore=null,
                     success='The owner of the company has been updated successfully!!',
-                    error=null
+                    hasErrors=false,
+                    errors=null
                 )}"></th:block>
             </form>
             <!-- Update Member policy -->
@@ -77,12 +88,14 @@
                     type = 'select',
                     label = 'Company policy',
                     placeholder = 'Select the policy for new members of the company',
-                    value = 'PUBLIC',
-                    options = ${ {'PUBLIC', 'REGISTRATION_REQUIRED', 'AUTHORIZATION_REQUIRED'} },
+                    name='memberPolicy',
+                    value = ${company.memberPolicy},
+                    options = ${@comp.allCompanyMemberPolicies},
                     onInputBefore = null,
                     attributes = null,
                     success = null,
-                    error = 'Policy of company can not be modified.'
+                    hasErrors = false,
+                    errors = null
                 )}"></th:block>
             </form>
             <!-- Update description -->
@@ -94,12 +107,14 @@
                     type='textarea',
                     label='Description',
                     placeholder='Insert the description of the company.',
-                    value='Hostel to stay in Villa de Leyva. Next to the main park of the town.',
+                    name='description',
+                    value=${company.description},
                     options = null,
                     onInputBefore=null,
                     attributes = null,
                     success=null,
-                    error='Description is to short'
+                    hasErrors=false,
+                    errors=null
                 )}"></th:block>
             </form>
             <!-- Members -->
@@ -111,27 +126,29 @@
                     <th scope="col" class="text-center">Enabled</th>
                 </tr>
             </thead>
-            <tbody class="table-group-divider">
-                <tr th:with="userId='user1'">
-                    <td th:text="${'Lyda Cortes'}">Member Name</td>
+            <tbody th:with="members=${@comp.getMembers(company)}" class="table-group-divider">
+                <tr th:each="member=${members}"
+                    th:with="user=${@usr.getUser(member.userId)}"
+                >
+                    <td th:text="${user.fullName}">Member Name</td>
                     <td class="text-center">
                         <form action="/manage/company/{companyId}/addManager/"
                               method="post"
                               class="checkBoxWithModal"
                         >
                             <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
-                                id = |${userId}ManagerCheckBoxInput|,
+                                id = |${member.userId}ManagerCheckBoxInput|,
                                 type = checkbox,
                                 label = null,
                                 placeholder = null,
-                                value = ${userId},
+                                value = ${member.userId},
                                 options = null,
-                                attributes = ${ {'checked'} },
+                                attributes = ${ {@comp.isManager(member) ? 'checked' : null} },
                                 success = 'Manager added successfully',
                                 error = null
                             )}"></th:block>
                             <th:block th:replace="~{layout/bootstrap.html :: modal(
-                                id=|${userId}ManagerCheckBoxModal|,
+                                id=|${member.userId}ManagerCheckBoxModal|,
                                 title='Modify company manager',
                                 body='You are about to modify manager of the company. Do you want to continue?'
                             )}"></th:block>
@@ -143,18 +160,18 @@
                               class="checkBoxWithModal"
                         >
                             <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
-                                id = |${userId}AcceptMemberCheckBox|,
+                                id = |${member.userId}AcceptMemberCheckBox|,
                                 type = checkbox,
                                 label = null,
                                 placeholder = null,
-                                value = ${userId},
+                                value = ${member.userId},
                                 options = null,
-                                attributes = ${ {'checked'} },
+                                attributes = ${ {@comp.isAccepted(member) ? 'checked' : null} },
                                 success = null,
                                 error = 'Member does have valid email address.'
                             )}"></th:block>
                             <th:block th:replace="~{layout/bootstrap.html :: modal(
-                                id=|${userId}AcceptMemberCheckBoxModal|,
+                                id=|${member.userId}AcceptMemberCheckBoxModal|,
                                 title='Modify member access (accept | block)',
                                 body='You are about to accept/block user. Do you want to continue?'
                             )}"></th:block>

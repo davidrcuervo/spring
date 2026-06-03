@@ -38,6 +38,17 @@ public class TestUserRepoImplementation implements TestUserRepo {
     }
 
     @Override
+    public KcUser getUserWithClientId(String userId) throws HttpStatusCodeException {
+        log.debug("TEST_USER::getUserWithClientId | $userId: {}", userId);
+
+        KcUser result = apiUser.getUserWithWebAppService(userId);
+        assertNotNull(result);
+        assertEquals(userId, result.getId());
+
+        return result;
+    }
+
+    @Override
     public void userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_USER::userIdExists | $userId: {}", userId);
         apiUser.userIdExists(userId, clientRegistrationId);

@@ -63,6 +63,9 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     @Value("${api.company.member.add.uri}")
     private String addCompanyMemberUri;
 
+    @Value("${api.company.member.all.uri}")
+    private String membersUri;
+
     @Value("${api.company.member.find.uri}")
     private String findCompanyMemberUri;
 
@@ -71,6 +74,9 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
 
     @Value("${api.company.manager.uri.add}")
     private String addManagerUri;
+
+    @Value("${api.company.manager.uri.all}")
+    private String managersUri;
 
     @Value("${api.company.member.delete.uri}")
     private String deleteCompanyMemberUri;
@@ -85,7 +91,7 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
             RestClient restClient,
             ToolBoxService toolBoxService
     ) {
-        super(restClient);
+        super(restClient, toolBoxService);
         this.client = restClient;
         this.tb = toolBoxService;
     }
@@ -107,7 +113,7 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
         String address = tb.setAddressParams(params, findAllUri);
         return super.getList(Company.class,
                 null,
-                address);
+                address, null);
     }
 
     @Override
@@ -115,7 +121,7 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
         String address = tb.setAddressParams(params, findAllUri);
         return super.getList(Company.class,
                 a-> a.put("jwtToken", token),
-                address);
+                address, null);
     }
 
     @Override
@@ -135,8 +141,7 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     public void deleteCompany(String companyId) throws HttpStatusCodeException {
         super.delete(
                 null,
-                deleteCompanyUri,
-                companyId
+                deleteCompanyUri, companyId
         );
     }
 
@@ -144,8 +149,7 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     public void deleteCompany(Long companyId, String token) throws HttpStatusCodeException {
         super.delete(
                 attrs -> attrs.put("jwtToken", token),
-                deleteCompanyUri,
-                companyId, token);
+                deleteCompanyUri, companyId);
     }
 
     @Override
@@ -231,6 +235,24 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
     }
 
     @Override
+    public List<Member> getMembers(long companyId, Map<String, String> params) throws HttpStatusCodeException {
+        return super.getList(
+                Member.class,
+                null,
+                membersUri, params, companyId
+        );
+    }
+
+    @Override
+    public List<Member> getMembersWithToken(long companyId, Map<String, String> params, String token) throws HttpStatusCodeException {
+        return super.getList(
+                Member.class,
+                a -> a.put("jwtToken", token),
+                membersUri, params, companyId
+        );
+    }
+
+    @Override
     public Member updateMember(Member body, String token) throws HttpStatusCodeException {
         return super.put(
                 Member.class,
@@ -260,6 +282,20 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
         return super.put(Company.class,
                 a -> a.put("jwtToken", token),
                 addManagerUri, companyId, userId
+        );
+    }
+
+    @Override
+    public List<Member> getManagers(long companyId) throws HttpStatusCodeException {
+        return super.getList(Member.class, null, managersUri, null, companyId);
+    }
+
+    @Override
+    public List<Member> getManagersWithToken(Long companyId, String token) throws HttpStatusCodeException {
+        return super.getList(
+                Member.class,
+                a -> a.put("jwtToken", token),
+                managersUri, null, companyId
         );
     }
 

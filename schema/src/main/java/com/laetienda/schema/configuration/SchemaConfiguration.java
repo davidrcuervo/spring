@@ -35,8 +35,8 @@ public class SchemaConfiguration {
     }
 
     @Bean
-    public ApiUser getUserApi(){
-        return new ApiUserImplementation(client, env,  json);
+    public ApiUser getUserApi(ToolBoxService tb){
+        return new ApiUserImplementation(client, env,  json, tb);
     }
 
     @Bean

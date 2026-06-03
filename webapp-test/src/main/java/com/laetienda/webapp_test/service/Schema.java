@@ -144,8 +144,13 @@ public class Schema {
         assertTrue(editors.contains(users[3].getUserId()));
         assertFalse(editors.contains(users[2].getUserId()));
 
+        repo.deleteGroups(item1, users[1].getToken());
         repo.deleteItem(ItemTypeA.class, item1.getId(), users[1].getToken());
+
+        repo.deleteGroups(item2, users[1].getToken());
         repo.deleteItem(ItemTypeA.class, item2.getId(), users[1].getToken());
+
+        repo.deleteGroups(item3, users[1].getToken());
         repo.deleteItem(ItemTypeA.class, item3.getId(), users[1].getToken());
 
         log.info("TEST_SCHEMA::getAllReadersAndEditors | Test finish successfully!");

@@ -10,6 +10,7 @@ public interface ApiUser extends ApiRestClient {
     void userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException;
     KcUser getCurrentUser() throws HttpStatusCodeException;
     KcUser getCurrentUserWithToken(String jwtToken) throws HttpStatusCodeException;
+    KcUser getUserWithWebAppService(String userId) throws HttpStatusCodeException;
     KcUser create(Usuario usuario, String clientRegistrationId) throws HttpStatusCodeException;
     void enable(String userId, String clientRegistrationId) throws HttpStatusCodeException;
     void delete(String userId, String jwtToken) throws HttpStatusCodeException;
@@ -17,4 +18,5 @@ public interface ApiUser extends ApiRestClient {
     String getCurrentUserId() throws HttpStatusCodeException;
     String getEmailAddress(String userId, String clientRegistrationId) throws HttpStatusCodeException;
     String getEmailAddress(String userId) throws HttpStatusCodeException;
+
 }

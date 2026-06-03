@@ -1,10 +1,11 @@
 package com.laetienda.model.kc;
 
+import com.laetienda.lib.options.InputOptions;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import net.minidev.json.annotate.JsonIgnore;
 
-public class KcUser {
+public class KcUser implements InputOptions {
 
     @NotNull private String id;
     @NotNull private String username;
@@ -76,5 +77,20 @@ public class KcUser {
     @JsonIgnore
     public String getFullName(){
         return getFirstName() + " " + getLastName();
+    }
+
+    @Override
+    public String getValue() {
+        return this.getUsername();
+    }
+
+    @Override
+    public String getLabel() {
+        return this.getFullName();
+    }
+
+    @Override
+    public String getDescription() {
+        return getFullName();
     }
 }

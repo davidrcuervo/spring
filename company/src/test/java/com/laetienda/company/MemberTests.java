@@ -191,8 +191,9 @@ public class MemberTests {
 
         member2.setStatus(CompanyMemberStatus.ACCEPTED);
         repo.updateMember(member2, USERS[1].getToken());
+        repo.addManager(company.getId(), USERS[2].getUserId(), USERS[1].getToken());
 
-        List<Member> members = repo.getAllMembers(company.getId(), null, USERS[1].getToken());
+        List<Member> members = repo.getAllMembers(company.getId(), null, USERS[2].getToken());
         assertNotNull(members);
         assertEquals(3, members.size());
 

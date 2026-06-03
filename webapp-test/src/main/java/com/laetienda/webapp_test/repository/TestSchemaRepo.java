@@ -98,6 +98,7 @@ public interface TestSchemaRepo {
             long itemId,
             String token
     ) throws HttpStatusCodeException, AssertionError;
+    void deleteGroups(DbItem item1, String token) throws HttpStatusCodeException, AssertionError;
 
     List<DbGroup> getOrphans(
             String token
@@ -111,4 +112,5 @@ public interface TestSchemaRepo {
 
     List<String> getReaders(Long id, String token) throws HttpStatusCodeException, AssertionError;
     List<String> getEditors(Long id, String token) throws HttpStatusCodeException, AssertionError;
+
 }

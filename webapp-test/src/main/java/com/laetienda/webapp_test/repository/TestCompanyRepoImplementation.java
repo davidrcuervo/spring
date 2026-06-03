@@ -121,16 +121,22 @@ public class TestCompanyRepoImplementation implements TestCompanyRepo {
     }
 
     @Override
-    public void delete(Long id, String token) throws HttpStatusCodeException, AssertionError {
-        log.debug("TEST_COMPANY::delete | Testing delete");
+    public void delete(Long companyId, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_COMPANY::delete | $companyId: {}", companyId);
 
-        apiCompany.deleteCompany(id, token);
+        apiCompany.deleteCompany(companyId, token);
 
         HttpStatusCodeException e = assertThrows(HttpStatusCodeException.class,
-                () -> apiCompany.find(id, token),
+                () -> apiCompany.find(companyId, token),
                 "TEST_COMPANY::cycle. Company could not be deleted"
         );
         assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode(), "TEST_COMPANY::cycle. Find company didn't return 404");
+    }
+
+    @Override
+    public List<Member> getMembers(long companyId, Map<String, String> params, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_COMPANY::getMembers | $companyId: {}", companyId);
+        return apiCompany.getMembersWithToken(companyId, params, token);
     }
 
     @Override
@@ -188,6 +194,12 @@ public class TestCompanyRepoImplementation implements TestCompanyRepo {
         );
 
         return result;
+    }
+
+    @Override
+    public List<Member> getManagers(Long companyId, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_COMPANY::getManagers | $companyId: {}", companyId);
+        return apiCompany.getManagersWithToken(companyId, token);
     }
 
     @Override

@@ -90,6 +90,7 @@ public interface ApiRestClient {
             Class<T> responseType,
             Consumer<Map<String, Object>> attributes,
             String address,
+            Map<String, String> params,
             Object... uriVariables
     ) throws HttpStatusCodeException;
 }

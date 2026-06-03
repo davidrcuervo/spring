@@ -71,8 +71,8 @@ public class FrontendBeanConfiguration {
 	}
 
 	@Bean
-	public ApiUser getApiUser() {
-		return new ApiUserImplementation(client, env, json);
+	public ApiUser getApiUser(ToolBoxService tb) {
+		return new ApiUserImplementation(client, env, json, tb);
 	}
 
 	@Bean

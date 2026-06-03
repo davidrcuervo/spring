@@ -7,6 +7,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public interface TestUserRepo {
     KcUser create(Usuario usuario, String clientRegistrationId) throws HttpStatusCodeException, AssertionError;
     KcUser getUserWithToken(String token) throws HttpStatusCodeException;
+    KcUser getUserWithClientId(String userId) throws HttpStatusCodeException;
     String getToken(String username, String password) throws HttpStatusCodeException, AssertionError;
     void enable(String userId, String username, String password, String clientRegistrationId) throws HttpStatusCodeException, AssertionError;
     void userIdExists(String userId, String clientRegistrationId) throws HttpStatusCodeException, AssertionError;

@@ -3,6 +3,7 @@ package com.laetienda.utils.service.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.schema.DbGroup;
 import org.slf4j.Logger;
@@ -26,8 +27,6 @@ import static org.springframework.security.oauth2.client.web.client.RequestAttri
 @Component
 public class ApiSchemaGroupImplementation extends ApiRestClientImplementation implements ApiSchemaGroup {
     private final static Logger log =  LoggerFactory.getLogger(ApiSchemaGroupImplementation.class);
-
-    private final RestClient client;
 
     @Value("${api.schema.group.uri.findAll}")
     private String uriAddressFindAll;
@@ -53,10 +52,13 @@ public class ApiSchemaGroupImplementation extends ApiRestClientImplementation im
     @Value("${kc.client-registration-id.webapp}")
     private String clientRegistrationId;
 
+    private final RestClient client;
+
     public ApiSchemaGroupImplementation(
-            RestClient restClient
+            RestClient restClient,
+            ToolBoxService toolBoxService
             ) {
-        super(restClient);
+        super(restClient, toolBoxService);
         this.client = restClient;
     }
 

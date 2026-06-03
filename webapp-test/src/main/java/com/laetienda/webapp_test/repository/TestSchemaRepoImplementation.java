@@ -72,7 +72,7 @@ public class TestSchemaRepoImplementation implements TestSchemaRepo {
         ItemTypeA item = new ItemTypeA(name, age, address);
 
         if(readers != null && !readers.isEmpty()) {
-            DbGroup readersGroup = new DbGroup(String.format("%s - Readers Group", name));
+            DbGroup readersGroup = new DbGroup(getReaderGroupName(name));
             readersGroup.setUserAccessPolicy(readersUserAccessPolicy);
             readersGroup.setServiceAccessPolicy(readersServiceAccessPolicy);
             readers.forEach(readersGroup::addMember);
@@ -80,7 +80,7 @@ public class TestSchemaRepoImplementation implements TestSchemaRepo {
         }
 
         if(editors != null && !editors.isEmpty()) {
-            DbGroup editorsGroup = new DbGroup(String.format("%s - Editors Group", name));
+            DbGroup editorsGroup = new DbGroup(getEditorGroupName(name));
             editorsGroup.setUserAccessPolicy(editorsUserAccessPolicy);
             editorsGroup.setServiceAccessPolicy(editorsServiceAccessPolicy);
             editors.forEach(editorsGroup::addMember);
@@ -155,6 +155,23 @@ public class TestSchemaRepoImplementation implements TestSchemaRepo {
     }
 
     @Override
+    public void deleteGroups(DbItem item, String token) throws HttpStatusCodeException, AssertionError {
+        log.debug("TEST_SCHEMA::deleteGroups | $itemId: {}", item.getId());
+
+        if(item.getEditorGroups() != null) {
+            item.getEditorGroups().forEach(group -> {
+                this.deleteGroup(group.getId(), group.getName(), token);
+            });
+        }
+
+        if(item.getReaderGroups() != null) {
+            item.getReaderGroups().forEach(group -> {
+                this.deleteGroup(group.getId(), group.getName(), token);
+            });
+        }
+    }
+
+    @Override
     public List<DbGroup> getOrphans(String token) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_SCHEMA::getOrphans");
 
@@ -189,5 +206,13 @@ public class TestSchemaRepoImplementation implements TestSchemaRepo {
     public List<String> getEditors(Long id, String token) throws HttpStatusCodeException, AssertionError {
         log.debug("TEST_SCHEMA::getEditors | $id: {}", id);
         return apiSchema.getEditors(ItemTypeA.class, id, token);
+    }
+
+    private String getEditorGroupName(String companyName){
+        return String.format("%s - Editors Group", companyName);
+    }
+
+    private String getReaderGroupName(String companyName){
+        return String.format("%s - Readers Group", companyName);
     }
 }

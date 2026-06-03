@@ -37,10 +37,26 @@ public interface ApiCompany extends ApiRestClient{
     Company updateContent(Long id, Map<String, String> body, String token) throws HttpStatusCodeException;
     Member addMember(Long companyId, String userId, String token) throws  HttpStatusCodeException;
     Member findMember(Long companyId, String userId, String token) throws HttpStatusCodeException;
+
+    //MEMBERS | GET ALL
+    List<Member> getMembers(
+            long companyId,
+            Map<String, String> params
+    ) throws HttpStatusCodeException;
+    List<Member> getMembersWithToken(
+            long companyId,
+            Map<String, String> params,
+            String token
+    ) throws HttpStatusCodeException;
+
     Member updateMember(Member member, String token) throws HttpStatusCodeException;
     void deleteMember(Long companyId, String userId, String token) throws HttpStatusCodeException;
     Company addManager(long companyId, String userId) throws HttpStatusCodeException;
     Company addManagerWithToken(long companyId, String userId, String token) throws HttpStatusCodeException;
+
+    List<Member> getManagers(long companyId) throws HttpStatusCodeException;
+
+    List<Member> getManagersWithToken(Long companyId, String token) throws HttpStatusCodeException;
 
     List<InputOptions> getAllCompanyMemberPolicies() throws HttpStatusCodeException;
 
@@ -51,4 +67,5 @@ public interface ApiCompany extends ApiRestClient{
     List<InputOptions> getAllCompanyMemberPoliciesWithClientRegistrationId(
             String clientRegistrationId
     ) throws HttpStatusCodeException;
+
 }

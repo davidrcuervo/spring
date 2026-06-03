@@ -73,7 +73,7 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
             ObjectMapper objectMapper,
             ToolBoxService toolBoxService
     ){
-        super(restClient);
+        super(restClient, toolBoxService);
         this.json = objectMapper;
         this.tb = toolBoxService;
         this.client = restClient;
@@ -135,14 +135,17 @@ public class ApiSchemaImplementation extends ApiRestClientImplementation impleme
     public <T extends DbItem> List<T> findAll(Class<T> clazz, Map<String, String> params) throws HttpStatusCodeException {
         log.debug("API_SCHEMA::findAll | $clazz: {} | $address: {}", clazz.getName(), findAllUri);
         String address = tb.setAddressParams(params, findAllUri, getClazzName(clazz));
-        return super.getList(clazz, null, address);
+        return super.getList(clazz, null, address, null);
     }
 
     @Override
     public <T extends DbItem> List<T> findAllWithToken(Class<T> clazz, Map<String, String> params, String token) throws HttpStatusCodeException {
         log.debug("API_SCHEMA::findAllWithToken | $clazz: {} | $address: {}", clazz.getName(), findAllUri );
-        String address = tb.setAddressParams(params, findAllUri, getClazzName(clazz));
-        return super.getList(clazz, a->a.put("jwtToken", token), address);
+        return super.getList(
+                clazz,
+                a->a.put("jwtToken", token),
+                findAllUri, params, getClazzName(clazz)
+        );
     }
 
     @Override

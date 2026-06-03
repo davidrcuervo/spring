@@ -4,7 +4,6 @@ import com.laetienda.model.kc.KcUser;
 import com.laetienda.utils.service.api.ApiUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service("usr")
@@ -21,5 +20,11 @@ public class FrontendUserServiceImplementation implements FrontendUserService {
     public KcUser getCurrentUser() {
         log.debug("USER_SERVICE::getCurrentUser.");
         return api.getCurrentUser();
+    }
+
+    @Override
+    public KcUser getUser(String userId){
+        log.debug("USER_SERVICE::getUser. | $userId: {}", userId);
+        return api.getUserWithWebAppService(userId);
     }
 }

@@ -33,8 +33,8 @@ public class WebappTestConfiguration {
     }
 
     @Bean
-    public ApiUser getUserApi(){
-        return new ApiUserImplementation(httpClient, env, json);
+    public ApiUser getUserApi(ToolBoxService tb){
+        return new ApiUserImplementation(httpClient, env, json, tb);
     }
 
     @Bean
@@ -53,8 +53,8 @@ public class WebappTestConfiguration {
     }
 
     @Bean
-    public ApiSchemaGroup getApiSchemaGroup(){
-        return new ApiSchemaGroupImplementation(httpClient);
+    public ApiSchemaGroup getApiSchemaGroup(ToolBoxService tb){
+        return new ApiSchemaGroupImplementation(httpClient, tb);
     }
 
     @Bean

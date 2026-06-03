@@ -52,6 +52,7 @@ public class User {
         String jwtToken = testUserRepo.getToken(user.getUsername(), password);
         testUserRepo.getEmailAddress(user.getId(), clientRegistrationId);
         user = testUserRepo.getUserWithToken(jwtToken);
+        user = testUserRepo.getUserWithClientId(user.getId());
 
         //SUCCESSFUL: Delete user
         testUserRepo.delete(user.getId(), jwtToken, clientRegistrationId);

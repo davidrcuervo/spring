@@ -1,5 +1,6 @@
 package com.laetienda.utils.service.api;
 
+import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
@@ -14,9 +15,14 @@ import java.util.function.Consumer;
 public abstract class ApiRestClientImplementation implements ApiRestClient {
 
     private final RestClient client;
+    private final ToolBoxService tb;
 
-    public ApiRestClientImplementation(RestClient restClient) {
+    public ApiRestClientImplementation(
+            RestClient restClient,
+            ToolBoxService toolBoxService
+    ) {
         this.client = restClient;
+        this.tb = toolBoxService;
     }
 
     @Override
@@ -56,6 +62,7 @@ public abstract class ApiRestClientImplementation implements ApiRestClient {
             Class<T> responseType,
             Consumer<Map<String, Object>> attributes,
             String address,
+            Map<String, String> params,
             Object... uriVariables
 
     ) throws HttpStatusCodeException {
@@ -64,8 +71,10 @@ public abstract class ApiRestClientImplementation implements ApiRestClient {
                 ResolvableType.forClassWithGenerics(List.class, responseType).getType()
         );
 
+        String uri = tb.setAddressParams(params, address, uriVariables);
+
         return client.get()
-                .uri(address, uriVariables)
+                .uri(uri)
                 .accept(MediaType.APPLICATION_JSON)
                 .attributes(attributes != null ? attributes : a -> {})
                 .retrieve()

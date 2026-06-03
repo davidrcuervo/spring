@@ -4,4 +4,6 @@ import com.laetienda.model.kc.KcUser;
 
 public interface FrontendUserService {
     KcUser getCurrentUser();
+
+    KcUser getUser(String userId);
 }

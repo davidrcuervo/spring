@@ -263,7 +263,7 @@ api:
       vanityUrl:
         file: /find/vanityUrl/{vanityUrl}
         uri: ${api.company.uri}${api.company.find.vanityUrl.file}
-      all: #METHOD: get | BODY: null | CODE: 200 | RESPO: List<Company.class> | Params: manger, owner, member
+      all: #METHOD: get | BODY: null | CODE: 200 | RESPO: List<Company.class> | Params: manager, owner, member
         file: /find/all # /api/v0/company/find/all?manager={userId}&owner={userId}}
         uri: ${api.company.uri}${api.company.find.all.file}
     findByName: # METHOD: get | BODY: null | CODE: 200 | RESP: Company.class
