@@ -1,6 +1,6 @@
 package com.laetienda.utils.service.api;
 
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -36,6 +36,7 @@ public interface ApiCompany extends ApiRestClient{
     Company updateDescription(Long id, String description, String token) throws HttpStatusCodeException;
     Company updateContent(Long id, Map<String, String> body, String token) throws HttpStatusCodeException;
     Member addMember(Long companyId, String userId, String token) throws  HttpStatusCodeException;
+    Member findMember(long companyId, String userId)throws HttpStatusCodeException;
     Member findMember(Long companyId, String userId, String token) throws HttpStatusCodeException;
 
     //MEMBERS | GET ALL

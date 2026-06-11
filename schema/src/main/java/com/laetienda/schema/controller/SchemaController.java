@@ -3,7 +3,7 @@ package com.laetienda.schema.controller;
 import com.laetienda.lib.exception.NotValidCustomException;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.service.ItemService;
-import com.laetienda.utils.lib.Attention;
+import com.laetienda.lib.options.Attention;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

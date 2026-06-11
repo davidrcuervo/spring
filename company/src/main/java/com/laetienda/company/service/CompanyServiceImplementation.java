@@ -8,7 +8,7 @@ import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;
-import com.laetienda.utils.lib.Attention;
+import com.laetienda.lib.options.Attention;
 import com.laetienda.utils.service.api.ApiSchema;
 import com.laetienda.utils.service.api.ApiUser;
 import jakarta.servlet.http.HttpServletRequest;

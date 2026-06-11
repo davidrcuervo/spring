@@ -58,6 +58,14 @@ public class KcUserServiceImplementation implements KcUserService{
     }
 
     @Override
+    public KcUser getUserById(String userId) throws HttpStatusCodeException {
+        log.debug("SERVICE_USER::getUserById | $userId: {}",  userId);
+        tb.isServiceIfNotThrowException();
+
+        return repo.findByUserId(userId);
+    }
+
+    @Override
     public String isUsernameValid(String username) throws NotValidCustomException {
         log.debug("USER_SERVICE::isUsernameValid. $username: {}", username);
         return findByUsername(username).getId();

@@ -1,6 +1,6 @@
 package com.laetienda.model.kc;
 
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import net.minidev.json.annotate.JsonIgnore;
@@ -81,7 +81,7 @@ public class KcUser implements InputOptions {
 
     @Override
     public String getValue() {
-        return this.getUsername();
+        return this.getId();
     }
 
     @Override

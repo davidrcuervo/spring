@@ -1,7 +1,9 @@
 package com.laetienda.webapp_test.service;
 
 import com.laetienda.model.kc.KcUser;
+import com.laetienda.model.user.TestUserDto;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.utils.lib.UtilsBox;
 import com.laetienda.webapp_test.repository.TestUserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +18,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class User {
     private final static Logger log = LoggerFactory.getLogger(User.class);
 
-    private final TestUserRepo testUserRepo;
-
     @Value("${kc.client-registration-id.webapp}")
     private String clientRegistrationId;
 
-    public User(TestUserRepo testUserRepo) {
+    private final TestUserRepo testUserRepo;
+
+    public User(
+            TestUserRepo testUserRepo
+    ) {
         this.testUserRepo = testUserRepo;
     }
 

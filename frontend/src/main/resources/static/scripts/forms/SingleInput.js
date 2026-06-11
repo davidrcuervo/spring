@@ -1,10 +1,16 @@
 export default class SingleInput {
     constructor(formEl) {
         this.form = formEl;
-        this.input = formEl.querySelector('input');
+        let formId = formEl.id;
+        let inputId = formId + 'Input';
+        let modalId = inputId + 'Modal';
+        console.log("inputId: " + inputId);
+        this.input = formEl.querySelector('input#' + inputId)
+                        ?? formEl.querySelector('select#' + inputId);
         this.editBtn = formEl.querySelector('button.btn-outline-primary');
         this.saveBtn = formEl.querySelector('button.btn-outline-success');
         this.cancelBtn = formEl.querySelector('button.btn-outline-danger');
+        this.confirmModalBtn = formEl.querySelector('#' + modalId + ' .modal-footer button.btn-primary');
         this.value = this.input.value;
         this.bindEvents();
     }
@@ -12,6 +18,7 @@ export default class SingleInput {
     bindEvents(){
         this.editBtn.addEventListener('click', () => this.onEdit());
         this.cancelBtn.addEventListener('click', () => this.onCancel());
+        this.confirmModalBtn.addEventListener('click', () => this.onConfirmModal());
         this.form.addEventListener('submit', (e) => this.onSubmit(e));
     }
 
@@ -34,5 +41,9 @@ export default class SingleInput {
     onSubmit(e){
         e.preventDefault();
         console.log('Submitting company update name form');
+    }
+
+    onConfirmModal(){
+        this.form.submit();
     }
 }

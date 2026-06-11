@@ -1,9 +1,13 @@
-package com.laetienda.kcUser.controller;
+package com.laetienda.kcUser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.model.kc.KcUser;
+import com.laetienda.model.user.TestUserDto;
 import com.laetienda.model.user.Usuario;
+import com.laetienda.utils.lib.UtilsBox;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -12,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +28,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -31,13 +40,17 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(UserTestConfiguration.class)
 class UserTest {
     private final static Logger log = LoggerFactory.getLogger(UserTest.class);
     private final String userPassword = "secretPassword";
 
+    private static Map<Integer, TestUserDto> USERS;
+
     @Autowired private MockMvc mvc;
     @Autowired private Environment env;
     @Autowired private ObjectMapper json;
+    @Autowired private UserTestMvcRepository repo;
 
     @Value("${webapp.user.test.userId}")
     private String testUserId;
@@ -226,6 +239,31 @@ class UserTest {
     }
 
     @Test
+    void cycle2() throws Exception{
+        final String password = "secretPassword";
+        KcUser user = repo.create(
+                "testUser_cycle2",
+                "Test", "Cycle2", "User Test",
+                "cycle2_testuser@address.mail.com",
+                password, password,
+                USERS.get(0).getToken()
+        );
+        assertNotNull(user);
+        assertFalse(user.isEmailVerified());
+        assertFalse(user.isEnabled());
+
+        user = repo.enable(user.getId(), USERS.get(0).getToken());
+        assertTrue(user.isEmailVerified());
+        assertTrue(user.isEnabled());
+
+        String token = repo.getToken(user.getUsername(), password);
+
+        user = repo.getUser(token);
+
+        repo.remove(user.getId(), token);
+    }
+
+    @Test
     void cycle() throws Exception {
         KcUser user = createUser();
         validateUser(user);
@@ -360,5 +398,67 @@ class UserTest {
         mvc.perform(get(address, user.getId())
                         .with(jwt().authorities(new SimpleGrantedAuthority("role_service"))))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void getUserById() throws Exception {
+        KcUser user = repo.getUserById(USERS.get(1).getUserId(), USERS.get(0).getToken());
+        assertNotNull(user);
+        assertEquals(user.getId(), USERS.get(1).getUserId());
+        assertTrue(user.isEnabled());
+    }
+
+    @Test
+    public void getUserByIdWithNoServiceToken(){
+        fail();
+    }
+
+    @Test
+    public void getUserByIdWithWrongUserId(){
+        fail();
+    }
+
+    @BeforeAll
+    public static void beforeAll(
+            @Autowired UtilsBox utils,
+            @Autowired UserTestMvcRepository repo
+    ) throws Exception {
+        if(USERS == null){
+            USERS = new HashMap<>();
+        }
+
+        USERS.put(0, utils.getServiceUserDto());
+
+        List<String> firstName = List.of("none", "First", "Second", "Third", "Fourth");
+
+        for(int c=1; c <= 3; c++) {
+            String password = String.format("secretPassword%d", c);
+
+            KcUser user = repo.create(
+                    String.format("testUser_kcUser_%d", c),
+                    firstName.get(c), "KcUser", "Test User",
+                    String.format("%s_testUser@address.mail.com", firstName.get(c)),
+                    password, password,
+                    USERS.get(0).getToken()
+            );
+
+            repo.enable(user.getId(), USERS.get(0).getToken());
+            String token = repo.getToken(user.getUsername(), password);
+            USERS.put(c, new TestUserDto(user.getId(), token));
+        }
+    }
+
+    @AfterAll
+    public static void afterAll(
+            @Autowired UserTestMvcRepository repo
+    )throws Exception {
+        for(Map.Entry<Integer, TestUserDto> entry : USERS.entrySet()){
+            if (entry.getKey() != 0) {
+                repo.remove(
+                        entry.getValue().getUserId(),
+                        entry.getValue().getToken()
+                );
+            }
+        }
     }
 }

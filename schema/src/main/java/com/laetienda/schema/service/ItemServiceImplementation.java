@@ -7,7 +7,7 @@ import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.schema.DbItem;
 import com.laetienda.schema.repository.ItemRepository;
 import com.laetienda.schema.repository.SchemaRepository;
-import com.laetienda.utils.lib.Attention;
+import com.laetienda.lib.options.Attention;
 import com.laetienda.utils.service.api.ApiUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

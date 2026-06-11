@@ -1,7 +1,7 @@
 package com.laetienda.utils.service.api;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
@@ -223,6 +223,11 @@ public class ApiCompanyImplementation extends ApiRestClientImplementation implem
                 a -> a.put("jwtToken", token),
                 addCompanyMemberUri, companyId, userId
         );
+    }
+
+    @Override
+    public Member findMember(long companyId, String userId)throws HttpStatusCodeException{
+        return super.get(Member.class, null, findCompanyMemberUri, companyId, userId);
     }
 
     @Override

@@ -28,9 +28,15 @@ public class UserController {
     @Autowired private KcUserService service;
 
     @GetMapping("${api.kcUser.find.file}") //find.html
-    public ResponseEntity<KcUser> find(){
+    public ResponseEntity<KcUser> getUser(){
         log.info("USER_CONTROLLER::find");
         return ResponseEntity.ok(service.find());
+    }
+
+    @GetMapping("${api.kcUser.find.byUserId.file}") //api/v0/user/find/{userId}
+    public ResponseEntity<KcUser> getUserById(@PathVariable String userId)throws HttpStatusCodeException{
+        log.info("CONTROLLER_USER::getUserById | $userId: {}", userId);
+        return ResponseEntity.ok(service.getUserById(userId));
     }
 
     @PostMapping("${api.kcUser.token.file}")

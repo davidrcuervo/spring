@@ -8,4 +8,6 @@ public interface UtilsBox {
     String getCurrentUser() throws NotValidCustomException;
     TestUserDto[] getTestUsers(int numberOfUsers, String username) throws HttpStatusCodeException;
     void deleteTestUsers(TestUserDto[] testUsers) throws HttpStatusCodeException;
+
+    TestUserDto getServiceUserDto();
 }

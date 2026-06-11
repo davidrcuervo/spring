@@ -9,6 +9,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public interface KcUserService {
     KcUser find();
     String getToken(MultiValueMap<String, String> creds);
+    KcUser getUserById(String userId) throws HttpStatusCodeException;
     String isUsernameValid(String username) throws NotValidCustomException;
     String isUserIdValid(String userId) throws NotValidCustomException;
     Boolean userIdExists(String userId) throws HttpStatusCodeException;
@@ -16,4 +17,5 @@ public interface KcUserService {
     KcUser createUser(Usuario user) throws NotValidCustomException;
     KcUser enable(String userId) throws HttpStatusCodeException;
     void deleteUser(String userId) throws HttpStatusCodeException;
+
 }

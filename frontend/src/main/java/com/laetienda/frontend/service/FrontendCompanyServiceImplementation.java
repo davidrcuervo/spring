@@ -1,7 +1,7 @@
 package com.laetienda.frontend.service;
 
 import com.laetienda.lib.options.CompanyMemberStatus;
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.kc.KcUser;
@@ -23,6 +23,9 @@ public class FrontendCompanyServiceImplementation implements FrontendCompanyServ
 
     @Value("${seo.company.file}")
     private String companyUri;
+    
+    @Value("${frontend.test.template.company}")
+    private boolean enableCompanyTestTemplate;
 
     private final ApiUser apiUser;
     private final ApiCompany api;
@@ -33,6 +36,11 @@ public class FrontendCompanyServiceImplementation implements FrontendCompanyServ
     ){
         this.api = apiCompany;
         this.apiUser = apiUser;
+    }
+
+    @Override
+    public boolean isCompanyTestTemplateEnabled(){
+        return enableCompanyTestTemplate;
     }
 
     @Override
@@ -160,17 +168,19 @@ public class FrontendCompanyServiceImplementation implements FrontendCompanyServ
     }
 
     @Override
-    public boolean isManager(Member member){
-        log.debug("SERVICE_COMPANY::isManager | $memberId: {}", member.getId());
-        return member.getCompany().getEditorGroups().stream().anyMatch(group ->
-            group.getOwner().equals(member.getUserId()) ||
-            group.getMembers().contains(member.getUserId())
+    public boolean isManager(Company company, String userId){
+        log.debug("SERVICE_COMPANY::isManager | $company: {} | $memberId: {}", company.getVanityUrl(), userId);
+
+        return company.getEditorGroups().stream().anyMatch(group ->
+            group.getOwner().equals(userId) ||
+            group.getMembers().contains(userId)
         );
     }
 
     @Override
-    public boolean isAccepted(Member member){
-        log.debug("SERVICE_COMPANY::isAccepted | $memberId: {}", member.getId());
+    public boolean isAccepted(Company company, String userId){
+        log.debug("SERVICE_COMPANY::isAccepted | $company: {} | $memberId: {}", company.getVanityUrl(), userId);
+        Member member = api.findMember(company.getId(), userId);
         return member.getStatus().equals(CompanyMemberStatus.ACCEPTED);
     }
 }

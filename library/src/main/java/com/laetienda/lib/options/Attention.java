@@ -1,9 +1,10 @@
-package com.laetienda.utils.lib;
+package com.laetienda.lib.options;
 
 public enum Attention {
     PARSE_LONG_EXCEPTION(0xA001, "Failed to parse string to long. $error: %s"),
     INVALID_PARAM(0xA002, "Invalid parameter along uri. $param: %s"),
-    CLASS_CAST_EXCEPTION(0xA003, "Failed to cast clazz name. | $clazzName: %s | $exception: %s");
+    CLASS_CAST_EXCEPTION(0xA003, "Failed to cast clazz name. | $clazzName: %s | $exception: %s"),
+    NO_SERVICE(0xA004, "Authentication is not a service token | $name: %s");
 
     private final int code;
     private final String message;

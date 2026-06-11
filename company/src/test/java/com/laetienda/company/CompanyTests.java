@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.options.CompanyFriendStatus;
 import com.laetienda.lib.options.CompanyMemberPolicy;
 import com.laetienda.lib.options.CompanyMemberStatus;
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Friend;
 import com.laetienda.model.company.Member;

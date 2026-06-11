@@ -1,6 +1,6 @@
 package com.laetienda.frontend.service;
 
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import jakarta.validation.Valid;
@@ -11,6 +11,8 @@ import java.util.Set;
 
 public interface FrontendCompanyService {
 
+    boolean isCompanyTestTemplateEnabled();
+
     List<InputOptions> getAllCompanyMemberPolicies();
     String href(String vanityUrl);
     Company create(@Valid Company company, BindingResult bindingResult);
@@ -20,6 +22,6 @@ public interface FrontendCompanyService {
     Set<InputOptions> getMembers(Company company);
     Set<InputOptions> getManagers(Company company);
     Set<InputOptions> getTest(Company company);
-    boolean isManager(Member member);
-    boolean isAccepted(Member member);
+    boolean isManager(Company company, String userId);
+    boolean isAccepted(Company company, String userId);
 }

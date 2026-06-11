@@ -6,22 +6,41 @@
 >
     <head>
         <title>Manage companies</title>
+        <script type="module" th:src="@{/scripts/Company.js}"></script>
     </head>
     <body>
         <main layout:fragment="content" class="container mb-5">
             <h1 class="text-center my-2">Cortes de la Villa</h1>
 
             <!-- TESTING -->
-            <div th:each = "member : ${@comp.getManagers(company)}">
-                <div>member userId: <span th:text="${member.label}">userId</span></div>
+            <div th:if="${@comp.isCompanyTestTemplateEnabled()}">
+                <div th:each = "member : ${@comp.getManagers(company)}">
+                    <div>member userId: <span th:text="${member.value}">userId</span></div>
+                    <div>Full Name: <span th:text="${member.label}">Full Name</span></div>
+                </div>
+                <div>Owner: <span th:text="${company.owner}">Owner</span></div>
+                <div>Policy: <span th:text="${company.memberPolicy}">policy</span></div>
+                <div th:each="policy : ${@comp.allCompanyMemberPolicies}">
+                    <div>Policy option: <span th:text="${policy.value}">policy option</span></div>
+                </div>
+                <div th:each="member : ${@comp.getMembers(company)}"
+                    th:with="user=${@usr.getUser(member.value)}"
+                >
+                    <div>Full Name: <span th:text="${user.fullName}">Full name</span></div>
+                    <div>is manager: <span th:text="${@comp.isManager(company, user.id) ? 'true' : 'false'}">is Manager</span></div>
+                </div>
+                <div th:each="error : ${ {'first mistake', 'second mistake', 'third mistake'} }">
+                    Error: <span th:text="${error}">error</span>
+                </div>
             </div>
             <!-- Update Company name -->
-            <form th:action="@{${@tt.href('seo.manage.company.update.name', company.vanityUrl)}}"
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', company.vanityUrl, 'name')}}"
                   method="post"
                   id="companyNameForm"
             >
                 <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
                     id='companyNameForm',
+                    action='update company name',
                     type='text',
                     label='Company Name',
                     placeholder='Insert the name of the company.',
@@ -31,9 +50,9 @@
                     modalTitle='Update Company Name',
                     modalBody='Are you sure you want to modify the name of the company?',
                     onInputBefore=null,
-                    success=null,
-                    hasErrors=false,
-                    errors=null
+                    success=${feedback.hasSuccess('name') ? feedback.getSuccess('name') : null},
+                    hasErrors=${feedback.hasErrors('name')},
+                    errors=${feedback.getErrors('name')}
                 )}"></th:block>
             </form>
             <!-- Update company vanityUrl -->
@@ -42,7 +61,8 @@
                   id="companyVanityUrlForm"
             >
                 <div th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
-                    id='companyVanityUrl',
+                    id='companyVanityUrlForm',
+                    action='update company vanity url',
                     type='text',
                     label='Vanity URL',
                     placeholder='How do you want your company to look like on internet.',
@@ -63,13 +83,14 @@
                   id="companyOwnerForm"
             >
                 <th:block th:replace="~{layout/bootstrap.html :: inputWithButtonsAndFeedbackAndResponsive(
-                    id='companyOwner',
+                    id='companyOwnerForm',
+                    action='update company owner',
                     type='select',
                     label='Owner',
                     placeholder='Select the owner of the company.',
                     name='owner',
                     value=${company.owner},
-                    options=null,
+                    options=${@comp.getManagers(company)},
                     modalTitle='Update Company Owner',
                     modalBody='Are you sure you want other person the owns the company? You can not undo this modification, only owner can modify the owner.',
                     onInputBefore=null,
@@ -84,12 +105,13 @@
                   id="companyPolicyForm"
             >
                 <th:block th:replace="~{layout/bootstrap.html ::inputWithSaveButtonAndFeedbackAndResponsive(
-                    id = 'companyPolicy',
+                    id = 'companyPolicyForm',
+                    action = 'update company policy',
                     type = 'select',
                     label = 'Company policy',
                     placeholder = 'Select the policy for new members of the company',
                     name='memberPolicy',
-                    value = ${company.memberPolicy},
+                    value = ${company.memberPolicy.name()},
                     options = ${@comp.allCompanyMemberPolicies},
                     onInputBefore = null,
                     attributes = null,
@@ -101,9 +123,11 @@
             <!-- Update description -->
             <form action="/manage/company/{companyId}/update/description?redirect=/manage/company/{companyId}"
                   method="post"
+                  id="updateCompanyDescriptionForm"
             >
                 <th:block th:replace="~{layout/bootstrap.html ::inputWithSaveButtonAndFeedbackAndResponsive(
-                    id='updateCompanyDescription',
+                    id='updateCompanyDescriptionForm',
+                    action = 'update company description',
                     type='textarea',
                     label='Description',
                     placeholder='Insert the description of the company.',
@@ -126,9 +150,9 @@
                     <th scope="col" class="text-center">Enabled</th>
                 </tr>
             </thead>
-            <tbody th:with="members=${@comp.getMembers(company)}" class="table-group-divider">
-                <tr th:each="member=${members}"
-                    th:with="user=${@usr.getUser(member.userId)}"
+            <tbody class="table-group-divider">
+                <tr th:each="member : ${@comp.getMembers(company)}"
+                    th:with="user=${@usr.getUser(member.value)}"
                 >
                     <td th:text="${user.fullName}">Member Name</td>
                     <td class="text-center">
@@ -137,18 +161,20 @@
                               class="checkBoxWithModal"
                         >
                             <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
-                                id = |${member.userId}ManagerCheckBoxInput|,
+                                id = |${user.id}ManagerCheckBoxInput|,
                                 type = checkbox,
                                 label = null,
                                 placeholder = null,
-                                value = ${member.userId},
+                                name = 'managerUserId',
+                                value = ${user.id},
                                 options = null,
-                                attributes = ${ {@comp.isManager(member) ? 'checked' : null} },
+                                attributes = ${ {@comp.isManager(company, user.id) ? 'checked' : null} },
                                 success = 'Manager added successfully',
-                                error = null
+                                hasErrors = false,
+                                errors = null
                             )}"></th:block>
                             <th:block th:replace="~{layout/bootstrap.html :: modal(
-                                id=|${member.userId}ManagerCheckBoxModal|,
+                                id=|${user.id}ManagerCheckBoxModal|,
                                 title='Modify company manager',
                                 body='You are about to modify manager of the company. Do you want to continue?'
                             )}"></th:block>
@@ -160,18 +186,20 @@
                               class="checkBoxWithModal"
                         >
                             <th:block th:replace="~{layout/bootstrap.html :: inputWithFeedback(
-                                id = |${member.userId}AcceptMemberCheckBox|,
+                                id = |${user.id}AcceptMemberCheckBox|,
                                 type = checkbox,
                                 label = null,
                                 placeholder = null,
-                                value = ${member.userId},
+                                name = 'memberUserId',
+                                value = ${user.id},
                                 options = null,
-                                attributes = ${ {@comp.isAccepted(member) ? 'checked' : null} },
+                                attributes = ${ {@comp.isAccepted(company, user.id) ? 'checked' : null} },
                                 success = null,
-                                error = 'Member does have valid email address.'
+                                hasErrors = true,
+                                errors = 'Member does have valid email address.'
                             )}"></th:block>
                             <th:block th:replace="~{layout/bootstrap.html :: modal(
-                                id=|${member.userId}AcceptMemberCheckBoxModal|,
+                                id=|${user.id}AcceptMemberCheckBoxModal|,
                                 title='Modify member access (accept | block)',
                                 body='You are about to accept/block user. Do you want to continue?'
                             )}"></th:block>

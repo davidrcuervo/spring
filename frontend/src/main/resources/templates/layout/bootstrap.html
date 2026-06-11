@@ -58,9 +58,11 @@
 </th:block>
 
 <!-- Button - Save -->
-<th:block th:fragment="saveButton(target)">
+<th:block th:fragment="saveButton(target, action)">
     <button class="btn btn-outline-success d-none"
-            type="button"
+            type="submit"
+            name="action"
+            th:value="${action}"
             data-bs-toggle="modal"
             th:data-bs-target="|#${target}|"
     >
@@ -103,7 +105,7 @@
                     >
                         No
                     </button>
-                    <button type="submit"
+                    <button type="button"
                             class="btn btn-primary"
                     >
                         Yes
@@ -132,7 +134,7 @@
          th:id="|${id}InputValidation|"
          class="is-invalid invalid-feedback"
     >
-        <span th:each="error : ${errors}" th:text="${error}">Not Accepted :(</span>
+        <div th:each="error : ${errors}">* <span th:text="${error}">Not Accepted :(</span></div>
     </div>
     <!-- if success -->
     <div th:if="${!hasErrors && success != null}"
@@ -203,7 +205,7 @@
         <option th:each="option : ${options}"
                 th:value="${option.value}"
                 th:text="${option.label}"
-                th:selected="${option == value}"
+                th:selected="${value eq option.value}"
         >
         </option>
 
@@ -309,6 +311,7 @@
 <!-- input With Update Button + Feedback + Responsive -->
 <th:block th:fragment="inputWithSaveButtonAndFeedbackAndResponsive(
     id,
+    action,
     type,
     label,
     placeholder,
@@ -344,7 +347,11 @@
                         errors=${errors},
                         attributes=${attributes}
                     )}"></th:block>
-                <button type="submit" class="btn btn-outline-success">
+                <button type="submit"
+                        class="btn btn-outline-success"
+                        name="action"
+                        th:value="${action}"
+                >
                     <i class="bi bi-floppy"></i>
                     <span class="d-none d-md-inline">Save</span>
                 </button>
@@ -362,6 +369,7 @@
 <!-- input With Buttons + Feedback + Responsive -->
 <th:block th:fragment="inputWithButtonsAndFeedbackAndResponsive(
     id,
+    action,
     type,
     label,
     placeholder,
@@ -406,7 +414,10 @@
                 <th:block th:replace="~{::cancelButton(for=|${id}Input|)}"></th:block>
 
                 <!-- Save button -->
-                <th:block th:replace="~{::saveButton(target=${modalId})}"></th:block>
+                <th:block th:replace="~{::saveButton(
+                    target=${modalId},
+                    action=${action}
+                )}"></th:block>
 
                 <!-- validation -->
                 <th:block th:replace="~{::validation(

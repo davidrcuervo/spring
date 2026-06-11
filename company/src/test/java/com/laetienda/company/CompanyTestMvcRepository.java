@@ -3,7 +3,7 @@ package com.laetienda.company;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laetienda.lib.options.CompanyMemberPolicy;
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;

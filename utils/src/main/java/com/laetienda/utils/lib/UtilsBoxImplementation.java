@@ -8,7 +8,6 @@ import com.laetienda.utils.service.api.ApiUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
@@ -72,7 +71,21 @@ public class UtilsBoxImplementation implements UtilsBox{
             result[j] = new TestUserDto(kcUser.getId(), token);
         }
 
-        //SET SERVICE ACCOUNT IN USERS ARRAY
+        result[0] = getServiceUserDto();
+        return result;
+    }
+
+    @Override
+    public void deleteTestUsers(TestUserDto[] testUsers) throws HttpStatusCodeException {
+        for(int j = 1; j < testUsers.length; j++) {
+            apiUser.delete(testUsers[j].getUserId(), testUsers[j].getToken());
+        }
+    }
+
+    @Override
+    public TestUserDto getServiceUserDto(){
+        log.debug("UTILS_BOX::getServiceUserDto | ");
+
         OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
                 .withClientRegistrationId(clientRegistrationId)
                 .principal("test-system") // Identity of the requester
@@ -88,16 +101,7 @@ public class UtilsBoxImplementation implements UtilsBox{
             String serviceAccountToken = authorizedClient.getAccessToken().getTokenValue();
             Jwt jwt = NimbusJwtDecoder.withJwkSetUri(kcCerts).build().decode(serviceAccountToken);
 
-            result[0] = new TestUserDto(jwt.getSubject(), serviceAccountToken);
-        }
-
-        return result;
-    }
-
-    @Override
-    public void deleteTestUsers(TestUserDto[] testUsers) throws HttpStatusCodeException {
-        for(int j = 1; j < testUsers.length; j++) {
-            apiUser.delete(testUsers[j].getUserId(), testUsers[j].getToken());
+            return new TestUserDto(jwt.getSubject(), serviceAccountToken);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.laetienda.webapp_test.repository;
 
 import com.laetienda.lib.options.CompanyMemberPolicy;
-import com.laetienda.lib.options.InputOptions;
+import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.model.company.Company;
 import com.laetienda.model.company.Member;
 import com.laetienda.model.user.TestUserDto;

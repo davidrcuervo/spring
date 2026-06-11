@@ -1,4 +1,4 @@
-package com.laetienda.lib.options;
+package com.laetienda.lib.interfaces;
 
 public interface InputOptions {
     String getValue();

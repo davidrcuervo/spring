@@ -1,5 +1,6 @@
 package com.laetienda.frontend.controller;
 
+import com.laetienda.frontend.model.Feedback;
 import com.laetienda.frontend.service.FrontendCompanyService;
 import com.laetienda.lib.service.ToolBoxService;
 import com.laetienda.model.company.Company;
@@ -10,11 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
@@ -25,6 +24,9 @@ public class FrontendCompanyController {
 
     @Value("${seo.manage.company.create}")
     private String companyCreateUri;
+
+    @Value("${seo.manage.company.find}")
+    private String manageCompanyUri;
 
     @Value("${seo.thankYou.company.create.uri}")
     private String thankYouCompanyCreateUri;
@@ -71,12 +73,53 @@ public class FrontendCompanyController {
     }
 
     @GetMapping("${seo.manage.company.find}")
-    public String getManageCompany(@PathVariable String vanityUrl, Model model){
-        log.debug("CONTROLLER_MANAGE_COMPANY::getManageCompany");
+    public String getManageCompany(
+            @PathVariable String vanityUrl,
+            Model model,
+            HttpSession session
+    ){
+        log.debug("CONTROLLER_MANAGE_COMPANY::getManageCompany | $vanityUrl: {}", vanityUrl);
 
         Company company = service.getCompanyByVanityUrl(vanityUrl);
         model.addAttribute("company", company);
 
+        Feedback feedback = getFeedback(session, model);
+
         return "manage/company/manageCompany.html";
+    }
+
+    @PostMapping("${seo.manage.company.update.pattern}") //manage/company/{vanityUrl}/update/{field}.do
+    public String postManageCompany(
+            @PathVariable String vanityUrl,
+            @PathVariable String field,
+            @RequestParam MultiValueMap<String, String> params,
+            Model model,
+            HttpSession session
+    ){
+        log.debug("CONTROLLER_MANAGE_COMPANY::postManageCompany | $field: {} | $vanityUrl: {}", field, vanityUrl);
+
+        Feedback feedback = (Feedback) session.getAttribute("feedback");
+        feedback.addSuccess(
+                field,
+                "{field} has been updated successfully".replace("{field}", field)
+        );
+
+        String redirect = tb.setAddressParams(null, manageCompanyUri, vanityUrl);
+        return String.format("redirect:%s", redirect);
+    }
+
+    private Feedback getFeedback(HttpSession session, Model model) {
+        Feedback result;
+
+        if(session.getAttribute("feedback") == null) {
+            result = new Feedback();
+            session.setAttribute("feedback", result);
+            model.addAttribute("feedback", result);
+        }else{
+            result = (Feedback) session.getAttribute("feedback");
+            session.removeAttribute("feedback");
+        }
+
+        return result;
     }
 }

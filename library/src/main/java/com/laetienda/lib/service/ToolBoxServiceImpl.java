@@ -1,8 +1,10 @@
 package com.laetienda.lib.service;
 
+import com.laetienda.lib.options.Attention;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +13,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -152,6 +156,20 @@ public class ToolBoxServiceImpl implements ToolBoxService {
             return authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .anyMatch(aut -> aut.equals(authority));
+        }
+    }
+
+    @Override
+    public void isServiceIfNotThrowException() throws HttpServerErrorException {
+        String username = this.getCurrentUsername();
+        log.debug("TOOLBOX::isServiceIfNotThrowException | $user: {}", username);
+
+        if(!hasAuthority("role_service")) {
+            log.warn("TOOLBOX::isServiceIfNotThrowException | {}", Attention.NO_SERVICE.getError(username));
+            throw new HttpClientErrorException(
+                    HttpStatus.UNAUTHORIZED,
+                    Attention.NO_SERVICE.getMessage(username)
+            );
         }
     }
 

@@ -42,7 +42,7 @@ public class ApiUserImplementation extends ApiRestClientImplementation implement
     @Value("${api.kcUser.uri.userIdExists}")
     private String userIdExistsUri;
 
-    @Value("${api.kc.realm.admin.user.byUserId}")
+    @Value("${api.kcUser.find.byUserId.uri}")
     private String userByIdUri;
 
     @Value("${api.kcUser.uri.create}")

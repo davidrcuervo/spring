@@ -28,7 +28,7 @@ seo:
       find: ${seo.manage.company.folder}/{vanityUrl}.html
       update: # METHOD: POST | PARAMS: { redirect }
         folder: ${seo.manage.company.folder}/update
-        pattern: ${seo.manage.company.update.folder}/{field}?redirect=${seo.manage.company.find}
+        pattern: ${seo.manage.company.folder}/{vanityUrl}/update/{field}.do
         name: ${seo.manage.company.update.folder}/name?redirect=${seo.manage.company.find}
     test:
       file: /test.html
@@ -72,6 +72,9 @@ api:
     find:
       file: find
       uri: ${api.kcUser.uri.folder}/${api.kcUser.find.file}
+      byUserId:
+        file: /find/{userId}
+        uri: ${api.kcUser.uri.folder}${api.kcUser.find.byUserId.file}
     token:
       file: token
       uri: ${api.kcUser.uri.folder}/${api.kcUser.token.file}

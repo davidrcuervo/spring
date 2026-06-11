@@ -20,3 +20,9 @@ spring:
           keycloaket:
             issuer-uri: ${api.kc.realm.uri}
             user-name-attribute: preferred_username
+
+frontend:
+  test:
+    template:
+      user: false
+      company: true
