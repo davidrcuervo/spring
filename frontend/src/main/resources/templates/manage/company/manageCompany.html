@@ -33,6 +33,7 @@
                     Error: <span th:text="${error}">error</span>
                 </div>
             </div>
+
             <!-- Update Company name -->
             <form th:action="@{${@tt.href('seo.manage.company.update.pattern', company.vanityUrl, 'name')}}"
                   method="post"
@@ -50,13 +51,14 @@
                     modalTitle='Update Company Name',
                     modalBody='Are you sure you want to modify the name of the company?',
                     onInputBefore=null,
-                    success=${feedback.hasSuccess('name') ? feedback.getSuccess('name') : null},
+                    success=${feedback.getSuccess('name')},
                     hasErrors=${feedback.hasErrors('name')},
                     errors=${feedback.getErrors('name')}
                 )}"></th:block>
             </form>
+
             <!-- Update company vanityUrl -->
-            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', 'vanityUrl', company.vanityUrl)}}"
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', company.vanityUrl, 'vanityUrl')}}"
                   method="post"
                   id="companyVanityUrlForm"
             >
@@ -72,13 +74,14 @@
                     modalTitle='Update Company Vanity URL',
                     modalBody='Are you sure you want to modify your company vanity URL? Users will have to modify their bookmarks, and links on social networks should be updated.',
                     onInputBefore=|${@tt.href('seo.url')}/|,
-                    success='This message should not be displayed',
-                    hasErrors=false,
-                    errors=null
+                    success=${feedback.getSuccess('vanityUrl')},
+                    hasErrors=${feedback.hasErrors('vanityUrl')},
+                    errors=${feedback.getErrors('vanityUrl')}
                 )}"></div>
             </form>
+
             <!-- Update owner -->
-            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', 'owner', company.vanityUrl)}}"
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', company.vanityUrl, 'owner')}}"
                   method="post"
                   id="companyOwnerForm"
             >
@@ -94,13 +97,14 @@
                     modalTitle='Update Company Owner',
                     modalBody='Are you sure you want other person the owns the company? You can not undo this modification, only owner can modify the owner.',
                     onInputBefore=null,
-                    success='The owner of the company has been updated successfully!!',
-                    hasErrors=false,
-                    errors=null
+                    success=${feedback.getSuccess('owner')},
+                    hasErrors=${feedback.hasErrors('owner')},
+                    errors=${feedback.getErrors('owner')}
                 )}"></th:block>
             </form>
+
             <!-- Update Member policy -->
-            <form action="/manage/company/{companyId}/update/policy"
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', company.vanityUrl, 'memberPolicy')}}"
                   method="post"
                   id="companyPolicyForm"
             >
@@ -115,13 +119,14 @@
                     options = ${@comp.allCompanyMemberPolicies},
                     onInputBefore = null,
                     attributes = null,
-                    success = null,
-                    hasErrors = false,
-                    errors = null
+                    success = ${feedback.getSuccess('memberPolicy')},
+                    hasErrors = ${feedback.hasErrors('memberPolicy')},
+                    errors = ${feedback.getErrors('memberPolicy')}
                 )}"></th:block>
             </form>
+
             <!-- Update description -->
-            <form action="/manage/company/{companyId}/update/description?redirect=/manage/company/{companyId}"
+            <form th:action="@{${@tt.href('seo.manage.company.update.pattern', company.vanityUrl, 'description')}}"
                   method="post"
                   id="updateCompanyDescriptionForm"
             >
@@ -136,11 +141,12 @@
                     options = null,
                     onInputBefore=null,
                     attributes = null,
-                    success=null,
-                    hasErrors=false,
-                    errors=null
+                    success = ${feedback.getSuccess('description')},
+                    hasErrors = ${feedback.hasErrors('description')},
+                    errors = ${feedback.getErrors('description')}
                 )}"></th:block>
             </form>
+
             <!-- Members -->
             <table class="table table-borderless table-hover">
             <thead>
@@ -156,7 +162,7 @@
                 >
                     <td th:text="${user.fullName}">Member Name</td>
                     <td class="text-center">
-                        <form action="/manage/company/{companyId}/addManager/"
+                        <form th:action="@{${@tt.href('seo.manage.company.update.member', company.vanityUrl, 'manager', user.id)}}"
                               method="post"
                               class="checkBoxWithModal"
                         >
@@ -169,9 +175,9 @@
                                 value = ${user.id},
                                 options = null,
                                 attributes = ${ {@comp.isManager(company, user.id) ? 'checked' : null} },
-                                success = 'Manager added successfully',
-                                hasErrors = false,
-                                errors = null
+                                success = ${feedback.getSuccess('manager_' + user.id)},
+                                hasErrors = ${feedback.hasErrors('manager_' + user.id)},
+                                errors = ${feedback.getErrors('manager_' + user.id)}
                             )}"></th:block>
                             <th:block th:replace="~{layout/bootstrap.html :: modal(
                                 id=|${user.id}ManagerCheckBoxModal|,
@@ -181,7 +187,7 @@
                         </form>
                     </td>
                     <td class="text-center">
-                        <form action="/manage/company/{companyId}/blockUser/"
+                        <form th:action="@{${@tt.href('seo.manage.company.update.member', company.vanityUrl, 'member', user.id)}}"
                               method="post"
                               class="checkBoxWithModal"
                         >
@@ -194,9 +200,9 @@
                                 value = ${user.id},
                                 options = null,
                                 attributes = ${ {@comp.isAccepted(company, user.id) ? 'checked' : null} },
-                                success = null,
-                                hasErrors = true,
-                                errors = 'Member does have valid email address.'
+                                success = ${feedback.getSuccess('member_' + user.id)},
+                                hasErrors = ${feedback.hasErrors('member_' + user.id)},
+                                errors = ${feedback.getErrors('member_' + user.id)}
                             )}"></th:block>
                             <th:block th:replace="~{layout/bootstrap.html :: modal(
                                 id=|${user.id}AcceptMemberCheckBoxModal|,

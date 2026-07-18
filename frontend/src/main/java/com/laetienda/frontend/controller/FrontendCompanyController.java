@@ -83,7 +83,7 @@ public class FrontendCompanyController {
         Company company = service.getCompanyByVanityUrl(vanityUrl);
         model.addAttribute("company", company);
 
-        Feedback feedback = getFeedback(session, model);
+        setFeedback(session, model);
 
         return "manage/company/manageCompany.html";
     }
@@ -93,33 +93,42 @@ public class FrontendCompanyController {
             @PathVariable String vanityUrl,
             @PathVariable String field,
             @RequestParam MultiValueMap<String, String> params,
-            Model model,
             HttpSession session
     ){
         log.debug("CONTROLLER_MANAGE_COMPANY::postManageCompany | $field: {} | $vanityUrl: {}", field, vanityUrl);
 
-        Feedback feedback = (Feedback) session.getAttribute("feedback");
-        feedback.addSuccess(
-                field,
-                "{field} has been updated successfully".replace("{field}", field)
-        );
+        Feedback feedback = service.updateField(vanityUrl, field, params);
 
+        session.setAttribute("feedback", feedback);
         String redirect = tb.setAddressParams(null, manageCompanyUri, vanityUrl);
         return String.format("redirect:%s", redirect);
     }
 
-    private Feedback getFeedback(HttpSession session, Model model) {
-        Feedback result;
+    @PostMapping("${seo.manage.company.update.member}")
+    public String postManageMemberOfCompany(
+            @PathVariable String vanityUrl,
+            @PathVariable String role,
+            @PathVariable String userId,
+            @RequestParam MultiValueMap<String, String> params,
+            HttpSession session
+    ){
+        log.debug("CONTROLLER_COMPANY::postManageMemberOfCompany | $vanityUrl: {} | $role: {} | $userId: {}", vanityUrl, role, userId);
+
+        Feedback feedback = service.updateMember(vanityUrl, role, userId, params);
+
+        session.setAttribute("feedback", feedback);
+        String redirect = tb.setAddressParams(null, manageCompanyUri, vanityUrl);
+        return String.format("redirect:%s", redirect);
+    }
+
+    private void setFeedback(HttpSession session, Model model) {
 
         if(session.getAttribute("feedback") == null) {
-            result = new Feedback();
-            session.setAttribute("feedback", result);
-            model.addAttribute("feedback", result);
+            model.addAttribute("feedback", new Feedback());
         }else{
-            result = (Feedback) session.getAttribute("feedback");
+            Feedback feedback = (Feedback) session.getAttribute("feedback");
             session.removeAttribute("feedback");
+            model.addAttribute("feedback", feedback);
         }
-
-        return result;
     }
 }

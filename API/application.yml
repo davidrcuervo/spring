@@ -27,8 +27,9 @@ seo:
       create: ${seo.manage.company.folder}/create.html
       find: ${seo.manage.company.folder}/{vanityUrl}.html
       update: # METHOD: POST | PARAMS: { redirect }
-        folder: ${seo.manage.company.folder}/update
-        pattern: ${seo.manage.company.folder}/{vanityUrl}/update/{field}.do
+        folder: ${seo.manage.company.folder}/{vanityUrl}/update
+        pattern: ${seo.manage.company.update.folder}/{field}.do
+        member: ${seo.manage.company.update.folder}/{role}/{userId}.do
         name: ${seo.manage.company.update.folder}/name?redirect=${seo.manage.company.find}
     test:
       file: /test.html

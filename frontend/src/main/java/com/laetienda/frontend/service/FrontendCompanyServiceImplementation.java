@@ -1,5 +1,6 @@
 package com.laetienda.frontend.service;
 
+import com.laetienda.frontend.model.Feedback;
 import com.laetienda.lib.options.CompanyMemberStatus;
 import com.laetienda.lib.interfaces.InputOptions;
 import com.laetienda.model.company.Company;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -182,5 +184,31 @@ public class FrontendCompanyServiceImplementation implements FrontendCompanyServ
         log.debug("SERVICE_COMPANY::isAccepted | $company: {} | $memberId: {}", company.getVanityUrl(), userId);
         Member member = api.findMember(company.getId(), userId);
         return member.getStatus().equals(CompanyMemberStatus.ACCEPTED);
+    }
+
+    @Override
+    public Feedback updateField(String vanityUrl, String field, MultiValueMap<String, String> params) {
+        log.debug("SERVICE_COMPANY::update | $field: {} | $vanityUrl: {}", field, vanityUrl);
+
+        Feedback feedback = new Feedback();
+        feedback.addSuccess(
+                field,
+                "{field} has been updated successfully".replace("{field}", field)
+        );
+
+        return feedback;
+    }
+
+    @Override
+    public Feedback updateMember(String vanityUrl, String role, String userId, MultiValueMap<String, String> params) {
+        log.debug("SERVICE_COMPANY::updateMember | $vanityUrl: {} | $role: {} | $userId: {}", vanityUrl, role, userId);
+
+        Feedback feedback = new Feedback();
+        feedback.addSuccess(
+                String.format("%s_%s", role, userId),
+                String.format("%s has been updated successfully", role)
+        );
+
+        return feedback;
     }
 }

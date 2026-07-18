@@ -8,9 +8,9 @@ import java.util.Set;
 public class Feedback {
 
     private Map<String, Set<String>> errors;
-    private Map<String, Set<String>> success;
+    private Map<String, String> success;
     private Set<String> globalErrors;
-    private Set<String> globalSuccess;
+    private String globalSuccess;
 
     public Feedback() {
     }
@@ -55,15 +55,10 @@ public class Feedback {
         if(success == null)
             success = new HashMap<>();
 
-        if(!success.containsKey(field)) {
-            Set<String> set = new HashSet<>();
-            success.put(field, set);
-        }
-
-        success.get(field).add(message);
+        success.put(field, message);
     }
 
-    public Set<String> getSuccess(String field){
+    public String getSuccess(String field){
         if(success == null)
             success = new HashMap<>();
 
@@ -92,9 +87,6 @@ public class Feedback {
     }
 
     public void addGlobalSuccess(String message){
-        if(globalSuccess == null)
-            globalSuccess = new HashSet<>();
-
-        globalSuccess.add(message);
+        this.globalSuccess = message;
     }
 }
